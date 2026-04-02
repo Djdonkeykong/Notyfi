@@ -1,6 +1,17 @@
 import Combine
 import Foundation
 
+struct DraftComposerFeedback {
+    var primaryText: String
+    var secondaryText: String?
+    var primaryColorName: PrimaryColorName
+
+    enum PrimaryColorName {
+        case neutral
+        case accent
+    }
+}
+
 @MainActor
 final class HomeViewModel: ObservableObject {
     @Published var selectedDate: Date = Date()
@@ -14,11 +25,17 @@ final class HomeViewModel: ObservableObject {
 
     private let store: ExpenseJournalStore
     private let calendar: Calendar
+    private let parser: ExpenseParsingServicing
     private var cancellables = Set<AnyCancellable>()
 
-    init(store: ExpenseJournalStore, calendar: Calendar = .current) {
+    init(
+        store: ExpenseJournalStore,
+        calendar: Calendar = .current,
+        parser: ExpenseParsingServicing = PlaceholderExpenseParsingService()
+    ) {
         self.store = store
         self.calendar = calendar
+        self.parser = parser
 
         Publishers.CombineLatest(store.$entries, $selectedDate)
             .receive(on: DispatchQueue.main)
@@ -37,6 +54,45 @@ final class HomeViewModel: ObservableObject {
         !displayedEntries.isEmpty
     }
 
+    var draftFeedback: DraftComposerFeedback? {
+        let trimmed = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return nil
+        }
+
+        let parsed = parser.parse(rawText: trimmed, date: selectedDate, currencyCode: currencyCode)
+
+        if parsed.amount > 0 {
+            if parsed.confidence == .certain {
+                return DraftComposerFeedback(
+                    primaryText: parsed.amount.formattedCurrency(code: parsed.currencyCode),
+                    secondaryText: nil,
+                    primaryColorName: .accent
+                )
+            }
+
+            return DraftComposerFeedback(
+                primaryText: "Reviewing",
+                secondaryText: parsed.amount.formattedCurrency(code: parsed.currencyCode),
+                primaryColorName: .neutral
+            )
+        }
+
+        if trimmed.count < 8 {
+            return DraftComposerFeedback(
+                primaryText: "Reading",
+                secondaryText: nil,
+                primaryColorName: .neutral
+            )
+        }
+
+        return DraftComposerFeedback(
+            primaryText: "Parsing",
+            secondaryText: nil,
+            primaryColorName: .neutral
+        )
+    }
+
     func addEntry() {
         let trimmed = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
@@ -47,8 +103,51 @@ final class HomeViewModel: ObservableObject {
         composerText = ""
     }
 
+    func handleComposerChange() {
+        let normalized = composerText.replacingOccurrences(of: "\r\n", with: "\n")
+
+        if normalized != composerText {
+            composerText = normalized
+            return
+        }
+
+        guard normalized.contains("\n") else {
+            return
+        }
+
+        let parts = normalized.components(separatedBy: "\n")
+        let trailingDraft = parts.last ?? ""
+        let completedLines = parts
+            .dropLast()
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        for line in completedLines {
+            store.addEntry(from: line, on: selectedDate, currencyCode: currencyCode)
+        }
+
+        composerText = trailingDraft
+    }
+
     func resetToToday() {
         selectedDate = Date()
+    }
+
+    func moveSelection(by dayOffset: Int) {
+        guard dayOffset != 0 else {
+            return
+        }
+
+        selectedDate = calendar.date(byAdding: .day, value: dayOffset, to: selectedDate) ?? selectedDate
+    }
+
+    func date(forDayOffset dayOffset: Int) -> Date {
+        calendar.date(byAdding: .day, value: dayOffset, to: selectedDate) ?? selectedDate
+    }
+
+    func entries(for date: Date) -> [ExpenseEntry] {
+        store.entries(on: date)
+            .sorted { $0.date > $1.date }
     }
 
     private func recompute(entries: [ExpenseEntry], selectedDate: Date) {

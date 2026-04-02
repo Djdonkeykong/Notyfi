@@ -6,17 +6,11 @@ struct DatePickerSheetView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    NotelyTheme.background.opacity(0.72),
-                    Color.white.opacity(0.34)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            NotelyTheme.background
+                .opacity(0.92)
+                .ignoresSafeArea()
 
-            VStack(spacing: 18) {
+            VStack(spacing: 14) {
                 HStack {
                     Button("Today") {
                         selection = Date()
@@ -39,9 +33,9 @@ struct DatePickerSheetView: View {
                     .foregroundStyle(.primary.opacity(0.82))
                 }
                 .padding(.horizontal, 26)
-                .padding(.top, 20)
+                .padding(.top, 12)
 
-                GlassSurface(cornerRadius: 32, padding: 16) {
+                SoftSurface(cornerRadius: 30, padding: 10) {
                     DatePicker(
                         "",
                         selection: $selection,
@@ -52,10 +46,11 @@ struct DatePickerSheetView: View {
                     .tint(NotelyTheme.reviewTint)
                 }
                 .padding(.horizontal, 18)
+                .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 2)
 
                 Spacer(minLength: 0)
             }
-            .safeAreaPadding(.top, 18)
+            .safeAreaPadding(.top, 10)
         }
     }
 }

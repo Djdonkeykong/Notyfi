@@ -4,40 +4,111 @@ struct HomeSummaryBar: View {
     let insight: JournalInsight
     let entryCount: Int
     let currencyCode: String
+    let onTap: () -> Void
 
     var body: some View {
-        SoftCapsule(horizontalPadding: 18, verticalPadding: 14) {
-            HStack(spacing: 14) {
-                SummaryItem(
-                    symbol: "circle.fill",
-                    symbolColor: NotelyTheme.reviewTint,
-                    text: insight.dayTotal.formattedCurrency(code: currencyCode)
-                )
-
-                SummaryItem(
-                    symbol: "circle.fill",
-                    symbolColor: Color(red: 0.73, green: 0.40, blue: 0.47),
-                    text: "\(entryCount)"
-                )
-
-                SummaryItem(
-                    symbol: "circle.fill",
-                    symbolColor: Color(red: 0.79, green: 0.65, blue: 0.36),
-                    text: insight.topCategory?.title ?? "Notes"
-                )
-
-                if insight.reviewCount > 0 {
+        Button(action: {
+            Haptics.mediumImpact()
+            onTap()
+        }) {
+            SoftCapsule(horizontalPadding: 22, verticalPadding: 16) {
+                HStack(spacing: 16) {
                     SummaryItem(
                         symbol: "circle.fill",
-                        symbolColor: Color(red: 0.74, green: 0.47, blue: 0.86),
-                        text: "\(insight.reviewCount)"
+                        symbolColor: NotelyTheme.reviewTint,
+                        text: insight.dayTotal.formattedCurrency(code: currencyCode)
+                    )
+
+                    SummaryItem(
+                        symbol: "circle.fill",
+                        symbolColor: Color(red: 0.73, green: 0.40, blue: 0.47),
+                        text: "\(entryCount)"
+                    )
+
+                    SummaryItem(
+                        symbol: "circle.fill",
+                        symbolColor: Color(red: 0.79, green: 0.65, blue: 0.36),
+                        text: insight.topCategory?.title ?? "Notes"
+                    )
+
+                    if insight.reviewCount > 0 {
+                        SummaryItem(
+                            symbol: "circle.fill",
+                            symbolColor: Color(red: 0.74, green: 0.47, blue: 0.86),
+                            text: "\(insight.reviewCount)"
+                        )
+                    }
+                }
+                .frame(minHeight: 28)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct HomeSnapshotCard: View {
+    let insight: JournalInsight
+    let entryCount: Int
+    let averageSpend: Double
+    let currencyCode: String
+
+    private var progressValue: Double {
+        let denominator = max(insight.monthTotal, insight.dayTotal, 1)
+        return min(insight.dayTotal / denominator, 1)
+    }
+
+    var body: some View {
+        SoftSurface(cornerRadius: 34, padding: 18) {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Snapshot")
+                    .font(.notely(.headline, weight: .semibold))
+                    .foregroundStyle(.primary.opacity(0.86))
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Label("Spend today", systemImage: "circle.fill")
+                            .font(.notely(.footnote, weight: .semibold))
+                            .foregroundStyle(.primary.opacity(0.82))
+
+                        Spacer()
+
+                        Text("\(insight.dayTotal.formattedCurrency(code: currencyCode)) / \(insight.monthTotal.formattedCurrency(code: currencyCode))")
+                            .font(.notely(.footnote, weight: .semibold))
+                            .foregroundStyle(.primary.opacity(0.84))
+                            .monospacedDigit()
+                    }
+
+                    ProgressView(value: progressValue)
+                        .tint(NotelyTheme.reviewTint)
+                        .scaleEffect(x: 1, y: 1.6, anchor: .center)
+                }
+
+                HStack(spacing: 14) {
+                    SnapshotMetricOrb(
+                        value: "\(entryCount)",
+                        label: "Notes",
+                        tint: Color(red: 0.42, green: 0.73, blue: 0.47)
+                    )
+
+                    SnapshotMetricOrb(
+                        value: "\(insight.reviewCount)",
+                        label: "Review",
+                        tint: Color(red: 0.88, green: 0.35, blue: 0.31)
+                    )
+
+                    SnapshotMetricOrb(
+                        value: averageSpend.formattedCurrency(code: currencyCode),
+                        label: "Average",
+                        tint: Color(red: 0.42, green: 0.73, blue: 0.47)
                     )
                 }
+                .frame(maxWidth: .infinity)
             }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
     }
 }
 
@@ -61,20 +132,67 @@ private struct SummaryItem: View {
     }
 }
 
+private struct SnapshotMetricOrb: View {
+    let value: String
+    let label: String
+    let tint: Color
+
+    var body: some View {
+        VStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .stroke(Color.black.opacity(0.08), lineWidth: 4)
+                    .frame(width: 68, height: 68)
+
+                Circle()
+                    .trim(from: 0.08, to: 0.82)
+                    .stroke(tint, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .rotationEffect(.degrees(-110))
+                    .frame(width: 68, height: 68)
+
+                Text(value)
+                    .font(.notely(.footnote, weight: .semibold))
+                    .foregroundStyle(.primary.opacity(0.84))
+                    .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(2)
+                    .frame(width: 48)
+            }
+
+            Text(label)
+                .font(.notely(.caption))
+                .foregroundStyle(NotelyTheme.secondaryText)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
 #Preview {
     ZStack {
         NotelyTheme.background.ignoresSafeArea()
         VStack {
             Spacer()
-            HomeSummaryBar(
+            HomeSnapshotCard(
                 insight: JournalInsight(
-                    dayTotal: 841,
-                    monthTotal: 12877,
+                    dayTotal: 810,
+                    monthTotal: 2166,
                     topCategory: .food,
-                    reviewCount: 1
+                    reviewCount: 2
                 ),
                 entryCount: 4,
+                averageSpend: 202.5,
                 currencyCode: "NOK"
+            )
+            HomeSummaryBar(
+                insight: JournalInsight(
+                    dayTotal: 810,
+                    monthTotal: 2166,
+                    topCategory: .food,
+                    reviewCount: 2
+                ),
+                entryCount: 4,
+                currencyCode: "NOK",
+                onTap: {}
             )
         }
     }

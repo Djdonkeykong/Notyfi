@@ -26,7 +26,10 @@ struct HomeTopBar: View {
                                 .foregroundStyle(NotelyTheme.reviewTint)
                         }
 
-                        Button(action: onSettingsTap) {
+                        Button(action: {
+                            Haptics.mediumImpact()
+                            onSettingsTap()
+                        }) {
                             Image(systemName: "gearshape.fill")
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundStyle(.primary.opacity(0.82))
@@ -36,10 +39,13 @@ struct HomeTopBar: View {
                 }
             }
 
-            Button(action: onDateTap) {
-                SoftCapsule(horizontalPadding: 22, verticalPadding: 13) {
+            Button(action: {
+                Haptics.mediumImpact()
+                onDateTap()
+            }) {
+                SoftCapsule(horizontalPadding: 18, verticalPadding: 11) {
                     Text(selectedDate.notelyDayTitle())
-                        .font(.notely(.body, weight: .semibold))
+                        .font(.notely(.footnote, weight: .semibold))
                         .foregroundStyle(.primary.opacity(0.84))
                 }
             }
