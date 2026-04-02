@@ -29,10 +29,15 @@ struct HomeView: View {
                     .padding(.top, 4)
 
                     DayJournalPager(
+                        previousDate: viewModel.date(forDayOffset: -1),
+                        currentDate: viewModel.selectedDate,
+                        nextDate: viewModel.date(forDayOffset: 1),
                         previousEntries: viewModel.entries(for: viewModel.date(forDayOffset: -1)),
                         currentEntries: viewModel.displayedEntries,
                         nextEntries: viewModel.entries(for: viewModel.date(forDayOffset: 1)),
+                        previousComposerText: viewModel.composerDraft(for: viewModel.date(forDayOffset: -1)),
                         composerText: $viewModel.composerText,
+                        nextComposerText: viewModel.composerDraft(for: viewModel.date(forDayOffset: 1)),
                         focusedEditor: $focusedEditor,
                         editorFocusRequest: $editorFocusRequest,
                         feedback: viewModel.draftFeedback,
@@ -208,10 +213,15 @@ private extension HomeView {
 }
 
 private struct DayJournalPager: View {
+    let previousDate: Date
+    let currentDate: Date
+    let nextDate: Date
     let previousEntries: [ExpenseEntry]
     let currentEntries: [ExpenseEntry]
     let nextEntries: [ExpenseEntry]
+    let previousComposerText: String
     @Binding var composerText: String
+    let nextComposerText: String
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var editorFocusRequest: JournalEditorFocusRequest?
     let feedback: DraftComposerFeedback?
@@ -232,11 +242,26 @@ private struct DayJournalPager: View {
     var body: some View {
         GeometryReader { geometry in
             HStack(alignment: .top, spacing: 0) {
-                page(entries: previousEntries, feedback: nil, scrollDisabled: pageScrollDisabled)
+                sidePage(
+                    date: previousDate,
+                    entries: previousEntries,
+                    composerText: previousComposerText,
+                    scrollDisabled: pageScrollDisabled
+                )
                     .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
-                page(entries: currentEntries, feedback: feedback, scrollDisabled: pageScrollDisabled)
+                activePage(
+                    date: currentDate,
+                    entries: currentEntries,
+                    feedback: feedback,
+                    scrollDisabled: pageScrollDisabled
+                )
                     .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
-                page(entries: nextEntries, feedback: nil, scrollDisabled: pageScrollDisabled)
+                sidePage(
+                    date: nextDate,
+                    entries: nextEntries,
+                    composerText: nextComposerText,
+                    scrollDisabled: pageScrollDisabled
+                )
                     .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
             }
             .frame(width: geometry.size.width * 3, height: geometry.size.height, alignment: .topLeading)
@@ -251,9 +276,16 @@ private struct DayJournalPager: View {
         isHorizontalDragging || isTransitioning
     }
 
-    private func page(entries: [ExpenseEntry], feedback: DraftComposerFeedback?, scrollDisabled: Bool) -> some View {
+    private func activePage(
+        date: Date,
+        entries: [ExpenseEntry],
+        feedback: DraftComposerFeedback?,
+        scrollDisabled: Bool
+    ) -> some View {
         DayJournalPage(
+            date: date,
             entries: entries,
+            isEditable: true,
             composerText: $composerText,
             focusedEditor: $focusedEditor,
             editorFocusRequest: $editorFocusRequest,
@@ -264,6 +296,31 @@ private struct DayJournalPager: View {
             onEntryTextChange: onEntryTextChange,
             onEntrySplit: onEntrySplit,
             onEntryMergeBackward: onEntryMergeBackward,
+            onEntryTap: onEntryTap,
+            scrollDisabled: scrollDisabled
+        )
+    }
+
+    private func sidePage(
+        date: Date,
+        entries: [ExpenseEntry],
+        composerText: String,
+        scrollDisabled: Bool
+    ) -> some View {
+        DayJournalPage(
+            date: date,
+            entries: entries,
+            isEditable: false,
+            composerText: .constant(composerText),
+            focusedEditor: .constant(nil),
+            editorFocusRequest: .constant(nil),
+            feedback: nil,
+            onComposerTextChange: { _ in },
+            onComposerSplit: { _, _ in },
+            onComposerMergeBackward: {},
+            onEntryTextChange: { _, _ in },
+            onEntrySplit: { _, _, _ in },
+            onEntryMergeBackward: { _ in },
             onEntryTap: onEntryTap,
             scrollDisabled: scrollDisabled
         )
@@ -385,7 +442,9 @@ private struct DayJournalPager: View {
 }
 
 private struct DayJournalPage: View {
+    let date: Date
     let entries: [ExpenseEntry]
+    let isEditable: Bool
     @Binding var composerText: String
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var editorFocusRequest: JournalEditorFocusRequest?
@@ -407,6 +466,7 @@ private struct DayJournalPage: View {
                         entry: entry,
                         focusedEditor: $focusedEditor,
                         focusRequest: $editorFocusRequest,
+                        isEditable: isEditable,
                         onTextChange: { rawText in
                             onEntryTextChange(entry, rawText)
                         },
@@ -427,6 +487,8 @@ private struct DayJournalPage: View {
                     text: $composerText,
                     focusedEditor: $focusedEditor,
                     focusRequest: $editorFocusRequest,
+                    editorTarget: .composer(Calendar.current.startOfDay(for: date)),
+                    isEditable: isEditable,
                     showsPlaceholder: entries.isEmpty,
                     feedback: feedback,
                     onTextChange: onComposerTextChange,

@@ -26,6 +26,7 @@ final class HomeViewModel: ObservableObject {
     private let store: ExpenseJournalStore
     private let calendar: Calendar
     private let parser: ExpenseParsingServicing
+    private var composerDraftsByDay: [Date: String] = [:]
     private var cancellables = Set<AnyCancellable>()
 
     init(
@@ -102,6 +103,7 @@ final class HomeViewModel: ObservableObject {
 
         store.addEntry(from: trimmed, on: selectedDate, currencyCode: currencyCode)
         composerText = ""
+        composerDraftsByDay[dayKey(for: selectedDate)] = ""
     }
 
     func updateComposerText(_ rawText: String) {
@@ -110,6 +112,18 @@ final class HomeViewModel: ObservableObject {
         if composerText != normalized {
             composerText = normalized
         }
+
+        composerDraftsByDay[dayKey(for: selectedDate)] = composerText
+    }
+
+    func composerDraft(for date: Date) -> String {
+        let key = dayKey(for: date)
+
+        if calendar.isDate(key, inSameDayAs: selectedDate) {
+            return composerText
+        }
+
+        return composerDraftsByDay[key] ?? ""
     }
 
     func splitComposerText(
@@ -128,9 +142,10 @@ final class HomeViewModel: ObservableObject {
         }
 
         composerText = normalizedTrailingText
+        composerDraftsByDay[dayKey(for: selectedDate)] = composerText
 
         return JournalEditorFocusRequest(
-            target: .composer,
+            target: .composer(dayKey(for: selectedDate)),
             cursorPlacement: .start
         )
     }
@@ -144,6 +159,7 @@ final class HomeViewModel: ObservableObject {
         let mergedText = previousEntry.rawText + composerText
         store.updateEntry(updatedEntry(previousEntry, rawText: mergedText))
         composerText = ""
+        composerDraftsByDay[dayKey(for: selectedDate)] = ""
 
         return JournalEditorFocusRequest(
             target: .entry(previousEntry.id),
@@ -179,9 +195,10 @@ final class HomeViewModel: ObservableObject {
             }
 
             composerText = ""
+            composerDraftsByDay[dayKey(for: entry.date)] = ""
 
             return JournalEditorFocusRequest(
-                target: .composer,
+                target: .composer(dayKey(for: entry.date)),
                 cursorPlacement: .start
             )
         }
@@ -223,9 +240,10 @@ final class HomeViewModel: ObservableObject {
             }
 
             composerText = ""
+            composerDraftsByDay[dayKey(for: entry.date)] = ""
 
             return JournalEditorFocusRequest(
-                target: .composer,
+                target: .composer(dayKey(for: entry.date)),
                 cursorPlacement: .start
             )
         }
@@ -248,7 +266,13 @@ final class HomeViewModel: ObservableObject {
     }
 
     func setSelectedDate(_ date: Date) {
-        selectedDate = calendar.startOfDay(for: date)
+        let nextDate = dayKey(for: date)
+        let currentDate = dayKey(for: selectedDate)
+
+        composerDraftsByDay[currentDate] = composerText
+
+        selectedDate = nextDate
+        composerText = composerDraftsByDay[nextDate] ?? ""
     }
 
     func moveSelection(by dayOffset: Int) {
@@ -327,5 +351,9 @@ final class HomeViewModel: ObservableObject {
             confidence: parsed.confidence,
             createdAt: entry.createdAt
         )
+    }
+
+    private func dayKey(for date: Date) -> Date {
+        calendar.startOfDay(for: date)
     }
 }

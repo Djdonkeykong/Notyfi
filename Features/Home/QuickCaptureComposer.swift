@@ -4,6 +4,8 @@ struct QuickCaptureComposer: View {
     @Binding var text: String
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var focusRequest: JournalEditorFocusRequest?
+    let editorTarget: JournalEditorTarget
+    let isEditable: Bool
     let showsPlaceholder: Bool
     let feedback: DraftComposerFeedback?
     let onTextChange: (String) -> Void
@@ -38,7 +40,7 @@ struct QuickCaptureComposer: View {
                     text: $text,
                     focusedEditor: $focusedEditor,
                     focusRequest: $focusRequest,
-                    editorTarget: .composer,
+                    editorTarget: editorTarget,
                     maxHeight: 120,
                     onTextChange: { newText in
                         onTextChange(newText)
@@ -50,6 +52,7 @@ struct QuickCaptureComposer: View {
                         onMergeBackward()
                     }
                 )
+                .allowsHitTesting(isEditable)
             }
 
             VStack(alignment: .trailing, spacing: 5) {
@@ -76,9 +79,11 @@ struct QuickCaptureComposer: View {
 
 private struct QuickCaptureComposerPreviewWrapper: View {
     @State private var text = "Coffee 49"
-    @State private var focusedEditor: JournalEditorTarget? = .composer
+    @State private var focusedEditor: JournalEditorTarget? = .composer(
+        Calendar.current.startOfDay(for: Date())
+    )
     @State private var focusRequest: JournalEditorFocusRequest? = JournalEditorFocusRequest(
-        target: .composer,
+        target: .composer(Calendar.current.startOfDay(for: Date())),
         cursorPlacement: .end
     )
 
@@ -90,6 +95,8 @@ private struct QuickCaptureComposerPreviewWrapper: View {
                     text: $text,
                     focusedEditor: $focusedEditor,
                     focusRequest: $focusRequest,
+                    editorTarget: .composer(Calendar.current.startOfDay(for: Date())),
+                    isEditable: true,
                     showsPlaceholder: false,
                     feedback: DraftComposerFeedback(
                         primaryText: "49 kr",

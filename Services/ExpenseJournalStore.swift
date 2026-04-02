@@ -91,12 +91,14 @@ final class ExpenseJournalStore: ObservableObject {
     }
 
     private func load() {
-        guard
-            let data = defaults.data(forKey: storageKey),
-            let decoded = try? JSONDecoder().decode([ExpenseEntry].self, from: data),
-            !decoded.isEmpty
-        else {
+        guard let data = defaults.data(forKey: storageKey) else {
             entries = Self.mockEntries(calendar: calendar)
+            persist()
+            return
+        }
+
+        guard let decoded = try? JSONDecoder().decode([ExpenseEntry].self, from: data) else {
+            entries = []
             persist()
             return
         }

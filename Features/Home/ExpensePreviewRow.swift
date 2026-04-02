@@ -4,6 +4,7 @@ struct ExpensePreviewRow: View {
     let entry: ExpenseEntry
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var focusRequest: JournalEditorFocusRequest?
+    let isEditable: Bool
     let onTextChange: (String) -> Void
     let onSplitText: (String, String) -> Void
     let onMergeBackward: () -> Void
@@ -18,6 +19,7 @@ struct ExpensePreviewRow: View {
         entry: ExpenseEntry,
         focusedEditor: Binding<JournalEditorTarget?> = .constant(nil),
         focusRequest: Binding<JournalEditorFocusRequest?> = .constant(nil),
+        isEditable: Bool = true,
         onTextChange: @escaping (String) -> Void = { _ in },
         onSplitText: @escaping (String, String) -> Void = { _, _ in },
         onMergeBackward: @escaping () -> Void = {},
@@ -26,6 +28,7 @@ struct ExpensePreviewRow: View {
         self.entry = entry
         _focusedEditor = focusedEditor
         _focusRequest = focusRequest
+        self.isEditable = isEditable
         self.onTextChange = onTextChange
         self.onSplitText = onSplitText
         self.onMergeBackward = onMergeBackward
@@ -98,6 +101,7 @@ struct ExpensePreviewRow: View {
                     onMergeBackward()
                 }
             )
+                .allowsHitTesting(isEditable)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .onChange(of: entry.rawText) { _, newValue in
                     if draftText != newValue {

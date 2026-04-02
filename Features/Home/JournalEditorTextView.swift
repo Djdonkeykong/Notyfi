@@ -3,7 +3,7 @@ import UIKit
 
 enum JournalEditorTarget: Hashable {
     case entry(UUID)
-    case composer
+    case composer(Date)
 }
 
 enum JournalEditorCursorPlacement: Equatable {
@@ -73,6 +73,23 @@ struct JournalEditorTextView: UIViewRepresentable {
                 if uiView.isFirstResponder || uiView.becomeFirstResponder() {
                     applyCursorPlacement(focusRequest.cursorPlacement, to: uiView)
                     context.coordinator.lastAppliedFocusToken = focusRequest.token
+                } else {
+                    let coordinator = context.coordinator
+
+                    DispatchQueue.main.async { [weak uiView] in
+                        guard
+                            let uiView,
+                            coordinator.parent.focusRequest?.token == focusRequest.token,
+                            coordinator.parent.focusRequest?.target == editorTarget,
+                            !uiView.isFirstResponder,
+                            uiView.becomeFirstResponder()
+                        else {
+                            return
+                        }
+
+                        applyCursorPlacement(focusRequest.cursorPlacement, to: uiView)
+                        coordinator.lastAppliedFocusToken = focusRequest.token
+                    }
                 }
             }
         } else if uiView.isFirstResponder, focusedEditor != editorTarget {
