@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: SettingsViewModel
+    @State private var isClearLogConfirmationPresented = false
 
     var body: some View {
         ZStack {
@@ -98,6 +99,16 @@ struct SettingsSheetView: View {
                         VStack(spacing: 0) {
                             SettingsActionRow(icon: "square.and.arrow.up", title: "Export Data")
                             Divider()
+                            SettingsActionRow(
+                                icon: "trash",
+                                title: "Clear Log",
+                                isDestructive: true,
+                                showsChevron: false,
+                                action: {
+                                    isClearLogConfirmationPresented = true
+                                }
+                            )
+                            Divider()
                             SettingsActionRow(icon: "lock.shield", title: "Privacy")
                             Divider()
                             SettingsActionRow(icon: "bubble.left.and.text.bubble.right", title: "Contact Support")
@@ -115,6 +126,20 @@ struct SettingsSheetView: View {
                 .safeAreaPadding(.top, 14)
                 .padding(.bottom, 28)
             }
+        }
+        .confirmationDialog(
+            "Clear your entire log?",
+            isPresented: $isClearLogConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Clear Log", role: .destructive) {
+                viewModel.clearLog()
+                dismiss()
+            }
+
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This removes every saved entry from Notely.")
         }
     }
 }
@@ -231,25 +256,32 @@ private struct SettingsActionRow: View {
     let icon: String
     let title: String
     var isDestructive = false
+    var showsChevron = true
+    var action: () -> Void = {}
 
     var body: some View {
-        HStack(spacing: 14) {
-            Image(systemName: icon)
-                .foregroundStyle(isDestructive ? .red.opacity(0.75) : .blue.opacity(0.72))
-                .frame(width: 18)
+        Button(action: action) {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .foregroundStyle(isDestructive ? .red.opacity(0.75) : .blue.opacity(0.72))
+                    .frame(width: 18)
 
-            Text(title)
-                .font(.notely(.body))
-                .foregroundStyle(isDestructive ? .red.opacity(0.78) : .primary.opacity(0.82))
+                Text(title)
+                    .font(.notely(.body))
+                    .foregroundStyle(isDestructive ? .red.opacity(0.78) : .primary.opacity(0.82))
 
-            Spacer()
+                Spacer()
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(NotelyTheme.tertiaryText)
+                if showsChevron {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(NotelyTheme.tertiaryText)
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 16)
+        .buttonStyle(.plain)
     }
 }
 

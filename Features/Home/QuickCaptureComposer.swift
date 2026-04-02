@@ -1,13 +1,11 @@
 import SwiftUI
-import UIKit
 
 struct QuickCaptureComposer: View {
     @Binding var text: String
-    @Binding var isFocused: Bool
+    var isFocused: FocusState<Bool>.Binding
     let showsPlaceholder: Bool
     let feedback: DraftComposerFeedback?
     let onTextChange: () -> Void
-    let onEmptyBackspace: () -> Void
 
     private let editorLeadingOffset: CGFloat = -4
     private let editorTopOffset: CGFloat = -8
@@ -35,11 +33,11 @@ struct QuickCaptureComposer: View {
                         .allowsHitTesting(false)
                 }
 
-                ComposerTextView(
-                    text: $text,
-                    isFocused: $isFocused,
-                    onEmptyBackspace: onEmptyBackspace
-                )
+                TextEditor(text: $text)
+                    .font(.notely(.body))
+                    .foregroundStyle(.primary.opacity(0.86))
+                    .scrollContentBackground(.hidden)
+                    .focused(isFocused)
                     .frame(minHeight: 34, maxHeight: 120)
                     .padding(.leading, editorLeadingOffset)
                     .padding(.top, editorTopOffset)
@@ -70,93 +68,9 @@ struct QuickCaptureComposer: View {
     }
 }
 
-private struct ComposerTextView: UIViewRepresentable {
-    @Binding var text: String
-    @Binding var isFocused: Bool
-    let onEmptyBackspace: () -> Void
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text, isFocused: $isFocused, onEmptyBackspace: onEmptyBackspace)
-    }
-
-    func makeUIView(context: Context) -> BackspaceAwareTextView {
-        let textView = BackspaceAwareTextView()
-        textView.delegate = context.coordinator
-        textView.backgroundColor = .clear
-        textView.font = UIFont.preferredFont(forTextStyle: .body)
-        textView.textColor = UIColor.black.withAlphaComponent(0.86)
-        textView.textContainerInset = .zero
-        textView.textContainer.lineFragmentPadding = 0
-        textView.isScrollEnabled = true
-        textView.showsVerticalScrollIndicator = false
-        textView.keyboardDismissMode = .interactive
-        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        textView.onEmptyBackspace = {
-            context.coordinator.handleEmptyBackspace()
-        }
-        return textView
-    }
-
-    func updateUIView(_ uiView: BackspaceAwareTextView, context: Context) {
-        if uiView.text != text {
-            uiView.text = text
-        }
-
-        uiView.onEmptyBackspace = {
-            context.coordinator.handleEmptyBackspace()
-        }
-
-        if isFocused, !uiView.isFirstResponder {
-            uiView.becomeFirstResponder()
-        } else if !isFocused, uiView.isFirstResponder {
-            uiView.resignFirstResponder()
-        }
-    }
-
-    final class Coordinator: NSObject, UITextViewDelegate {
-        @Binding private var text: String
-        @Binding private var isFocused: Bool
-        private let onEmptyBackspace: () -> Void
-
-        init(text: Binding<String>, isFocused: Binding<Bool>, onEmptyBackspace: @escaping () -> Void) {
-            _text = text
-            _isFocused = isFocused
-            self.onEmptyBackspace = onEmptyBackspace
-        }
-
-        func textViewDidChange(_ textView: UITextView) {
-            text = textView.text
-        }
-
-        func textViewDidBeginEditing(_ textView: UITextView) {
-            isFocused = true
-        }
-
-        func textViewDidEndEditing(_ textView: UITextView) {
-            isFocused = false
-        }
-
-        func handleEmptyBackspace() {
-            onEmptyBackspace()
-        }
-    }
-}
-
-private final class BackspaceAwareTextView: UITextView {
-    var onEmptyBackspace: (() -> Void)?
-
-    override func deleteBackward() {
-        if text.isEmpty {
-            onEmptyBackspace?()
-        }
-
-        super.deleteBackward()
-    }
-}
-
 private struct QuickCaptureComposerPreviewWrapper: View {
     @State private var text = "Coffee 49"
-    @State private var isFocused = false
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         ZStack {
@@ -171,8 +85,7 @@ private struct QuickCaptureComposerPreviewWrapper: View {
                         secondaryText: nil,
                         primaryColorName: .accent
                     ),
-                    onTextChange: {},
-                    onEmptyBackspace: {}
+                    onTextChange: {}
                 )
                 .padding(20)
                 Spacer()

@@ -21,5 +21,14 @@ final class SettingsViewModel: ObservableObject {
     @Published var syncEnabled = false
     @Published var appearanceMode: AppearanceMode = .system
     @Published var currencyCode = "NOK"
-}
 
+    private let store: ExpenseJournalStore
+
+    init(store: ExpenseJournalStore = ExpenseJournalStore()) {
+        self.store = store
+    }
+
+    func clearLog() {
+        store.clearAllEntries()
+    }
+}

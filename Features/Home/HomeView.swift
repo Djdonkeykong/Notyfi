@@ -5,7 +5,7 @@ struct HomeView: View {
     @StateObject private var viewModel: HomeViewModel
     @State private var isSummaryExpanded = false
     @State private var selectedEntry: ExpenseEntry?
-    @State private var isComposerFocused = false
+    @FocusState private var isComposerFocused: Bool
 
     init(store: ExpenseJournalStore) {
         self.store = store
@@ -35,7 +35,6 @@ struct HomeView: View {
                         isComposerFocused: $isComposerFocused,
                         feedback: viewModel.draftFeedback,
                         onTextChange: { viewModel.handleComposerChange() },
-                        onEmptyBackspace: { viewModel.handleComposerBackspaceOnEmpty() },
                         onEntryTap: { entry in
                             selectedEntry = entry
                         },
@@ -91,7 +90,7 @@ struct HomeView: View {
                     .presentationCornerRadius(34)
             }
             .sheet(isPresented: $viewModel.isSettingsPresented) {
-                SettingsSheetView(viewModel: SettingsViewModel())
+                SettingsSheetView(viewModel: SettingsViewModel(store: store))
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
                     .presentationBackground(NotelyTheme.background.opacity(0.98))
@@ -128,10 +127,9 @@ private struct DayJournalPager: View {
     let currentEntries: [ExpenseEntry]
     let nextEntries: [ExpenseEntry]
     @Binding var composerText: String
-    @Binding var isComposerFocused: Bool
+    var isComposerFocused: FocusState<Bool>.Binding
     let feedback: DraftComposerFeedback?
     let onTextChange: () -> Void
-    let onEmptyBackspace: () -> Void
     let onEntryTap: (ExpenseEntry) -> Void
     let onMoveSelection: (Int) -> Void
 
@@ -139,7 +137,6 @@ private struct DayJournalPager: View {
     @State private var isHorizontalDragging = false
     @State private var isTransitioning = false
     @State private var dragAxisLock: PagerDragAxisLock?
-    @State private var dragSequence = 0
 
     var body: some View {
         GeometryReader { geometry in
@@ -155,10 +152,7 @@ private struct DayJournalPager: View {
             .offset(x: -geometry.size.width + dragOffset)
             .contentShape(Rectangle())
             .clipped()
-            .simultaneousGesture(
-                dragGesture(pageWidth: geometry.size.width),
-                including: isComposerFocused ? .subviews : .all
-            )
+            .simultaneousGesture(dragGesture(pageWidth: geometry.size.width))
         }
     }
 
@@ -170,10 +164,9 @@ private struct DayJournalPager: View {
         DayJournalPage(
             entries: entries,
             composerText: $composerText,
-            isComposerFocused: $isComposerFocused,
+            isComposerFocused: isComposerFocused,
             feedback: feedback,
             onTextChange: onTextChange,
-            onEmptyBackspace: onEmptyBackspace,
             onEntryTap: onEntryTap,
             scrollDisabled: scrollDisabled
         )
@@ -182,7 +175,7 @@ private struct DayJournalPager: View {
     private func dragGesture(pageWidth: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 4, coordinateSpace: .local)
             .onChanged { value in
-                guard !isTransitioning, !isComposerFocused else {
+                guard !isTransitioning else {
                     return
                 }
 
@@ -205,7 +198,7 @@ private struct DayJournalPager: View {
                 dragOffset = clampedDragOffset(for: value.translation.width, pageWidth: pageWidth)
             }
             .onEnded { value in
-                guard !isTransitioning, !isComposerFocused else {
+                guard !isTransitioning else {
                     resetDragTracking()
                     return
                 }
@@ -252,17 +245,12 @@ private struct DayJournalPager: View {
 
     private func settlePageTurn(dayOffset: Int, pageWidth: CGFloat) {
         let animation = Animation.interactiveSpring(response: 0.28, dampingFraction: 0.88, blendDuration: 0.16)
-        dragSequence += 1
-        let currentDragSequence = dragSequence
 
         guard dayOffset != 0 else {
             withAnimation(animation) {
                 dragOffset = 0
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                guard currentDragSequence == dragSequence else {
-                    return
-                }
                 resetDragTracking()
             }
             return
@@ -275,9 +263,6 @@ private struct DayJournalPager: View {
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
-            guard currentDragSequence == dragSequence else {
-                return
-            }
             onMoveSelection(dayOffset)
 
             var transaction = Transaction()
@@ -293,10 +278,7 @@ private struct DayJournalPager: View {
     }
 
     private func resetDragTracking() {
-        dragSequence += 1
         isHorizontalDragging = false
-        isTransitioning = false
-        dragOffset = 0
         dragAxisLock = nil
     }
 }
@@ -304,16 +286,15 @@ private struct DayJournalPager: View {
 private struct DayJournalPage: View {
     let entries: [ExpenseEntry]
     @Binding var composerText: String
-    @Binding var isComposerFocused: Bool
+    var isComposerFocused: FocusState<Bool>.Binding
     let feedback: DraftComposerFeedback?
     let onTextChange: () -> Void
-    let onEmptyBackspace: () -> Void
     let onEntryTap: (ExpenseEntry) -> Void
     let scrollDisabled: Bool
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 18) {
                 ForEach(entries) { entry in
                     Button(action: {
                         Haptics.mediumImpact()
@@ -326,27 +307,14 @@ private struct DayJournalPage: View {
 
                 QuickCaptureComposer(
                     text: $composerText,
-                    isFocused: $isComposerFocused,
+                    isFocused: isComposerFocused,
                     showsPlaceholder: entries.isEmpty,
                     feedback: feedback,
-                    onTextChange: onTextChange,
-                    onEmptyBackspace: onEmptyBackspace
+                    onTextChange: onTextChange
                 )
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    isComposerFocused = true
-                }
 
-                Button(action: {
-                    Haptics.mediumImpact()
-                    isComposerFocused = true
-                }) {
-                    Rectangle()
-                        .fill(Color.black.opacity(0.001))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 280)
-                }
-                .buttonStyle(.plain)
+                Color.clear
+                    .frame(height: 140)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 140)

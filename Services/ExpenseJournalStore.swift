@@ -63,6 +63,11 @@ final class ExpenseJournalStore: ObservableObject {
         persist()
     }
 
+    func clearAllEntries() {
+        entries.removeAll()
+        persist()
+    }
+
     func entries(on date: Date) -> [ExpenseEntry] {
         entries.filter { calendar.isDate($0.date, inSameDayAs: date) }
     }
