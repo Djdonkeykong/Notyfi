@@ -73,7 +73,16 @@ struct ExpensePreviewRow: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .onChange(of: draftText) { _, newValue in
-                    onTextChange(newValue)
+                    let normalized = newValue.replacingOccurrences(of: "\r\n", with: "\n")
+                    onTextChange(normalized)
+
+                    if normalized.contains("\n") {
+                        let currentEntryText = normalized.components(separatedBy: "\n").first ?? ""
+
+                        if draftText != currentEntryText {
+                            draftText = currentEntryText
+                        }
+                    }
                 }
                 .onChange(of: entry.rawText) { _, newValue in
                     if draftText != newValue {

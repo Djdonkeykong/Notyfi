@@ -4,6 +4,7 @@ struct HomeSummaryBar: View {
     let insight: JournalInsight
     let entryCount: Int
     let currencyCode: String
+    let animationNamespace: Namespace.ID
     let onTap: () -> Void
 
     var body: some View {
@@ -13,11 +14,13 @@ struct HomeSummaryBar: View {
         }) {
             SoftCapsule(horizontalPadding: 22, verticalPadding: 16) {
                 HStack(spacing: 16) {
-                    SummaryItem(
-                        symbol: "circle.fill",
-                        symbolColor: NotelyTheme.reviewTint,
-                        text: insight.dayTotal.formattedCurrency(code: currencyCode)
+                    HomeTotalCounterPill(
+                        totalText: insight.dayTotal.formattedCurrency(code: currencyCode),
+                        horizontalPadding: 0,
+                        minHeight: 28,
+                        showsBackground: false
                     )
+                    .matchedGeometryEffect(id: "homeTotalCounter", in: animationNamespace)
 
                     SummaryItem(
                         symbol: "circle.fill",
@@ -46,6 +49,40 @@ struct HomeSummaryBar: View {
             .padding(.bottom, 12)
         }
         .buttonStyle(.plain)
+    }
+}
+
+struct HomeTotalCounterPill: View {
+    let totalText: String
+    var horizontalPadding: CGFloat = 20
+    var minHeight: CGFloat = 46
+    var showsBackground = true
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Text("\u{1F525}")
+                .font(.system(size: 17))
+
+            Text(totalText)
+                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .foregroundStyle(.primary.opacity(0.96))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .padding(.horizontal, horizontalPadding)
+        .frame(minHeight: minHeight)
+        .background {
+            if showsBackground {
+                Capsule()
+                    .fill(NotelyTheme.surface)
+                    .overlay {
+                        Capsule()
+                            .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
+                    }
+                    .shadow(color: NotelyTheme.shadow, radius: 18, x: 0, y: 10)
+            }
+        }
     }
 }
 
@@ -167,33 +204,42 @@ private struct SnapshotMetricOrb: View {
     }
 }
 
-#Preview {
-    ZStack {
-        NotelyTheme.background.ignoresSafeArea()
-        VStack {
-            Spacer()
-            HomeSnapshotCard(
-                insight: JournalInsight(
-                    dayTotal: 810,
-                    monthTotal: 2166,
-                    topCategory: .food,
-                    reviewCount: 2
-                ),
-                entryCount: 4,
-                averageSpend: 202.5,
-                currencyCode: "NOK"
-            )
-            HomeSummaryBar(
-                insight: JournalInsight(
-                    dayTotal: 810,
-                    monthTotal: 2166,
-                    topCategory: .food,
-                    reviewCount: 2
-                ),
-                entryCount: 4,
-                currencyCode: "NOK",
-                onTap: {}
-            )
+private struct HomeSummaryBarPreviewWrapper: View {
+    @Namespace private var animationNamespace
+
+    var body: some View {
+        ZStack {
+            NotelyTheme.background.ignoresSafeArea()
+            VStack {
+                Spacer()
+                HomeSnapshotCard(
+                    insight: JournalInsight(
+                        dayTotal: 810,
+                        monthTotal: 2166,
+                        topCategory: .food,
+                        reviewCount: 2
+                    ),
+                    entryCount: 4,
+                    averageSpend: 202.5,
+                    currencyCode: "NOK"
+                )
+                HomeSummaryBar(
+                    insight: JournalInsight(
+                        dayTotal: 810,
+                        monthTotal: 2166,
+                        topCategory: .food,
+                        reviewCount: 2
+                    ),
+                    entryCount: 4,
+                    currencyCode: "NOK",
+                    animationNamespace: animationNamespace,
+                    onTap: {}
+                )
+            }
         }
     }
+}
+
+#Preview {
+    HomeSummaryBarPreviewWrapper()
 }

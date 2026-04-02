@@ -113,16 +113,16 @@ final class HomeViewModel: ObservableObject {
         composerText = lastEntry.rawText
     }
 
-    func handleComposerChange() {
+    func handleComposerChange() -> Bool {
         let normalized = composerText.replacingOccurrences(of: "\r\n", with: "\n")
 
         if normalized != composerText {
             composerText = normalized
-            return
+            return false
         }
 
         guard normalized.contains("\n") else {
-            return
+            return false
         }
 
         let parts = normalized.components(separatedBy: "\n")
@@ -137,11 +137,17 @@ final class HomeViewModel: ObservableObject {
         }
 
         composerText = trailingDraft
+        return !completedLines.isEmpty && trailingDraft.isEmpty
     }
 
-    func updateEntryText(_ entry: ExpenseEntry, rawText: String) {
+    func updateEntryText(_ entry: ExpenseEntry, rawText: String) -> Bool {
+        let normalized = rawText.replacingOccurrences(of: "\r\n", with: "\n")
+        let lines = normalized.components(separatedBy: "\n")
+        let currentEntryText = lines.first ?? ""
+        let nextDraftText = lines.dropFirst().joined(separator: "\n")
+
         let parsed = parser.parse(
-            rawText: rawText.trimmingCharacters(in: .whitespacesAndNewlines),
+            rawText: currentEntryText.trimmingCharacters(in: .whitespacesAndNewlines),
             date: entry.date,
             currencyCode: entry.currencyCode
         )
@@ -161,6 +167,13 @@ final class HomeViewModel: ObservableObject {
         )
 
         store.updateEntry(updated)
+
+        guard lines.count > 1 else {
+            return false
+        }
+
+        composerText = nextDraftText
+        return true
     }
 
     func resetToToday() {

@@ -6,6 +6,7 @@ struct HomeView: View {
     @State private var isSummaryExpanded = false
     @State private var selectedEntry: ExpenseEntry?
     @FocusState private var isComposerFocused: Bool
+    @Namespace private var bottomBarNamespace
 
     init(store: ExpenseJournalStore) {
         self.store = store
@@ -21,7 +22,7 @@ struct HomeView: View {
                     HomeTopBar(
                         selectedDate: viewModel.selectedDate,
                         entryCount: viewModel.displayedEntries.count,
-                        onDateTap: { viewModel.isDatePickerPresented = true },
+                        onDateTap: { presentDatePicker() },
                         onSettingsTap: { viewModel.isSettingsPresented = true }
                     )
                     .padding(.horizontal, 20)
@@ -34,15 +35,30 @@ struct HomeView: View {
                         composerText: $viewModel.composerText,
                         isComposerFocused: $isComposerFocused,
                         feedback: viewModel.draftFeedback,
-                        onTextChange: { viewModel.handleComposerChange() },
+                        onTextChange: {
+                            var transaction = Transaction()
+                            transaction.animation = nil
+
+                            _ = withTransaction(transaction) {
+                                viewModel.handleComposerChange()
+                            }
+                        },
                         onEntryTextChange: { entry, rawText in
-                            viewModel.updateEntryText(entry, rawText: rawText)
+                            var transaction = Transaction()
+                            transaction.animation = nil
+
+                            let shouldFocusComposer = withTransaction(transaction) {
+                                viewModel.updateEntryText(entry, rawText: rawText)
+                            }
+
+                            if shouldFocusComposer {
+                                isComposerFocused = true
+                            }
                         },
                         onEntryTap: { entry in
                             selectedEntry = entry
                         },
                         onMoveSelection: { dayOffset in
-                            Haptics.mediumImpact()
                             isSummaryExpanded = false
                             viewModel.moveSelection(by: dayOffset)
                         }
@@ -53,6 +69,7 @@ struct HomeView: View {
                 if isComposerFocused {
                     KeyboardAccessoryBar(
                         totalText: viewModel.insight.dayTotal.formattedCurrency(code: viewModel.currencyCode),
+                        animationNamespace: bottomBarNamespace,
                         onDismissKeyboard: { isComposerFocused = false }
                     )
                     .padding(.horizontal, 8)
@@ -75,6 +92,7 @@ struct HomeView: View {
                             insight: viewModel.insight,
                             entryCount: viewModel.displayedEntries.count,
                             currencyCode: viewModel.currencyCode,
+                            animationNamespace: bottomBarNamespace,
                             onTap: {
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.9)) {
                                     isSummaryExpanded.toggle()
@@ -85,8 +103,12 @@ struct HomeView: View {
                     .animation(.spring(response: 0.3, dampingFraction: 0.9), value: isSummaryExpanded)
                 }
             }
+            .animation(.spring(response: 0.38, dampingFraction: 0.92), value: isComposerFocused)
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
-                DatePickerSheetView(selection: selectedDateBinding)
+                DatePickerSheetView(
+                    selection: selectedDateBinding,
+                    entryDates: store.entries.map(\.date)
+                )
                     .presentationDetents([.height(430)])
                     .presentationDragIndicator(.hidden)
                     .presentationBackground(.clear)
@@ -123,6 +145,15 @@ private extension HomeView {
             get: { viewModel.selectedDate },
             set: { viewModel.setSelectedDate($0) }
         )
+    }
+
+    func presentDatePicker() {
+        isComposerFocused = false
+        isSummaryExpanded = false
+
+        DispatchQueue.main.async {
+            viewModel.isDatePickerPresented = true
+        }
     }
 }
 
@@ -194,6 +225,10 @@ private struct DayJournalPager: View {
                     }
 
                     dragAxisLock = horizontal > vertical ? .horizontal : .vertical
+
+                    if dragAxisLock == .horizontal {
+                        Haptics.mediumImpact()
+                    }
                 }
 
                 guard dragAxisLock == .horizontal else {
@@ -341,11 +376,16 @@ private enum PagerDragAxisLock {
 
 private struct KeyboardAccessoryBar: View {
     let totalText: String
+    let animationNamespace: Namespace.ID
     let onDismissKeyboard: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
-            KeyboardTotalPill(totalText: totalText)
+            HomeTotalCounterPill(totalText: totalText)
+                .matchedGeometryEffect(id: "homeTotalCounter", in: animationNamespace)
+
+            Spacer(minLength: 0)
+
             KeyboardCircleButton(systemImage: "mic.fill", tint: Color(red: 0.03, green: 0.51, blue: 0.98))
             KeyboardCircleButton(systemImage: "camera.fill", tint: Color(red: 0.76, green: 0.17, blue: 0.87))
             KeyboardCircleButton(systemImage: "plus", tint: Color(red: 0.98, green: 0.54, blue: 0.13))
@@ -355,41 +395,7 @@ private struct KeyboardAccessoryBar: View {
                 action: onDismissKeyboard
             )
         }
-        .frame(maxWidth: .infinity, alignment: .center)
-    }
-}
-
-private struct KeyboardTotalPill: View {
-    let totalText: String
-
-    var body: some View {
-        Button(action: {
-            Haptics.mediumImpact()
-        }) {
-            HStack(spacing: 10) {
-                Text("\u{1F525}")
-                    .font(.system(size: 17))
-
-                Text(totalText)
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary.opacity(0.96))
-                    .monospacedDigit()
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            }
-            .padding(.horizontal, 20)
-            .frame(minHeight: 46)
-            .background {
-                Capsule()
-                    .fill(NotelyTheme.surface)
-                    .overlay {
-                        Capsule()
-                            .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
-                    }
-                    .shadow(color: NotelyTheme.shadow, radius: 18, x: 0, y: 10)
-            }
-        }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

@@ -2,9 +2,11 @@ import SwiftUI
 
 struct DatePickerSheetView: View {
     @Binding var selection: Date
+    let entryDates: [Date]
     @Environment(\.dismiss) private var dismiss
 
     private let selectedRingColor = Color(red: 0.58, green: 0.43, blue: 0.96)
+    private let entryFillColor = Color(red: 0.78, green: 0.91, blue: 0.80)
     private let dayCellSize: CGFloat = 42
     private let actionButtonWidth: CGFloat = 94
     private let actionButtonHeight: CGFloat = 38
@@ -121,6 +123,11 @@ struct DatePickerSheetView: View {
                                         .foregroundStyle(dayColor(for: date))
                                         .frame(width: dayCellSize, height: dayCellSize)
                                         .background {
+                                            if hasEntry(on: date) {
+                                                Circle()
+                                                    .fill(entryFillColor.opacity(calendar.compare(date, to: Date(), toGranularity: .day) == .orderedDescending ? 0.35 : 1))
+                                            }
+
                                             if calendar.isDate(date, inSameDayAs: selection) {
                                                 Circle()
                                                     .stroke(selectedRingColor, lineWidth: 3)
@@ -143,15 +150,19 @@ struct DatePickerSheetView: View {
     }
 
     private func dayColor(for date: Date) -> Color {
+        if calendar.compare(date, to: Date(), toGranularity: .day) == .orderedDescending {
+            return .black.opacity(0.26)
+        }
+
         if calendar.isDate(date, inSameDayAs: selection) {
             return .primary
         }
 
-        if calendar.compare(date, to: selection, toGranularity: .day) == .orderedAscending {
-            return .black.opacity(0.9)
-        }
+        return .black.opacity(0.9)
+    }
 
-        return .black.opacity(0.26)
+    private func hasEntry(on date: Date) -> Bool {
+        entryDates.contains { calendar.isDate($0, inSameDayAs: date) }
     }
 }
 
@@ -187,5 +198,11 @@ private struct CalendarPillButton: View {
 }
 
 #Preview {
-    DatePickerSheetView(selection: .constant(Date(timeIntervalSince1970: 1775080800)))
+    DatePickerSheetView(
+        selection: .constant(Date(timeIntervalSince1970: 1775080800)),
+        entryDates: [
+            Date(timeIntervalSince1970: 1775080800),
+            Date(timeIntervalSince1970: 1774994400)
+        ]
+    )
 }
