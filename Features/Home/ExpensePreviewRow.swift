@@ -3,6 +3,9 @@ import SwiftUI
 struct ExpensePreviewRow: View {
     let entry: ExpenseEntry
 
+    private let trailingColumnWidth: CGFloat = 96
+    private let trailingSecondaryHeight: CGFloat = 16
+
     private var leadingText: String {
         let raw = entry.rawText.trimmingCharacters(in: .whitespacesAndNewlines)
         return raw.isEmpty ? entry.title : raw
@@ -40,6 +43,10 @@ struct ExpensePreviewRow: View {
         return Color(red: 0.26, green: 0.56, blue: 0.96)
     }
 
+    private var trailingSecondaryDisplay: String {
+        trailingSecondary ?? " "
+    }
+
     var body: some View {
         HStack(alignment: .top, spacing: 18) {
             Text(leadingText)
@@ -54,16 +61,18 @@ struct ExpensePreviewRow: View {
                     .font(.notely(.body, weight: .semibold))
                     .foregroundStyle(trailingPrimaryColor)
                     .multilineTextAlignment(.trailing)
-                    .fixedSize(horizontal: true, vertical: false)
+                    .lineLimit(1)
 
-                if let trailingSecondary {
-                    Text(trailingSecondary)
-                        .font(.notely(.footnote))
-                        .foregroundStyle(NotelyTheme.tertiaryText)
-                        .multilineTextAlignment(.trailing)
-                        .fixedSize(horizontal: true, vertical: false)
-                }
+                Text(trailingSecondaryDisplay)
+                    .font(.notely(.footnote))
+                    .foregroundStyle(NotelyTheme.tertiaryText)
+                    .multilineTextAlignment(.trailing)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .frame(height: trailingSecondaryHeight, alignment: .top)
+                    .opacity(trailingSecondary == nil ? 0 : 1)
             }
+            .frame(width: trailingColumnWidth, alignment: .topTrailing)
             .padding(.top, 1)
         }
         .padding(.vertical, 4)
