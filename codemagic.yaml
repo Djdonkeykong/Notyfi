@@ -29,7 +29,6 @@ workflows:
         script: |
           xcode-project use-profiles \
             --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME" \
             --custom-export-options='{"testFlightInternalTestingOnly": true}'
 
       - name: Set build number
