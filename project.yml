@@ -32,4 +32,3 @@ targets:
     settings:
       base:
         TARGETED_DEVICE_FAMILY: 1
-        DEVELOPMENT_ASSET_PATHS: "Resources/Preview Content"
