@@ -1,0 +1,32 @@
+name: Notely
+options:
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: 5.10
+    PRODUCT_BUNDLE_IDENTIFIER: com.olechristian.notely
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 1.0
+    GENERATE_INFOPLIST_FILE: YES
+    INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+    INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    INFOPLIST_KEY_CFBundleDisplayName: Notely
+targets:
+  Notely:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: App
+      - path: Components
+      - path: Core
+      - path: DesignSystem
+      - path: Features
+      - path: Models
+      - path: Resources
+      - path: Services
+      - path: ViewModels
+    settings:
+      base:
+        TARGETED_DEVICE_FAMILY: 1
+        DEVELOPMENT_ASSET_PATHS: "Resources/Preview Content"
