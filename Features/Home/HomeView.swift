@@ -166,7 +166,7 @@ private struct DayJournalPager: View {
         DayJournalPage(
             entries: entries,
             composerText: $composerText,
-            isComposerFocused: isComposerFocused,
+            isComposerFocused: $isComposerFocused,
             feedback: feedback,
             onTextChange: onTextChange,
             onEmptyBackspace: onEmptyBackspace,
@@ -311,7 +311,7 @@ private struct DayJournalPage: View {
 
                 QuickCaptureComposer(
                     text: $composerText,
-                    isFocused: isComposerFocused,
+                    isFocused: $isComposerFocused,
                     showsPlaceholder: entries.isEmpty,
                     feedback: feedback,
                     onTextChange: onTextChange,
