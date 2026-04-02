@@ -5,7 +5,7 @@ struct HomeView: View {
     @StateObject private var viewModel: HomeViewModel
     @State private var isSummaryExpanded = false
     @State private var selectedEntry: ExpenseEntry?
-    @FocusState private var isComposerFocused: Bool
+    @State private var isComposerFocused = false
 
     init(store: ExpenseJournalStore) {
         self.store = store
@@ -85,7 +85,7 @@ struct HomeView: View {
             }
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
                 DatePickerSheetView(selection: selectedDateBinding)
-                    .presentationDetents([.height(640)])
+                    .presentationDetents([.height(500)])
                     .presentationDragIndicator(.visible)
                     .presentationBackground(.clear)
                     .presentationCornerRadius(34)
@@ -128,7 +128,7 @@ private struct DayJournalPager: View {
     let currentEntries: [ExpenseEntry]
     let nextEntries: [ExpenseEntry]
     @Binding var composerText: String
-    var isComposerFocused: FocusState<Bool>.Binding
+    @Binding var isComposerFocused: Bool
     let feedback: DraftComposerFeedback?
     let onTextChange: () -> Void
     let onEmptyBackspace: () -> Void
@@ -136,16 +136,18 @@ private struct DayJournalPager: View {
     let onMoveSelection: (Int) -> Void
 
     @State private var dragOffset: CGFloat = 0
+    @State private var isHorizontalDragging = false
     @State private var isTransitioning = false
+    @State private var dragAxisLock: PagerDragAxisLock?
 
     var body: some View {
         GeometryReader { geometry in
             HStack(alignment: .top, spacing: 0) {
-                page(entries: previousEntries, feedback: nil)
+                page(entries: previousEntries, feedback: nil, scrollDisabled: pageScrollDisabled)
                     .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
-                page(entries: currentEntries, feedback: feedback)
+                page(entries: currentEntries, feedback: feedback, scrollDisabled: pageScrollDisabled)
                     .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
-                page(entries: nextEntries, feedback: nil)
+                page(entries: nextEntries, feedback: nil, scrollDisabled: pageScrollDisabled)
                     .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
             }
             .frame(width: geometry.size.width * 3, height: geometry.size.height, alignment: .topLeading)
@@ -156,7 +158,11 @@ private struct DayJournalPager: View {
         }
     }
 
-    private func page(entries: [ExpenseEntry], feedback: DraftComposerFeedback?) -> some View {
+    private var pageScrollDisabled: Bool {
+        isHorizontalDragging || isTransitioning
+    }
+
+    private func page(entries: [ExpenseEntry], feedback: DraftComposerFeedback?, scrollDisabled: Bool) -> some View {
         DayJournalPage(
             entries: entries,
             composerText: $composerText,
@@ -164,29 +170,51 @@ private struct DayJournalPager: View {
             feedback: feedback,
             onTextChange: onTextChange,
             onEmptyBackspace: onEmptyBackspace,
-            onEntryTap: onEntryTap
+            onEntryTap: onEntryTap,
+            scrollDisabled: scrollDisabled
         )
     }
 
     private func dragGesture(pageWidth: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 12, coordinateSpace: .local)
+        DragGesture(minimumDistance: 4, coordinateSpace: .local)
             .onChanged { value in
                 guard !isTransitioning else {
                     return
                 }
 
-                guard abs(value.translation.width) > abs(value.translation.height) else {
+                let horizontal = abs(value.translation.width)
+                let vertical = abs(value.translation.height)
+
+                if dragAxisLock == nil {
+                    guard max(horizontal, vertical) > 6 else {
+                        return
+                    }
+
+                    dragAxisLock = horizontal > vertical ? .horizontal : .vertical
+                }
+
+                guard dragAxisLock == .horizontal else {
                     return
                 }
 
+                isHorizontalDragging = true
                 dragOffset = clampedDragOffset(for: value.translation.width, pageWidth: pageWidth)
             }
             .onEnded { value in
                 guard !isTransitioning else {
+                    resetDragTracking()
                     return
                 }
 
-                guard abs(value.translation.width) > abs(value.translation.height) else {
+                guard dragAxisLock == .horizontal else {
+                    resetDragTracking()
+                    return
+                }
+
+                let horizontal = abs(value.translation.width)
+                let vertical = abs(value.translation.height)
+
+                guard horizontal > vertical else {
                     settlePageTurn(dayOffset: 0, pageWidth: pageWidth)
                     return
                 }
@@ -225,6 +253,9 @@ private struct DayJournalPager: View {
             withAnimation(animation) {
                 dragOffset = 0
             }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                resetDragTracking()
+            }
             return
         }
 
@@ -245,18 +276,25 @@ private struct DayJournalPager: View {
             }
 
             isTransitioning = false
+            resetDragTracking()
         }
+    }
+
+    private func resetDragTracking() {
+        isHorizontalDragging = false
+        dragAxisLock = nil
     }
 }
 
 private struct DayJournalPage: View {
     let entries: [ExpenseEntry]
     @Binding var composerText: String
-    var isComposerFocused: FocusState<Bool>.Binding
+    @Binding var isComposerFocused: Bool
     let feedback: DraftComposerFeedback?
     let onTextChange: () -> Void
     let onEmptyBackspace: () -> Void
     let onEntryTap: (ExpenseEntry) -> Void
+    let scrollDisabled: Bool
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -281,22 +319,31 @@ private struct DayJournalPage: View {
                 )
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    isComposerFocused.wrappedValue = true
+                    isComposerFocused = true
                 }
 
-                Color.clear
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 240)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        isComposerFocused.wrappedValue = true
-                    }
+                Button(action: {
+                    Haptics.mediumImpact()
+                    isComposerFocused = true
+                }) {
+                    Rectangle()
+                        .fill(Color.black.opacity(0.001))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 280)
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 140)
         }
+        .scrollDisabled(scrollDisabled)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
+}
+
+private enum PagerDragAxisLock {
+    case horizontal
+    case vertical
 }
 
 private struct KeyboardAccessoryBar: View {

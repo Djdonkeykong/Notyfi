@@ -3,7 +3,7 @@ import UIKit
 
 struct QuickCaptureComposer: View {
     @Binding var text: String
-    var isFocused: FocusState<Bool>.Binding
+    @Binding var isFocused: Bool
     let showsPlaceholder: Bool
     let feedback: DraftComposerFeedback?
     let onTextChange: () -> Void
@@ -37,7 +37,7 @@ struct QuickCaptureComposer: View {
 
                 ComposerTextView(
                     text: $text,
-                    isFocused: focusBinding,
+                    isFocused: $isFocused,
                     onEmptyBackspace: onEmptyBackspace
                 )
                     .frame(minHeight: 34, maxHeight: 120)
@@ -67,13 +67,6 @@ struct QuickCaptureComposer: View {
         .onChange(of: text) { _, _ in
             onTextChange()
         }
-    }
-
-    private var focusBinding: Binding<Bool> {
-        Binding(
-            get: { isFocused.wrappedValue },
-            set: { isFocused.wrappedValue = $0 }
-        )
     }
 }
 
@@ -163,7 +156,7 @@ private final class BackspaceAwareTextView: UITextView {
 
 private struct QuickCaptureComposerPreviewWrapper: View {
     @State private var text = "Coffee 49"
-    @FocusState private var isFocused: Bool
+    @State private var isFocused = false
 
     var body: some View {
         ZStack {

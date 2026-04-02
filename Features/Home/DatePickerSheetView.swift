@@ -5,10 +5,9 @@ struct DatePickerSheetView: View {
     @Environment(\.dismiss) private var dismiss
 
     private let selectedRingColor = Color(red: 0.58, green: 0.43, blue: 0.96)
-    private let cardCornerRadius: CGFloat = 38
-    private let dayCellSize: CGFloat = 46
-    private let actionButtonWidth: CGFloat = 108
-    private let actionButtonHeight: CGFloat = 54
+    private let dayCellSize: CGFloat = 42
+    private let actionButtonWidth: CGFloat = 102
+    private let actionButtonHeight: CGFloat = 50
 
     private var calendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
@@ -51,106 +50,95 @@ struct DatePickerSheetView: View {
 
     var body: some View {
         ZStack {
-            NotelyTheme.background
-                .opacity(0.78)
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    Rectangle()
+                        .fill(Color.white.opacity(0.42))
+                }
+                .overlay {
+                    Rectangle()
+                        .stroke(Color.white.opacity(0.55), lineWidth: 1)
+                }
                 .ignoresSafeArea()
 
-            VStack {
-                VStack(spacing: 26) {
+            VStack(spacing: 24) {
+                HStack {
+                    CalendarPillButton(
+                        title: "Today",
+                        foregroundStyle: AnyShapeStyle(Color(red: 0.12, green: 0.46, blue: 0.98)),
+                        width: actionButtonWidth,
+                        height: actionButtonHeight,
+                        action: {
+                            Haptics.mediumImpact()
+                            selection = Date()
+                        }
+                    )
+
+                    Spacer()
+
+                    Text(monthTitle)
+                        .font(.system(size: 24, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.primary.opacity(0.96))
+
+                    Spacer()
+
+                    CalendarPillButton(
+                        title: "Done",
+                        foregroundStyle: AnyShapeStyle(.primary.opacity(0.9)),
+                        width: actionButtonWidth,
+                        height: actionButtonHeight,
+                        action: {
+                            Haptics.mediumImpact()
+                            dismiss()
+                        }
+                    )
+                }
+
+                VStack(spacing: 18) {
                     HStack {
-                        CalendarPillButton(
-                            title: "Today",
-                            foregroundStyle: AnyShapeStyle(Color(red: 0.12, green: 0.46, blue: 0.98)),
-                            width: actionButtonWidth,
-                            height: actionButtonHeight,
-                            action: {
-                                Haptics.mediumImpact()
-                                selection = Date()
-                            }
-                        )
-
-                        Spacer()
-
-                        Text(monthTitle)
-                            .font(.system(size: 26, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.primary.opacity(0.96))
-
-                        Spacer()
-
-                        CalendarPillButton(
-                            title: "Done",
-                            foregroundStyle: AnyShapeStyle(.primary.opacity(0.9)),
-                            width: actionButtonWidth,
-                            height: actionButtonHeight,
-                            action: {
-                                Haptics.mediumImpact()
-                                dismiss()
-                            }
-                        )
+                        ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
+                            Text(symbol)
+                                .font(.system(size: 15, weight: .medium, design: .rounded))
+                                .foregroundStyle(Color.black.opacity(0.58))
+                                .frame(maxWidth: .infinity)
+                        }
                     }
 
-                    VStack(spacing: 20) {
-                        HStack {
-                            ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
-                                Text(symbol)
-                                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                                    .foregroundStyle(Color.black.opacity(0.58))
-                                    .frame(maxWidth: .infinity)
-                            }
-                        }
-
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 18) {
-                            ForEach(Array(days.enumerated()), id: \.offset) { _, item in
-                                switch item {
-                                case .empty:
-                                    Color.clear
-                                        .frame(height: dayCellSize)
-                                case let .date(day, date):
-                                    Button(action: {
-                                        Haptics.mediumImpact()
-                                        selection = date
-                                    }) {
-                                        Text("\(day)")
-                                            .font(.system(size: 18, weight: calendar.isDate(date, inSameDayAs: selection) ? .semibold : .regular, design: .rounded))
-                                            .foregroundStyle(dayColor(for: date))
-                                            .frame(width: dayCellSize, height: dayCellSize)
-                                            .background {
-                                                if calendar.isDate(date, inSameDayAs: selection) {
-                                                    Circle()
-                                                        .stroke(selectedRingColor, lineWidth: 3)
-                                                }
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 16) {
+                        ForEach(Array(days.enumerated()), id: \.offset) { _, item in
+                            switch item {
+                            case .empty:
+                                Color.clear
+                                    .frame(height: dayCellSize)
+                            case let .date(day, date):
+                                Button(action: {
+                                    Haptics.mediumImpact()
+                                    selection = date
+                                }) {
+                                    Text("\(day)")
+                                        .font(.system(size: 18, weight: calendar.isDate(date, inSameDayAs: selection) ? .semibold : .regular, design: .rounded))
+                                        .foregroundStyle(dayColor(for: date))
+                                        .frame(width: dayCellSize, height: dayCellSize)
+                                        .background {
+                                            if calendar.isDate(date, inSameDayAs: selection) {
+                                                Circle()
+                                                    .stroke(selectedRingColor, lineWidth: 3)
                                             }
-                                    }
-                                    .buttonStyle(.plain)
-                                    .frame(maxWidth: .infinity)
+                                        }
                                 }
+                                .buttonStyle(.plain)
+                                .frame(maxWidth: .infinity)
                             }
                         }
                     }
-                    .padding(.top, 2)
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 30)
-                .padding(.bottom, 34)
-                .background {
-                    RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
-                        .fill(.ultraThinMaterial)
-                        .overlay {
-                            RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
-                                .fill(Color.white.opacity(0.58))
-                        }
-                        .overlay {
-                            RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
-                                .stroke(Color.white.opacity(0.72), lineWidth: 1)
-                        }
-                        .shadow(color: Color.black.opacity(0.04), radius: 16, x: 0, y: 8)
-                }
-                .padding(.horizontal, 8)
-                .padding(.top, 12)
-
-                Spacer(minLength: 0)
             }
-            .safeAreaPadding(.top, 10)
+            .padding(.horizontal, 24)
+            .padding(.top, 18)
+            .padding(.bottom, 24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .safeAreaPadding(.top, 8)
         }
     }
 
