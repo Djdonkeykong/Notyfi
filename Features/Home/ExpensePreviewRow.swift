@@ -84,6 +84,10 @@ struct ExpensePreviewRow: View {
         draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    private var isProcessingStatus: Bool {
+        !isDraftEmpty && entry.amount == 0
+    }
+
     var body: some View {
         HStack(alignment: .top, spacing: 18) {
             JournalEditorTextView(
@@ -111,11 +115,19 @@ struct ExpensePreviewRow: View {
 
             Button(action: onAccessoryTap) {
                 VStack(alignment: .trailing, spacing: 5) {
-                    Text(trailingPrimary)
-                        .font(.notely(.body))
-                        .foregroundStyle(trailingPrimaryColor)
-                        .multilineTextAlignment(.trailing)
-                        .lineLimit(1)
+                    if isProcessingStatus {
+                        JournalProcessingStatusText()
+                            .font(.notely(.body, weight: .semibold))
+                            .foregroundStyle(trailingPrimaryColor)
+                            .multilineTextAlignment(.trailing)
+                            .lineLimit(1)
+                    } else {
+                        Text(trailingPrimary)
+                            .font(.notely(.body, weight: .semibold))
+                            .foregroundStyle(trailingPrimaryColor)
+                            .multilineTextAlignment(.trailing)
+                            .lineLimit(1)
+                    }
 
                     Text(trailingSecondaryDisplay)
                         .font(.notely(.footnote))

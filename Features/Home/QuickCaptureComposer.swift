@@ -24,6 +24,10 @@ struct QuickCaptureComposer: View {
         }
     }
 
+    private var isProcessingFeedback: Bool {
+        feedback?.primaryColorName == .neutral
+    }
+
     var body: some View {
         HStack(alignment: .top, spacing: 18) {
             ZStack(alignment: .topLeading) {
@@ -57,10 +61,17 @@ struct QuickCaptureComposer: View {
 
             VStack(alignment: .trailing, spacing: 5) {
                 if let feedback {
-                    Text(feedback.primaryText)
-                        .font(.notely(.body))
-                        .foregroundStyle(primaryFeedbackColor)
-                        .multilineTextAlignment(.trailing)
+                    if isProcessingFeedback {
+                        JournalProcessingStatusText()
+                            .font(.notely(.body, weight: .semibold))
+                            .foregroundStyle(primaryFeedbackColor)
+                            .multilineTextAlignment(.trailing)
+                    } else {
+                        Text(feedback.primaryText)
+                            .font(.notely(.body, weight: .semibold))
+                            .foregroundStyle(primaryFeedbackColor)
+                            .multilineTextAlignment(.trailing)
+                    }
 
                     if let secondary = feedback.secondaryText {
                         Text(secondary)

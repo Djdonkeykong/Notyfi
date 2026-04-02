@@ -40,7 +40,6 @@ final class HomeViewModel: ObservableObject {
         self.parser = parser
 
         Publishers.CombineLatest(store.$entries, $selectedDate)
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] entries, date in
                 self?.recompute(entries: entries, selectedDate: date)
             }
@@ -133,13 +132,11 @@ final class HomeViewModel: ObservableObject {
         let normalizedLeadingText = leadingText.replacingOccurrences(of: "\r\n", with: "\n")
         let normalizedTrailingText = trailingText.replacingOccurrences(of: "\r\n", with: "\n")
 
-        if !normalizedLeadingText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            store.addEntry(
-                from: normalizedLeadingText,
-                on: selectedDate,
-                currencyCode: currencyCode
-            )
-        }
+        store.addEntry(
+            from: normalizedLeadingText,
+            on: selectedDate,
+            currencyCode: currencyCode
+        )
 
         composerText = normalizedTrailingText
         composerDraftsByDay[dayKey(for: selectedDate)] = composerText
@@ -179,29 +176,8 @@ final class HomeViewModel: ObservableObject {
     ) -> JournalEditorFocusRequest? {
         let normalizedLeadingText = leadingText.replacingOccurrences(of: "\r\n", with: "\n")
         let normalizedTrailingText = trailingText.replacingOccurrences(of: "\r\n", with: "\n")
-        let currentIndex = displayedEntries.firstIndex(where: { $0.id == entry.id })
 
         store.updateEntry(updatedEntry(entry, rawText: normalizedLeadingText))
-
-        if normalizedTrailingText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            if
-                let currentIndex,
-                currentIndex + 1 < displayedEntries.count
-            {
-                return JournalEditorFocusRequest(
-                    target: .entry(displayedEntries[currentIndex + 1].id),
-                    cursorPlacement: .start
-                )
-            }
-
-            composerText = ""
-            composerDraftsByDay[dayKey(for: entry.date)] = ""
-
-            return JournalEditorFocusRequest(
-                target: .composer(dayKey(for: entry.date)),
-                cursorPlacement: .start
-            )
-        }
 
         let insertedEntryID = store.insertEntry(
             after: entry,
