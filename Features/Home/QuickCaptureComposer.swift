@@ -7,6 +7,11 @@ struct QuickCaptureComposer: View {
     let feedback: DraftComposerFeedback?
     let onTextChange: () -> Void
 
+    private let editorLeadingOffset: CGFloat = -4
+    private let editorTopOffset: CGFloat = -8
+    private let placeholderLeadingOffset: CGFloat = 1
+    private let placeholderTopOffset: CGFloat = 0
+
     private var primaryFeedbackColor: Color {
         switch feedback?.primaryColorName {
         case .accent:
@@ -23,8 +28,8 @@ struct QuickCaptureComposer: View {
                     Text("Start typing your money notes...")
                         .font(.notely(.body))
                         .foregroundStyle(NotelyTheme.tertiaryText)
-                        .padding(.top, 8)
-                        .padding(.leading, 4)
+                        .padding(.top, placeholderTopOffset)
+                        .padding(.leading, placeholderLeadingOffset)
                         .allowsHitTesting(false)
                 }
 
@@ -34,8 +39,8 @@ struct QuickCaptureComposer: View {
                     .scrollContentBackground(.hidden)
                     .focused(isFocused)
                     .frame(minHeight: 34, maxHeight: 120)
-                    .padding(.leading, -4)
-                    .padding(.top, -8)
+                    .padding(.leading, editorLeadingOffset)
+                    .padding(.top, editorTopOffset)
                     .onChange(of: text) { _, _ in
                         onTextChange()
                     }

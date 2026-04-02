@@ -2,19 +2,11 @@ import Foundation
 
 extension Date {
     func notelyDayTitle(calendar: Calendar = .current) -> String {
-        if calendar.isDateInToday(self) {
-            return "Today"
-        }
-
-        if calendar.isDateInYesterday(self) {
-            return "Yesterday"
-        }
-
-        if calendar.isDateInTomorrow(self) {
-            return "Tomorrow"
-        }
-
-        return formatted(.dateTime.weekday(.wide).day().month(.abbreviated))
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "MMM d"
+        return formatter.string(from: self).uppercased()
     }
 
     func notelySectionTitle(calendar: Calendar = .current) -> String {
@@ -33,4 +25,3 @@ extension Date {
         formatted(.dateTime.weekday(.wide).month(.wide).day().hour().minute())
     }
 }
-

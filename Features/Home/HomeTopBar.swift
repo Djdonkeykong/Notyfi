@@ -43,9 +43,9 @@ struct HomeTopBar: View {
                 Haptics.mediumImpact()
                 onDateTap()
             }) {
-                SoftCapsule(horizontalPadding: 18, verticalPadding: 11) {
+                SoftCapsule(horizontalPadding: 20, verticalPadding: 12) {
                     Text(selectedDate.notelyDayTitle())
-                        .font(.notely(.footnote, weight: .semibold))
+                        .font(.notely(.body, weight: .semibold))
                         .foregroundStyle(.primary.opacity(0.84))
                 }
             }

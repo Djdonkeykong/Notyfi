@@ -3,8 +3,8 @@ import SwiftUI
 struct HomeView: View {
     @ObservedObject private var store: ExpenseJournalStore
     @StateObject private var viewModel: HomeViewModel
-    @State private var pageSelection = 0
     @State private var isSummaryExpanded = false
+    @State private var selectedEntry: ExpenseEntry?
     @FocusState private var isComposerFocused: Bool
 
     init(store: ExpenseJournalStore) {
@@ -27,37 +27,36 @@ struct HomeView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 4)
 
-                    TabView(selection: $pageSelection) {
-                        ForEach([-1, 0, 1], id: \.self) { offset in
-                            DayJournalPage(
-                                entries: viewModel.entries(for: viewModel.date(forDayOffset: offset)),
-                                composerText: $viewModel.composerText,
-                                isComposerFocused: $isComposerFocused,
-                                feedback: offset == 0 ? viewModel.draftFeedback : nil,
-                                onTextChange: { viewModel.handleComposerChange() },
-                                store: store
-                            )
-                            .tag(offset)
+                    DayJournalPager(
+                        previousEntries: viewModel.entries(for: viewModel.date(forDayOffset: -1)),
+                        currentEntries: viewModel.displayedEntries,
+                        nextEntries: viewModel.entries(for: viewModel.date(forDayOffset: 1)),
+                        composerText: $viewModel.composerText,
+                        isComposerFocused: $isComposerFocused,
+                        feedback: viewModel.draftFeedback,
+                        onTextChange: { viewModel.handleComposerChange() },
+                        onEntryTap: { entry in
+                            selectedEntry = entry
+                        },
+                        onMoveSelection: { dayOffset in
+                            Haptics.mediumImpact()
+                            isSummaryExpanded = false
+                            viewModel.moveSelection(by: dayOffset)
                         }
-                    }
-                    .tabViewStyle(.page(indexDisplayMode: .never))
-                    .onChange(of: pageSelection) { _, newValue in
-                        guard newValue != 0 else {
-                            return
-                        }
-
-                        Haptics.mediumImpact()
-                        isSummaryExpanded = false
-                        viewModel.moveSelection(by: newValue)
-
-                        DispatchQueue.main.async {
-                            pageSelection = 0
-                        }
-                    }
+                    )
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                if !isComposerFocused {
+                if isComposerFocused {
+                    KeyboardAccessoryBar(
+                        totalText: viewModel.insight.dayTotal.formattedCurrency(code: viewModel.currencyCode),
+                        onDismissKeyboard: { isComposerFocused = false }
+                    )
+                    .padding(.horizontal, 8)
+                    .padding(.top, 10)
+                    .padding(.bottom, 8)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                } else {
                     VStack(spacing: 10) {
                         if isSummaryExpanded {
                             HomeSnapshotCard(
@@ -84,7 +83,7 @@ struct HomeView: View {
                 }
             }
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
-                DatePickerSheetView(selection: $viewModel.selectedDate)
+                DatePickerSheetView(selection: selectedDateBinding)
                     .presentationDetents([.height(398)])
                     .presentationDragIndicator(.visible)
                     .presentationBackground(.clear)
@@ -97,15 +96,12 @@ struct HomeView: View {
                     .presentationBackground(NotelyTheme.background.opacity(0.98))
                     .presentationCornerRadius(34)
             }
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    if isComposerFocused {
-                        KeyboardAccessoryBar(
-                            totalText: viewModel.insight.dayTotal.formattedCurrency(code: viewModel.currencyCode),
-                            onDismissKeyboard: { isComposerFocused = false }
-                        )
-                    }
-                }
+            .sheet(item: $selectedEntry) { entry in
+                EntryDetailView(entry: entry, store: store)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                    .presentationBackground(NotelyTheme.background.opacity(0.98))
+                    .presentationCornerRadius(34)
             }
             .toolbar(.hidden, for: .navigationBar)
         }
@@ -117,6 +113,137 @@ private extension HomeView {
         let count = max(viewModel.displayedEntries.count, 1)
         return viewModel.insight.dayTotal / Double(count)
     }
+
+    var selectedDateBinding: Binding<Date> {
+        Binding(
+            get: { viewModel.selectedDate },
+            set: { viewModel.setSelectedDate($0) }
+        )
+    }
+}
+
+private struct DayJournalPager: View {
+    let previousEntries: [ExpenseEntry]
+    let currentEntries: [ExpenseEntry]
+    let nextEntries: [ExpenseEntry]
+    @Binding var composerText: String
+    var isComposerFocused: FocusState<Bool>.Binding
+    let feedback: DraftComposerFeedback?
+    let onTextChange: () -> Void
+    let onEntryTap: (ExpenseEntry) -> Void
+    let onMoveSelection: (Int) -> Void
+
+    @State private var dragOffset: CGFloat = 0
+    @State private var isTransitioning = false
+
+    var body: some View {
+        GeometryReader { geometry in
+            HStack(spacing: 0) {
+                page(entries: previousEntries, feedback: nil)
+                    .frame(width: geometry.size.width)
+                page(entries: currentEntries, feedback: feedback)
+                    .frame(width: geometry.size.width)
+                page(entries: nextEntries, feedback: nil)
+                    .frame(width: geometry.size.width)
+            }
+            .frame(width: geometry.size.width * 3, alignment: .leading)
+            .offset(x: -geometry.size.width + dragOffset)
+            .contentShape(Rectangle())
+            .clipped()
+            .simultaneousGesture(dragGesture(pageWidth: geometry.size.width))
+        }
+    }
+
+    private func page(entries: [ExpenseEntry], feedback: DraftComposerFeedback?) -> some View {
+        DayJournalPage(
+            entries: entries,
+            composerText: $composerText,
+            isComposerFocused: isComposerFocused,
+            feedback: feedback,
+            onTextChange: onTextChange,
+            onEntryTap: onEntryTap
+        )
+    }
+
+    private func dragGesture(pageWidth: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 12, coordinateSpace: .local)
+            .onChanged { value in
+                guard !isTransitioning else {
+                    return
+                }
+
+                guard abs(value.translation.width) > abs(value.translation.height) else {
+                    return
+                }
+
+                dragOffset = clampedDragOffset(for: value.translation.width, pageWidth: pageWidth)
+            }
+            .onEnded { value in
+                guard !isTransitioning else {
+                    return
+                }
+
+                guard abs(value.translation.width) > abs(value.translation.height) else {
+                    settlePageTurn(dayOffset: 0, pageWidth: pageWidth)
+                    return
+                }
+
+                let dayOffset = targetDayOffset(for: value, pageWidth: pageWidth)
+                settlePageTurn(dayOffset: dayOffset, pageWidth: pageWidth)
+            }
+    }
+
+    private func clampedDragOffset(for translation: CGFloat, pageWidth: CGFloat) -> CGFloat {
+        let limit = pageWidth * 0.9
+        return min(max(translation, -limit), limit)
+    }
+
+    private func targetDayOffset(for value: DragGesture.Value, pageWidth: CGFloat) -> Int {
+        let translation = value.translation.width
+        let predictedTranslation = value.predictedEndTranslation.width
+        let distanceThreshold = pageWidth * 0.2
+        let velocityThreshold = pageWidth * 0.45
+
+        if translation <= -distanceThreshold || predictedTranslation <= -velocityThreshold {
+            return 1
+        }
+
+        if translation >= distanceThreshold || predictedTranslation >= velocityThreshold {
+            return -1
+        }
+
+        return 0
+    }
+
+    private func settlePageTurn(dayOffset: Int, pageWidth: CGFloat) {
+        let animation = Animation.interactiveSpring(response: 0.28, dampingFraction: 0.88, blendDuration: 0.16)
+
+        guard dayOffset != 0 else {
+            withAnimation(animation) {
+                dragOffset = 0
+            }
+            return
+        }
+
+        isTransitioning = true
+
+        withAnimation(animation) {
+            dragOffset = dayOffset > 0 ? -pageWidth : pageWidth
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
+            onMoveSelection(dayOffset)
+
+            var transaction = Transaction()
+            transaction.animation = nil
+
+            withTransaction(transaction) {
+                dragOffset = 0
+            }
+
+            isTransitioning = false
+        }
+    }
 }
 
 private struct DayJournalPage: View {
@@ -125,15 +252,16 @@ private struct DayJournalPage: View {
     var isComposerFocused: FocusState<Bool>.Binding
     let feedback: DraftComposerFeedback?
     let onTextChange: () -> Void
-    let store: ExpenseJournalStore
+    let onEntryTap: (ExpenseEntry) -> Void
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 18) {
                 ForEach(entries) { entry in
-                    NavigationLink {
-                        EntryDetailView(entry: entry, store: store)
-                    } label: {
+                    Button(action: {
+                        Haptics.mediumImpact()
+                        onEntryTap(entry)
+                    }) {
                         ExpensePreviewRow(entry: entry)
                     }
                     .buttonStyle(.plain)
@@ -161,25 +289,14 @@ private struct KeyboardAccessoryBar: View {
     let onDismissKeyboard: () -> Void
 
     var body: some View {
-        HStack(spacing: 10) {
-            SoftCapsule(horizontalPadding: 18, verticalPadding: 12) {
-                HStack(spacing: 6) {
-                    Image(systemName: "circle.fill")
-                        .font(.system(size: 6, weight: .bold))
-                        .foregroundStyle(NotelyTheme.reviewTint)
-
-                    Text(totalText)
-                        .font(.notely(.footnote, weight: .semibold))
-                        .foregroundStyle(.primary.opacity(0.84))
-                        .monospacedDigit()
-                }
-            }
-
-            KeyboardCircleButton(systemImage: "mic.fill")
-            KeyboardCircleButton(systemImage: "camera.fill")
-            KeyboardCircleButton(systemImage: "plus")
+        HStack(spacing: 12) {
+            KeyboardTotalPill(totalText: totalText)
+            KeyboardCircleButton(systemImage: "mic.fill", tint: Color(red: 0.03, green: 0.51, blue: 0.98))
+            KeyboardCircleButton(systemImage: "camera.fill", tint: Color(red: 0.76, green: 0.17, blue: 0.87))
+            KeyboardCircleButton(systemImage: "plus", tint: Color(red: 0.98, green: 0.54, blue: 0.13))
             KeyboardCircleButton(
                 systemImage: "keyboard.chevron.compact.down",
+                tint: .primary.opacity(0.92),
                 action: onDismissKeyboard
             )
         }
@@ -187,8 +304,43 @@ private struct KeyboardAccessoryBar: View {
     }
 }
 
+private struct KeyboardTotalPill: View {
+    let totalText: String
+
+    var body: some View {
+        Button(action: {
+            Haptics.mediumImpact()
+        }) {
+            HStack(spacing: 10) {
+                Text("\u{1F525}")
+                    .font(.system(size: 19))
+
+                Text(totalText)
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary.opacity(0.96))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .padding(.horizontal, 22)
+            .frame(minHeight: 50)
+            .background {
+                Capsule()
+                    .fill(NotelyTheme.surface)
+                    .overlay {
+                        Capsule()
+                            .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
+                    }
+                    .shadow(color: NotelyTheme.shadow, radius: 18, x: 0, y: 10)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 private struct KeyboardCircleButton: View {
     let systemImage: String
+    let tint: Color
     var action: () -> Void = {}
 
     var body: some View {
@@ -197,9 +349,9 @@ private struct KeyboardCircleButton: View {
             action()
         }) {
             Image(systemName: systemImage)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.primary.opacity(0.78))
-                .frame(width: 38, height: 38)
+                .font(.system(size: 21, weight: .medium))
+                .foregroundStyle(tint)
+                .frame(width: 50, height: 50)
                 .background {
                     Circle()
                         .fill(NotelyTheme.surface)
@@ -207,6 +359,7 @@ private struct KeyboardCircleButton: View {
                             Circle()
                                 .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
                         }
+                        .shadow(color: NotelyTheme.shadow, radius: 18, x: 0, y: 10)
                 }
         }
         .buttonStyle(.plain)

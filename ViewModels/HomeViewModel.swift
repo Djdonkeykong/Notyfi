@@ -14,7 +14,7 @@ struct DraftComposerFeedback {
 
 @MainActor
 final class HomeViewModel: ObservableObject {
-    @Published var selectedDate: Date = Date()
+    @Published private(set) var selectedDate: Date
     @Published var composerText = ""
     @Published var isDatePickerPresented = false
     @Published var isSettingsPresented = false
@@ -33,6 +33,7 @@ final class HomeViewModel: ObservableObject {
         calendar: Calendar = .current,
         parser: ExpenseParsingServicing = PlaceholderExpenseParsingService()
     ) {
+        self.selectedDate = calendar.startOfDay(for: Date())
         self.store = store
         self.calendar = calendar
         self.parser = parser
@@ -130,7 +131,11 @@ final class HomeViewModel: ObservableObject {
     }
 
     func resetToToday() {
-        selectedDate = Date()
+        setSelectedDate(Date())
+    }
+
+    func setSelectedDate(_ date: Date) {
+        selectedDate = calendar.startOfDay(for: date)
     }
 
     func moveSelection(by dayOffset: Int) {
@@ -138,7 +143,8 @@ final class HomeViewModel: ObservableObject {
             return
         }
 
-        selectedDate = calendar.date(byAdding: .day, value: dayOffset, to: selectedDate) ?? selectedDate
+        let nextDate = calendar.date(byAdding: .day, value: dayOffset, to: selectedDate) ?? selectedDate
+        setSelectedDate(nextDate)
     }
 
     func date(forDayOffset dayOffset: Int) -> Date {
