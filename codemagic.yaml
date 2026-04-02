@@ -9,9 +9,9 @@ workflows:
         - appstore_credentials
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.notely.notely
+        bundle_identifier: com.djdonkeykong.notely
       vars:
-        BUNDLE_ID: "com.notely.notely"
+        BUNDLE_ID: "com.djdonkeykong.notely"
         XCODE_PROJECT: "Notely.xcodeproj"
         XCODE_SCHEME: "Notely"
       xcode: latest

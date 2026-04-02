@@ -20,7 +20,7 @@ Before the workflow can publish, add these in Codemagic:
 - `APP_STORE_CONNECT_PRIVATE_KEY`
 - `APP_STORE_CONNECT_KEY_IDENTIFIER`
 - `APP_STORE_CONNECT_ISSUER_ID`
-- An App Store distribution certificate and provisioning profile for `com.notely.notely`
+- An App Store distribution certificate and provisioning profile for `com.djdonkeykong.notely`
 
 The workflow uses `testFlightInternalTestingOnly`, so the uploaded build is meant for internal TestFlight viewing rather than external beta review.
 
