@@ -55,7 +55,7 @@ struct QuickCaptureComposer: View {
             VStack(alignment: .trailing, spacing: 5) {
                 if let feedback {
                     Text(feedback.primaryText)
-                        .font(.notely(.body, weight: .semibold))
+                        .font(.notely(.body))
                         .foregroundStyle(primaryFeedbackColor)
                         .multilineTextAlignment(.trailing)
 

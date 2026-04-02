@@ -70,12 +70,10 @@ struct JournalEditorTextView: UIViewRepresentable {
 
         if let focusRequest, focusRequest.target == editorTarget {
             if context.coordinator.lastAppliedFocusToken != focusRequest.token {
-                if !uiView.isFirstResponder {
-                    uiView.becomeFirstResponder()
+                if uiView.isFirstResponder || uiView.becomeFirstResponder() {
+                    applyCursorPlacement(focusRequest.cursorPlacement, to: uiView)
+                    context.coordinator.lastAppliedFocusToken = focusRequest.token
                 }
-
-                applyCursorPlacement(focusRequest.cursorPlacement, to: uiView)
-                context.coordinator.lastAppliedFocusToken = focusRequest.token
             }
         } else if uiView.isFirstResponder, focusedEditor != editorTarget {
             uiView.resignFirstResponder()

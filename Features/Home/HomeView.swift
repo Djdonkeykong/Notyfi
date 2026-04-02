@@ -189,8 +189,15 @@ private extension HomeView {
         }
 
         if let request {
-            focusedEditor = request.target
-            editorFocusRequest = request
+            DispatchQueue.main.async {
+                var focusTransaction = Transaction()
+                focusTransaction.animation = nil
+
+                withTransaction(focusTransaction) {
+                    focusedEditor = request.target
+                    editorFocusRequest = request
+                }
+            }
         }
     }
 

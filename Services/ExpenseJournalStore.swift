@@ -64,6 +64,10 @@ final class ExpenseJournalStore: ObservableObject {
             return
         }
 
+        guard entries[index] != entry else {
+            return
+        }
+
         entries[index] = entry
         sortAndPersist()
     }

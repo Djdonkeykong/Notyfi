@@ -7,9 +7,9 @@ struct DatePickerSheetView: View {
 
     private let selectedRingColor = Color(red: 0.58, green: 0.43, blue: 0.96)
     private let entryFillColor = Color(red: 0.78, green: 0.91, blue: 0.80)
-    private let dayCellSize: CGFloat = 42
+    private let dayCellSize: CGFloat = 46
     private let actionButtonWidth: CGFloat = 94
-    private let actionButtonHeight: CGFloat = 38
+    private let actionButtonHeight: CGFloat = 44
 
     private var calendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)

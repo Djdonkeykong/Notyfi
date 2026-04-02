@@ -108,7 +108,7 @@ struct ExpensePreviewRow: View {
             Button(action: onAccessoryTap) {
                 VStack(alignment: .trailing, spacing: 5) {
                     Text(trailingPrimary)
-                        .font(.notely(.body, weight: .semibold))
+                        .font(.notely(.body))
                         .foregroundStyle(trailingPrimaryColor)
                         .multilineTextAlignment(.trailing)
                         .lineLimit(1)
