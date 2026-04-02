@@ -286,5 +286,5 @@ private struct SettingsActionRow: View {
 }
 
 #Preview {
-    SettingsSheetView(viewModel: SettingsViewModel())
+    SettingsSheetView(viewModel: SettingsViewModel(store: ExpenseJournalStore(previewMode: true)))
 }

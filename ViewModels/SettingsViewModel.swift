@@ -24,7 +24,7 @@ final class SettingsViewModel: ObservableObject {
 
     private let store: ExpenseJournalStore
 
-    init(store: ExpenseJournalStore = ExpenseJournalStore()) {
+    init(store: ExpenseJournalStore) {
         self.store = store
     }
 
