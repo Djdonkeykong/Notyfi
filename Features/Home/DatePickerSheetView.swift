@@ -7,7 +7,7 @@ struct DatePickerSheetView: View {
     private let selectedRingColor = Color(red: 0.58, green: 0.43, blue: 0.96)
     private let dayCellSize: CGFloat = 42
     private let actionButtonWidth: CGFloat = 102
-    private let actionButtonHeight: CGFloat = 50
+    private let actionButtonHeight: CGFloat = 44
 
     private var calendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
@@ -62,7 +62,7 @@ struct DatePickerSheetView: View {
                 }
                 .ignoresSafeArea()
 
-            VStack(spacing: 24) {
+            VStack(spacing: 20) {
                 HStack {
                     CalendarPillButton(
                         title: "Today",
@@ -78,7 +78,7 @@ struct DatePickerSheetView: View {
                     Spacer()
 
                     Text(monthTitle)
-                        .font(.system(size: 24, weight: .semibold, design: .rounded))
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
                         .foregroundStyle(.primary.opacity(0.96))
 
                     Spacer()
@@ -95,7 +95,7 @@ struct DatePickerSheetView: View {
                     )
                 }
 
-                VStack(spacing: 18) {
+                VStack(spacing: 16) {
                     HStack {
                         ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                             Text(symbol)
@@ -105,7 +105,7 @@ struct DatePickerSheetView: View {
                         }
                     }
 
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 16) {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 14) {
                         ForEach(Array(days.enumerated()), id: \.offset) { _, item in
                             switch item {
                             case .empty:
@@ -135,10 +135,10 @@ struct DatePickerSheetView: View {
                 }
             }
             .padding(.horizontal, 24)
-            .padding(.top, 18)
-            .padding(.bottom, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .safeAreaPadding(.top, 8)
+            .safeAreaPadding(.top, 6)
         }
     }
 
@@ -174,11 +174,11 @@ private struct CalendarPillButton: View {
                 .foregroundStyle(foregroundStyle)
                 .frame(width: width, height: height)
                 .background {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(Color.white.opacity(0.42))
+                    Capsule(style: .continuous)
+                        .fill(Color.white.opacity(0.72))
                         .overlay {
-                            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                .stroke(Color.white.opacity(0.34), lineWidth: 1)
+                            Capsule(style: .continuous)
+                                .stroke(Color.white.opacity(0.52), lineWidth: 1)
                         }
                 }
         }

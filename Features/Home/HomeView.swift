@@ -85,8 +85,8 @@ struct HomeView: View {
             }
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
                 DatePickerSheetView(selection: selectedDateBinding)
-                    .presentationDetents([.height(500)])
-                    .presentationDragIndicator(.visible)
+                    .presentationDetents([.height(460)])
+                    .presentationDragIndicator(.hidden)
                     .presentationBackground(.clear)
                     .presentationCornerRadius(34)
             }
@@ -139,6 +139,7 @@ private struct DayJournalPager: View {
     @State private var isHorizontalDragging = false
     @State private var isTransitioning = false
     @State private var dragAxisLock: PagerDragAxisLock?
+    @State private var dragSequence = 0
 
     var body: some View {
         GeometryReader { geometry in
@@ -154,7 +155,10 @@ private struct DayJournalPager: View {
             .offset(x: -geometry.size.width + dragOffset)
             .contentShape(Rectangle())
             .clipped()
-            .simultaneousGesture(dragGesture(pageWidth: geometry.size.width))
+            .simultaneousGesture(
+                dragGesture(pageWidth: geometry.size.width),
+                including: isComposerFocused ? .subviews : .all
+            )
         }
     }
 
@@ -178,7 +182,7 @@ private struct DayJournalPager: View {
     private func dragGesture(pageWidth: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 4, coordinateSpace: .local)
             .onChanged { value in
-                guard !isTransitioning else {
+                guard !isTransitioning, !isComposerFocused else {
                     return
                 }
 
@@ -201,7 +205,7 @@ private struct DayJournalPager: View {
                 dragOffset = clampedDragOffset(for: value.translation.width, pageWidth: pageWidth)
             }
             .onEnded { value in
-                guard !isTransitioning else {
+                guard !isTransitioning, !isComposerFocused else {
                     resetDragTracking()
                     return
                 }
@@ -248,12 +252,17 @@ private struct DayJournalPager: View {
 
     private func settlePageTurn(dayOffset: Int, pageWidth: CGFloat) {
         let animation = Animation.interactiveSpring(response: 0.28, dampingFraction: 0.88, blendDuration: 0.16)
+        dragSequence += 1
+        let currentDragSequence = dragSequence
 
         guard dayOffset != 0 else {
             withAnimation(animation) {
                 dragOffset = 0
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                guard currentDragSequence == dragSequence else {
+                    return
+                }
                 resetDragTracking()
             }
             return
@@ -266,6 +275,9 @@ private struct DayJournalPager: View {
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
+            guard currentDragSequence == dragSequence else {
+                return
+            }
             onMoveSelection(dayOffset)
 
             var transaction = Transaction()
@@ -281,7 +293,10 @@ private struct DayJournalPager: View {
     }
 
     private func resetDragTracking() {
+        dragSequence += 1
         isHorizontalDragging = false
+        isTransitioning = false
+        dragOffset = 0
         dragAxisLock = nil
     }
 }
