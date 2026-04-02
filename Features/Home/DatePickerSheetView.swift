@@ -4,6 +4,12 @@ struct DatePickerSheetView: View {
     @Binding var selection: Date
     @Environment(\.dismiss) private var dismiss
 
+    private let selectedRingColor = Color(red: 0.58, green: 0.43, blue: 0.96)
+    private let cardCornerRadius: CGFloat = 38
+    private let dayCellSize: CGFloat = 46
+    private let actionButtonWidth: CGFloat = 108
+    private let actionButtonHeight: CGFloat = 54
+
     private var calendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.firstWeekday = 2
@@ -46,15 +52,17 @@ struct DatePickerSheetView: View {
     var body: some View {
         ZStack {
             NotelyTheme.background
-                .opacity(0.9)
+                .opacity(0.78)
                 .ignoresSafeArea()
 
             VStack {
-                VStack(spacing: 18) {
+                VStack(spacing: 26) {
                     HStack {
                         CalendarPillButton(
                             title: "Today",
-                            foregroundStyle: AnyShapeStyle(.blue),
+                            foregroundStyle: AnyShapeStyle(Color(red: 0.12, green: 0.46, blue: 0.98)),
+                            width: actionButtonWidth,
+                            height: actionButtonHeight,
                             action: {
                                 Haptics.mediumImpact()
                                 selection = Date()
@@ -64,14 +72,16 @@ struct DatePickerSheetView: View {
                         Spacer()
 
                         Text(monthTitle)
-                            .font(.notely(.title3, weight: .semibold))
-                            .foregroundStyle(.primary.opacity(0.92))
+                            .font(.system(size: 26, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.primary.opacity(0.96))
 
                         Spacer()
 
                         CalendarPillButton(
                             title: "Done",
                             foregroundStyle: AnyShapeStyle(.primary.opacity(0.9)),
+                            width: actionButtonWidth,
+                            height: actionButtonHeight,
                             action: {
                                 Haptics.mediumImpact()
                                 dismiss()
@@ -79,35 +89,35 @@ struct DatePickerSheetView: View {
                         )
                     }
 
-                    VStack(spacing: 18) {
+                    VStack(spacing: 20) {
                         HStack {
                             ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                                 Text(symbol)
-                                    .font(.notely(.footnote, weight: .medium))
-                                    .foregroundStyle(NotelyTheme.secondaryText)
+                                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                                    .foregroundStyle(Color.black.opacity(0.58))
                                     .frame(maxWidth: .infinity)
                             }
                         }
 
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 20) {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 18) {
                             ForEach(Array(days.enumerated()), id: \.offset) { _, item in
                                 switch item {
                                 case .empty:
                                     Color.clear
-                                        .frame(height: 34)
+                                        .frame(height: dayCellSize)
                                 case let .date(day, date):
                                     Button(action: {
                                         Haptics.mediumImpact()
                                         selection = date
                                     }) {
                                         Text("\(day)")
-                                            .font(.notely(.title3, weight: calendar.isDate(date, inSameDayAs: selection) ? .semibold : .regular))
+                                            .font(.system(size: 18, weight: calendar.isDate(date, inSameDayAs: selection) ? .semibold : .regular, design: .rounded))
                                             .foregroundStyle(dayColor(for: date))
-                                            .frame(width: 34, height: 34)
+                                            .frame(width: dayCellSize, height: dayCellSize)
                                             .background {
                                                 if calendar.isDate(date, inSameDayAs: selection) {
                                                     Circle()
-                                                        .stroke(Color(red: 0.58, green: 0.43, blue: 0.96), lineWidth: 3)
+                                                        .stroke(selectedRingColor, lineWidth: 3)
                                                 }
                                             }
                                     }
@@ -117,26 +127,30 @@ struct DatePickerSheetView: View {
                             }
                         }
                     }
-                    .padding(.top, 6)
+                    .padding(.top, 2)
                 }
-                .padding(.horizontal, 28)
-                .padding(.top, 24)
-                .padding(.bottom, 30)
+                .padding(.horizontal, 24)
+                .padding(.top, 30)
+                .padding(.bottom, 34)
                 .background {
-                    RoundedRectangle(cornerRadius: 36, style: .continuous)
-                        .fill(Color.white.opacity(0.82))
+                    RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
+                        .fill(.ultraThinMaterial)
                         .overlay {
-                            RoundedRectangle(cornerRadius: 36, style: .continuous)
+                            RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
+                                .fill(Color.white.opacity(0.58))
+                        }
+                        .overlay {
+                            RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
                                 .stroke(Color.white.opacity(0.72), lineWidth: 1)
                         }
-                        .shadow(color: Color.black.opacity(0.08), radius: 24, x: 0, y: 10)
+                        .shadow(color: Color.black.opacity(0.04), radius: 16, x: 0, y: 8)
                 }
-                .padding(.horizontal, 4)
-                .padding(.top, 10)
+                .padding(.horizontal, 8)
+                .padding(.top, 12)
 
                 Spacer(minLength: 0)
             }
-            .safeAreaPadding(.top, 6)
+            .safeAreaPadding(.top, 10)
         }
     }
 
@@ -146,10 +160,10 @@ struct DatePickerSheetView: View {
         }
 
         if calendar.compare(date, to: selection, toGranularity: .day) == .orderedAscending {
-            return .black.opacity(0.85)
+            return .black.opacity(0.9)
         }
 
-        return .black.opacity(0.25)
+        return .black.opacity(0.26)
     }
 }
 
@@ -161,18 +175,23 @@ private enum CalendarDay {
 private struct CalendarPillButton: View {
     let title: String
     let foregroundStyle: AnyShapeStyle
+    let width: CGFloat
+    let height: CGFloat
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.notely(.body, weight: .semibold))
+                .font(.system(size: 17, weight: .semibold, design: .rounded))
                 .foregroundStyle(foregroundStyle)
-                .padding(.horizontal, 18)
-                .padding(.vertical, 11)
+                .frame(width: width, height: height)
                 .background {
-                    Capsule()
-                        .fill(Color.white.opacity(0.28))
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(Color.white.opacity(0.42))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .stroke(Color.white.opacity(0.34), lineWidth: 1)
+                        }
                 }
         }
         .buttonStyle(.plain)

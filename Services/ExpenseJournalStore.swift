@@ -54,6 +54,15 @@ final class ExpenseJournalStore: ObservableObject {
         sortAndPersist()
     }
 
+    func removeEntry(id: UUID) {
+        guard let index = entries.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+
+        entries.remove(at: index)
+        persist()
+    }
+
     func entries(on date: Date) -> [ExpenseEntry] {
         entries.filter { calendar.isDate($0.date, inSameDayAs: date) }
     }
@@ -156,4 +165,3 @@ private extension ExpenseJournalStore {
         ].sorted { $0.date > $1.date }
     }
 }
-

@@ -35,6 +35,7 @@ struct HomeView: View {
                         isComposerFocused: $isComposerFocused,
                         feedback: viewModel.draftFeedback,
                         onTextChange: { viewModel.handleComposerChange() },
+                        onEmptyBackspace: { viewModel.handleComposerBackspaceOnEmpty() },
                         onEntryTap: { entry in
                             selectedEntry = entry
                         },
@@ -54,7 +55,7 @@ struct HomeView: View {
                     )
                     .padding(.horizontal, 8)
                     .padding(.top, 10)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 14)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 } else {
                     VStack(spacing: 10) {
@@ -84,7 +85,7 @@ struct HomeView: View {
             }
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
                 DatePickerSheetView(selection: selectedDateBinding)
-                    .presentationDetents([.height(398)])
+                    .presentationDetents([.height(640)])
                     .presentationDragIndicator(.visible)
                     .presentationBackground(.clear)
                     .presentationCornerRadius(34)
@@ -130,6 +131,7 @@ private struct DayJournalPager: View {
     var isComposerFocused: FocusState<Bool>.Binding
     let feedback: DraftComposerFeedback?
     let onTextChange: () -> Void
+    let onEmptyBackspace: () -> Void
     let onEntryTap: (ExpenseEntry) -> Void
     let onMoveSelection: (Int) -> Void
 
@@ -138,15 +140,15 @@ private struct DayJournalPager: View {
 
     var body: some View {
         GeometryReader { geometry in
-            HStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 0) {
                 page(entries: previousEntries, feedback: nil)
-                    .frame(width: geometry.size.width)
+                    .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
                 page(entries: currentEntries, feedback: feedback)
-                    .frame(width: geometry.size.width)
+                    .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
                 page(entries: nextEntries, feedback: nil)
-                    .frame(width: geometry.size.width)
+                    .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
             }
-            .frame(width: geometry.size.width * 3, alignment: .leading)
+            .frame(width: geometry.size.width * 3, height: geometry.size.height, alignment: .topLeading)
             .offset(x: -geometry.size.width + dragOffset)
             .contentShape(Rectangle())
             .clipped()
@@ -161,6 +163,7 @@ private struct DayJournalPager: View {
             isComposerFocused: isComposerFocused,
             feedback: feedback,
             onTextChange: onTextChange,
+            onEmptyBackspace: onEmptyBackspace,
             onEntryTap: onEntryTap
         )
     }
@@ -252,11 +255,12 @@ private struct DayJournalPage: View {
     var isComposerFocused: FocusState<Bool>.Binding
     let feedback: DraftComposerFeedback?
     let onTextChange: () -> Void
+    let onEmptyBackspace: () -> Void
     let onEntryTap: (ExpenseEntry) -> Void
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 12) {
                 ForEach(entries) { entry in
                     Button(action: {
                         Haptics.mediumImpact()
@@ -272,15 +276,26 @@ private struct DayJournalPage: View {
                     isFocused: isComposerFocused,
                     showsPlaceholder: entries.isEmpty,
                     feedback: feedback,
-                    onTextChange: onTextChange
+                    onTextChange: onTextChange,
+                    onEmptyBackspace: onEmptyBackspace
                 )
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    isComposerFocused.wrappedValue = true
+                }
 
                 Color.clear
-                    .frame(height: 140)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 240)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        isComposerFocused.wrappedValue = true
+                    }
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 140)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 }
 
@@ -300,7 +315,7 @@ private struct KeyboardAccessoryBar: View {
                 action: onDismissKeyboard
             )
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 }
 
@@ -313,17 +328,17 @@ private struct KeyboardTotalPill: View {
         }) {
             HStack(spacing: 10) {
                 Text("\u{1F525}")
-                    .font(.system(size: 19))
+                    .font(.system(size: 17))
 
                 Text(totalText)
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary.opacity(0.96))
                     .monospacedDigit()
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
-            .padding(.horizontal, 22)
-            .frame(minHeight: 50)
+            .padding(.horizontal, 20)
+            .frame(minHeight: 46)
             .background {
                 Capsule()
                     .fill(NotelyTheme.surface)
@@ -349,9 +364,9 @@ private struct KeyboardCircleButton: View {
             action()
         }) {
             Image(systemName: systemImage)
-                .font(.system(size: 21, weight: .medium))
+                .font(.system(size: 19, weight: .medium))
                 .foregroundStyle(tint)
-                .frame(width: 50, height: 50)
+                .frame(width: 46, height: 46)
                 .background {
                     Circle()
                         .fill(NotelyTheme.surface)

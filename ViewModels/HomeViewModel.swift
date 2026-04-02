@@ -104,6 +104,15 @@ final class HomeViewModel: ObservableObject {
         composerText = ""
     }
 
+    func handleComposerBackspaceOnEmpty() {
+        guard composerText.isEmpty, let lastEntry = displayedEntries.last else {
+            return
+        }
+
+        store.removeEntry(id: lastEntry.id)
+        composerText = lastEntry.rawText
+    }
+
     func handleComposerChange() {
         let normalized = composerText.replacingOccurrences(of: "\r\n", with: "\n")
 
