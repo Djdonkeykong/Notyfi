@@ -3,106 +3,86 @@ import SwiftUI
 struct ExpensePreviewRow: View {
     let entry: ExpenseEntry
 
-    private var supportingText: String? {
-        if !entry.note.isEmpty {
-            return entry.note
+    private var leadingText: String {
+        let raw = entry.rawText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return raw.isEmpty ? entry.title : raw
+    }
+
+    private var trailingPrimary: String {
+        if entry.amount == 0 {
+            return "Thinking"
         }
 
-        if let merchant = entry.merchant {
+        if entry.confidence.needsReview {
+            return "Review"
+        }
+
+        return entry.amount.formattedCurrency(code: entry.currencyCode)
+    }
+
+    private var trailingSecondary: String? {
+        if entry.confidence.needsReview {
+            return entry.amount > 0 ? entry.amount.formattedCurrency(code: entry.currencyCode) : nil
+        }
+
+        if let merchant = entry.merchant, !merchant.isEmpty {
             return merchant
         }
 
-        let raw = entry.rawText.trimmingCharacters(in: .whitespacesAndNewlines)
-        let title = entry.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        return raw.caseInsensitiveCompare(title) == .orderedSame ? nil : raw
+        return nil
+    }
+
+    private var trailingPrimaryColor: Color {
+        if entry.amount == 0 || entry.confidence.needsReview {
+            return NotelyTheme.secondaryText
+        }
+
+        return Color(red: 0.26, green: 0.56, blue: 0.96)
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(entry.title)
+        HStack(alignment: .top, spacing: 18) {
+            Text(leadingText)
+                .font(.notely(.body))
+                .foregroundStyle(.primary.opacity(0.86))
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            VStack(alignment: .trailing, spacing: 5) {
+                Text(trailingPrimary)
                     .font(.notely(.body, weight: .semibold))
-                    .foregroundStyle(.primary.opacity(0.84))
-                    .fixedSize(horizontal: false, vertical: true)
+                    .foregroundStyle(trailingPrimaryColor)
+                    .multilineTextAlignment(.trailing)
+                    .fixedSize(horizontal: true, vertical: false)
 
-                if let supportingText {
-                    Text(supportingText)
-                        .font(.notely(.subheadline))
-                        .foregroundStyle(NotelyTheme.secondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                HStack(spacing: 8) {
-                    CategoryTag(category: entry.category)
-
-                    Text(entry.date.notelyTimeLabel())
-                        .font(.notely(.caption))
-                        .foregroundStyle(NotelyTheme.secondaryText)
-
-                    if entry.confidence.needsReview {
-                        Text("Needs review")
-                            .font(.notely(.caption, weight: .medium))
-                            .foregroundStyle(NotelyTheme.reviewTint)
-                    }
+                if let trailingSecondary {
+                    Text(trailingSecondary)
+                        .font(.notely(.footnote))
+                        .foregroundStyle(NotelyTheme.tertiaryText)
+                        .multilineTextAlignment(.trailing)
+                        .fixedSize(horizontal: true, vertical: false)
                 }
             }
-
-            Spacer(minLength: 16)
-
-            Text(entry.amount.formattedCurrency(code: entry.currencyCode))
-                .font(.notely(.headline, weight: .semibold))
-                .foregroundStyle(.primary.opacity(0.82))
-                .monospacedDigit()
-                .multilineTextAlignment(.trailing)
+            .padding(.top, 1)
         }
-        .padding(18)
-        .background {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(NotelyTheme.elevatedSurface)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
-                }
-        }
-    }
-}
-
-private struct CategoryTag: View {
-    let category: ExpenseCategory
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(category.tint)
-                .frame(width: 7, height: 7)
-
-            Text(category.title)
-                .font(.notely(.caption, weight: .medium))
-                .foregroundStyle(NotelyTheme.secondaryText)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background {
-            Capsule()
-                .fill(Color.white.opacity(0.55))
-        }
+        .padding(.vertical, 4)
     }
 }
 
 #Preview {
     ExpensePreviewRow(
         entry: ExpenseEntry(
-            rawText: "Coffee 49 kr",
+            rawText: "Coffee 49 kr at Talormade",
             title: "Coffee",
             amount: 49,
             category: .food,
             merchant: "Talormade",
             date: Date(),
-            note: "Quick stop before the train.",
+            note: "",
             confidence: .certain
         )
     )
     .padding()
     .background(NotelyTheme.background)
 }
-

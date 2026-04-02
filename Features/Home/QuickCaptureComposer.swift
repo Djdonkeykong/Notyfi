@@ -11,51 +11,47 @@ struct QuickCaptureComposer: View {
     }
 
     var body: some View {
-        SoftSurface(cornerRadius: 30, padding: 18) {
-            HStack(alignment: .bottom, spacing: 14) {
-                VStack(alignment: .leading, spacing: 8) {
-                    TextField("Coffee 49 kr", text: $text, axis: .vertical)
-                        .lineLimit(1...3)
-                        .font(.notely(.body))
-                        .foregroundStyle(.primary.opacity(0.84))
-                        .submitLabel(.done)
-                        .focused($isFocused)
-                        .onSubmit(onSubmit)
-
-                    Text("Type it naturally. Notely keeps the structure in the background.")
-                        .font(.notely(.caption))
-                        .foregroundStyle(NotelyTheme.secondaryText)
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            TextField("Start typing your money notes...", text: $text, axis: .vertical)
+                .lineLimit(1...4)
+                .font(.notely(.body))
+                .foregroundStyle(.primary.opacity(0.74))
+                .textFieldStyle(.plain)
+                .submitLabel(.done)
+                .focused($isFocused)
+                .onSubmit {
+                    onSubmit()
                 }
 
+            if !isEmpty {
                 Button(action: {
                     onSubmit()
                     isFocused = false
                 }) {
                     Image(systemName: "arrow.up")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(isEmpty ? NotelyTheme.tertiaryText : .white)
-                        .frame(width: 42, height: 42)
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 28, height: 28)
                         .background {
                             Circle()
-                                .fill(isEmpty ? NotelyTheme.elevatedSurface : NotelyTheme.reviewTint)
+                                .fill(NotelyTheme.reviewTint)
                         }
                 }
                 .buttonStyle(.plain)
-                .disabled(isEmpty)
+                .transition(.scale.combined(with: .opacity))
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
+        .animation(.easeInOut(duration: 0.18), value: isEmpty)
     }
 }
 
 #Preview {
     ZStack {
         NotelyTheme.background.ignoresSafeArea()
-        VStack {
-            Spacer()
+        VStack(alignment: .leading) {
             QuickCaptureComposer(text: .constant("Coffee 49"), onSubmit: {})
+                .padding(20)
+            Spacer()
         }
     }
 }

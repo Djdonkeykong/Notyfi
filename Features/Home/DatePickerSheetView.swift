@@ -6,7 +6,15 @@ struct DatePickerSheetView: View {
 
     var body: some View {
         ZStack {
-            NotelyTheme.background.ignoresSafeArea()
+            LinearGradient(
+                colors: [
+                    NotelyTheme.background.opacity(0.72),
+                    Color.white.opacity(0.34)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
             VStack(spacing: 18) {
                 HStack {
@@ -31,9 +39,9 @@ struct DatePickerSheetView: View {
                     .foregroundStyle(.primary.opacity(0.82))
                 }
                 .padding(.horizontal, 26)
-                .padding(.top, 8)
+                .padding(.top, 20)
 
-                SoftSurface(cornerRadius: 30, padding: 14) {
+                GlassSurface(cornerRadius: 32, padding: 16) {
                     DatePicker(
                         "",
                         selection: $selection,
@@ -47,7 +55,7 @@ struct DatePickerSheetView: View {
 
                 Spacer(minLength: 0)
             }
-            .padding(.top, 10)
+            .safeAreaPadding(.top, 18)
         }
     }
 }

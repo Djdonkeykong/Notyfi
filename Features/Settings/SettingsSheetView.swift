@@ -29,7 +29,7 @@ struct SettingsSheetView: View {
                         }
                         .buttonStyle(.plain)
                     }
-                    .padding(.top, 10)
+                    .padding(.top, 22)
 
                     SectionHeader(title: "Profile")
                     SettingsCard {
@@ -112,6 +112,7 @@ struct SettingsSheetView: View {
                         .padding(.bottom, 8)
                 }
                 .padding(.horizontal, 20)
+                .safeAreaPadding(.top, 14)
                 .padding(.bottom, 28)
             }
         }
