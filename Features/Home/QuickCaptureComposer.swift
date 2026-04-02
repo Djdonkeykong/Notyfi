@@ -2,13 +2,14 @@ import SwiftUI
 
 struct QuickCaptureComposer: View {
     @Binding var text: String
-    var isFocused: FocusState<Bool>.Binding
+    @Binding var focusedEditor: JournalEditorTarget?
+    @Binding var focusRequest: JournalEditorFocusRequest?
     let showsPlaceholder: Bool
     let feedback: DraftComposerFeedback?
-    let onTextChange: () -> Void
+    let onTextChange: (String) -> Void
+    let onSplitText: (String, String) -> Void
+    let onMergeBackward: () -> Void
 
-    private let editorLeadingOffset: CGFloat = -4
-    private let editorTopOffset: CGFloat = -8
     private let placeholderLeadingOffset: CGFloat = 1
     private let placeholderTopOffset: CGFloat = 0
 
@@ -33,14 +34,22 @@ struct QuickCaptureComposer: View {
                         .allowsHitTesting(false)
                 }
 
-                TextEditor(text: $text)
-                    .font(.notely(.body))
-                    .foregroundStyle(.primary.opacity(0.86))
-                    .scrollContentBackground(.hidden)
-                    .focused(isFocused)
-                    .frame(minHeight: 34, maxHeight: 120)
-                    .padding(.leading, editorLeadingOffset)
-                    .padding(.top, editorTopOffset)
+                JournalEditorTextView(
+                    text: $text,
+                    focusedEditor: $focusedEditor,
+                    focusRequest: $focusRequest,
+                    editorTarget: .composer,
+                    maxHeight: 120,
+                    onTextChange: { newText in
+                        onTextChange(newText)
+                    },
+                    onReturnKey: { leadingText, trailingText in
+                        onSplitText(leadingText, trailingText)
+                    },
+                    onBackspaceAtLeadingEdge: {
+                        onMergeBackward()
+                    }
+                )
             }
 
             VStack(alignment: .trailing, spacing: 5) {
@@ -62,15 +71,16 @@ struct QuickCaptureComposer: View {
             .padding(.top, 3)
         }
         .padding(.vertical, 4)
-        .onChange(of: text) { _, _ in
-            onTextChange()
-        }
     }
 }
 
 private struct QuickCaptureComposerPreviewWrapper: View {
     @State private var text = "Coffee 49"
-    @FocusState private var isFocused: Bool
+    @State private var focusedEditor: JournalEditorTarget? = .composer
+    @State private var focusRequest: JournalEditorFocusRequest? = JournalEditorFocusRequest(
+        target: .composer,
+        cursorPlacement: .end
+    )
 
     var body: some View {
         ZStack {
@@ -78,14 +88,17 @@ private struct QuickCaptureComposerPreviewWrapper: View {
             VStack(alignment: .leading) {
                 QuickCaptureComposer(
                     text: $text,
-                    isFocused: $isFocused,
+                    focusedEditor: $focusedEditor,
+                    focusRequest: $focusRequest,
                     showsPlaceholder: false,
                     feedback: DraftComposerFeedback(
                         primaryText: "49 kr",
                         secondaryText: nil,
                         primaryColorName: .accent
                     ),
-                    onTextChange: {}
+                    onTextChange: { _ in },
+                    onSplitText: { _, _ in },
+                    onMergeBackward: {}
                 )
                 .padding(20)
                 Spacer()

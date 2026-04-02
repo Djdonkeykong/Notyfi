@@ -28,21 +28,35 @@ final class ExpenseJournalStore: ObservableObject {
     }
 
     func addEntry(from rawText: String, on date: Date, currencyCode: String = "NOK") {
-        let draft = parser.parse(rawText: rawText, date: date, currencyCode: currencyCode)
-        let entry = ExpenseEntry(
-            rawText: draft.rawText,
-            title: draft.title,
-            amount: draft.amount,
-            currencyCode: draft.currencyCode,
-            category: draft.category,
-            merchant: draft.merchant,
+        let entry = makeEntry(
+            rawText: rawText,
             date: date,
-            note: draft.note,
-            confidence: draft.confidence
+            currencyCode: currencyCode,
+            createdAt: Date()
         )
 
         entries.insert(entry, at: 0)
         sortAndPersist()
+    }
+
+    func insertEntry(
+        after referenceEntry: ExpenseEntry,
+        rawText: String,
+        on date: Date,
+        currencyCode: String = "NOK"
+    ) -> UUID {
+        let createdAt = createdAtForInsertion(after: referenceEntry, on: date)
+        let entry = makeEntry(
+            rawText: rawText,
+            date: date,
+            currencyCode: currencyCode,
+            createdAt: createdAt
+        )
+
+        entries.insert(entry, at: 0)
+        sortAndPersist()
+
+        return entry.id
     }
 
     func updateEntry(_ entry: ExpenseEntry) {
@@ -104,6 +118,59 @@ final class ExpenseJournalStore: ObservableObject {
         }
 
         defaults.set(data, forKey: storageKey)
+    }
+
+    private func makeEntry(
+        rawText: String,
+        date: Date,
+        currencyCode: String,
+        createdAt: Date
+    ) -> ExpenseEntry {
+        let draft = parser.parse(rawText: rawText, date: date, currencyCode: currencyCode)
+
+        return ExpenseEntry(
+            rawText: rawText,
+            title: draft.title,
+            amount: draft.amount,
+            currencyCode: draft.currencyCode,
+            category: draft.category,
+            merchant: draft.merchant,
+            date: date,
+            note: draft.note,
+            confidence: draft.confidence,
+            createdAt: createdAt
+        )
+    }
+
+    private func createdAtForInsertion(after referenceEntry: ExpenseEntry, on date: Date) -> Date {
+        let dayEntries = entries
+            .filter { calendar.isDate($0.date, inSameDayAs: date) }
+            .sorted { lhs, rhs in
+                if calendar.isDate(lhs.date, equalTo: rhs.date, toGranularity: .minute) {
+                    return lhs.createdAt < rhs.createdAt
+                }
+
+                return lhs.date < rhs.date
+            }
+
+        guard
+            let referenceIndex = dayEntries.firstIndex(where: { $0.id == referenceEntry.id })
+        else {
+            return max(Date(), referenceEntry.createdAt.addingTimeInterval(0.001))
+        }
+
+        guard referenceIndex + 1 < dayEntries.count else {
+            return max(Date(), referenceEntry.createdAt.addingTimeInterval(0.001))
+        }
+
+        let nextCreatedAt = dayEntries[referenceIndex + 1].createdAt
+        let delta = nextCreatedAt.timeIntervalSince(referenceEntry.createdAt)
+
+        if delta > 0 {
+            return referenceEntry.createdAt.addingTimeInterval(delta / 2)
+        }
+
+        return referenceEntry.createdAt.addingTimeInterval(0.001)
     }
 }
 

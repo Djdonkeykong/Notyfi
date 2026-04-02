@@ -104,76 +104,143 @@ final class HomeViewModel: ObservableObject {
         composerText = ""
     }
 
-    func handleComposerBackspaceOnEmpty() {
-        guard composerText.isEmpty, let lastEntry = displayedEntries.last else {
-            return
-        }
-
-        store.removeEntry(id: lastEntry.id)
-        composerText = lastEntry.rawText
-    }
-
-    func handleComposerChange() -> Bool {
-        let normalized = composerText.replacingOccurrences(of: "\r\n", with: "\n")
-
-        if normalized != composerText {
-            composerText = normalized
-            return false
-        }
-
-        guard normalized.contains("\n") else {
-            return false
-        }
-
-        let parts = normalized.components(separatedBy: "\n")
-        let trailingDraft = parts.last ?? ""
-        let completedLines = parts
-            .dropLast()
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-
-        for line in completedLines {
-            store.addEntry(from: line, on: selectedDate, currencyCode: currencyCode)
-        }
-
-        composerText = trailingDraft
-        return !completedLines.isEmpty && trailingDraft.isEmpty
-    }
-
-    func updateEntryText(_ entry: ExpenseEntry, rawText: String) -> Bool {
+    func updateComposerText(_ rawText: String) {
         let normalized = rawText.replacingOccurrences(of: "\r\n", with: "\n")
-        let lines = normalized.components(separatedBy: "\n")
-        let currentEntryText = lines.first ?? ""
-        let nextDraftText = lines.dropFirst().joined(separator: "\n")
 
-        let parsed = parser.parse(
-            rawText: currentEntryText.trimmingCharacters(in: .whitespacesAndNewlines),
-            date: entry.date,
+        if composerText != normalized {
+            composerText = normalized
+        }
+    }
+
+    func splitComposerText(
+        leadingText: String,
+        trailingText: String
+    ) -> JournalEditorFocusRequest? {
+        let normalizedLeadingText = leadingText.replacingOccurrences(of: "\r\n", with: "\n")
+        let normalizedTrailingText = trailingText.replacingOccurrences(of: "\r\n", with: "\n")
+
+        if !normalizedLeadingText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            store.addEntry(
+                from: normalizedLeadingText,
+                on: selectedDate,
+                currencyCode: currencyCode
+            )
+        }
+
+        composerText = normalizedTrailingText
+
+        return JournalEditorFocusRequest(
+            target: .composer,
+            cursorPlacement: .start
+        )
+    }
+
+    func mergeComposerBackward() -> JournalEditorFocusRequest? {
+        guard let previousEntry = displayedEntries.last else {
+            return nil
+        }
+
+        let insertionOffset = previousEntry.rawText.utf16.count
+        let mergedText = previousEntry.rawText + composerText
+        store.updateEntry(updatedEntry(previousEntry, rawText: mergedText))
+        composerText = ""
+
+        return JournalEditorFocusRequest(
+            target: .entry(previousEntry.id),
+            cursorPlacement: .offset(insertionOffset)
+        )
+    }
+
+    func updateEntryText(_ entry: ExpenseEntry, rawText: String) {
+        let normalized = rawText.replacingOccurrences(of: "\r\n", with: "\n")
+        store.updateEntry(updatedEntry(entry, rawText: normalized))
+    }
+
+    func splitEntryText(
+        _ entry: ExpenseEntry,
+        leadingText: String,
+        trailingText: String
+    ) -> JournalEditorFocusRequest? {
+        let normalizedLeadingText = leadingText.replacingOccurrences(of: "\r\n", with: "\n")
+        let normalizedTrailingText = trailingText.replacingOccurrences(of: "\r\n", with: "\n")
+        let currentIndex = displayedEntries.firstIndex(where: { $0.id == entry.id })
+
+        store.updateEntry(updatedEntry(entry, rawText: normalizedLeadingText))
+
+        if normalizedTrailingText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if
+                let currentIndex,
+                currentIndex + 1 < displayedEntries.count
+            {
+                return JournalEditorFocusRequest(
+                    target: .entry(displayedEntries[currentIndex + 1].id),
+                    cursorPlacement: .start
+                )
+            }
+
+            composerText = ""
+
+            return JournalEditorFocusRequest(
+                target: .composer,
+                cursorPlacement: .start
+            )
+        }
+
+        let insertedEntryID = store.insertEntry(
+            after: entry,
+            rawText: normalizedTrailingText,
+            on: entry.date,
             currencyCode: entry.currencyCode
         )
 
-        let updated = ExpenseEntry(
-            id: entry.id,
-            rawText: parsed.rawText,
-            title: parsed.title,
-            amount: parsed.amount,
-            currencyCode: parsed.currencyCode,
-            category: parsed.category,
-            merchant: parsed.merchant,
-            date: entry.date,
-            note: entry.note,
-            confidence: parsed.confidence,
-            createdAt: entry.createdAt
+        return JournalEditorFocusRequest(
+            target: .entry(insertedEntryID),
+            cursorPlacement: .start
         )
+    }
 
-        store.updateEntry(updated)
-
-        guard lines.count > 1 else {
-            return false
+    func mergeEntryBackward(_ entry: ExpenseEntry) -> JournalEditorFocusRequest? {
+        guard let currentIndex = displayedEntries.firstIndex(where: { $0.id == entry.id }) else {
+            return nil
         }
 
-        composerText = nextDraftText
-        return true
+        guard currentIndex > 0 else {
+            guard entry.rawText.isEmpty else {
+                return JournalEditorFocusRequest(
+                    target: .entry(entry.id),
+                    cursorPlacement: .start
+                )
+            }
+
+            let nextEntry = displayedEntries.dropFirst().first
+            store.removeEntry(id: entry.id)
+
+            if let nextEntry {
+                return JournalEditorFocusRequest(
+                    target: .entry(nextEntry.id),
+                    cursorPlacement: .start
+                )
+            }
+
+            composerText = ""
+
+            return JournalEditorFocusRequest(
+                target: .composer,
+                cursorPlacement: .start
+            )
+        }
+
+        let previousEntry = displayedEntries[currentIndex - 1]
+        let insertionOffset = previousEntry.rawText.utf16.count
+        let mergedText = previousEntry.rawText + entry.rawText
+
+        store.updateEntry(updatedEntry(previousEntry, rawText: mergedText))
+        store.removeEntry(id: entry.id)
+
+        return JournalEditorFocusRequest(
+            target: .entry(previousEntry.id),
+            cursorPlacement: .offset(insertionOffset)
+        )
     }
 
     func resetToToday() {
@@ -238,5 +305,27 @@ final class HomeViewModel: ObservableObject {
 
             return lhs.date < rhs.date
         }
+    }
+
+    private func updatedEntry(_ entry: ExpenseEntry, rawText: String) -> ExpenseEntry {
+        let parsed = parser.parse(
+            rawText: rawText.trimmingCharacters(in: .whitespacesAndNewlines),
+            date: entry.date,
+            currencyCode: entry.currencyCode
+        )
+
+        return ExpenseEntry(
+            id: entry.id,
+            rawText: rawText,
+            title: parsed.title,
+            amount: parsed.amount,
+            currencyCode: parsed.currencyCode,
+            category: parsed.category,
+            merchant: parsed.merchant,
+            date: entry.date,
+            note: entry.note,
+            confidence: parsed.confidence,
+            createdAt: entry.createdAt
+        )
     }
 }

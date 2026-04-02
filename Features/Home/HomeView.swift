@@ -5,8 +5,8 @@ struct HomeView: View {
     @StateObject private var viewModel: HomeViewModel
     @State private var isSummaryExpanded = false
     @State private var selectedEntry: ExpenseEntry?
-    @FocusState private var isComposerFocused: Bool
-    @Namespace private var bottomBarNamespace
+    @State private var focusedEditor: JournalEditorTarget?
+    @State private var editorFocusRequest: JournalEditorFocusRequest?
 
     init(store: ExpenseJournalStore) {
         self.store = store
@@ -33,32 +33,57 @@ struct HomeView: View {
                         currentEntries: viewModel.displayedEntries,
                         nextEntries: viewModel.entries(for: viewModel.date(forDayOffset: 1)),
                         composerText: $viewModel.composerText,
-                        isComposerFocused: $isComposerFocused,
+                        focusedEditor: $focusedEditor,
+                        editorFocusRequest: $editorFocusRequest,
                         feedback: viewModel.draftFeedback,
-                        onTextChange: {
+                        onComposerTextChange: { rawText in
                             var transaction = Transaction()
                             transaction.animation = nil
 
-                            _ = withTransaction(transaction) {
-                                viewModel.handleComposerChange()
+                            withTransaction(transaction) {
+                                viewModel.updateComposerText(rawText)
+                            }
+                        },
+                        onComposerSplit: { leadingText, trailingText in
+                            applyFocusRequest {
+                                viewModel.splitComposerText(
+                                    leadingText: leadingText,
+                                    trailingText: trailingText
+                                )
+                            }
+                        },
+                        onComposerMergeBackward: {
+                            applyFocusRequest {
+                                viewModel.mergeComposerBackward()
                             }
                         },
                         onEntryTextChange: { entry, rawText in
                             var transaction = Transaction()
                             transaction.animation = nil
 
-                            let shouldFocusComposer = withTransaction(transaction) {
+                            withTransaction(transaction) {
                                 viewModel.updateEntryText(entry, rawText: rawText)
                             }
-
-                            if shouldFocusComposer {
-                                isComposerFocused = true
+                        },
+                        onEntrySplit: { entry, leadingText, trailingText in
+                            applyFocusRequest {
+                                viewModel.splitEntryText(
+                                    entry,
+                                    leadingText: leadingText,
+                                    trailingText: trailingText
+                                )
+                            }
+                        },
+                        onEntryMergeBackward: { entry in
+                            applyFocusRequest {
+                                viewModel.mergeEntryBackward(entry)
                             }
                         },
                         onEntryTap: { entry in
                             selectedEntry = entry
                         },
                         onMoveSelection: { dayOffset in
+                            clearEditorFocus()
                             isSummaryExpanded = false
                             viewModel.moveSelection(by: dayOffset)
                         }
@@ -66,11 +91,10 @@ struct HomeView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                if isComposerFocused {
+                if focusedEditor != nil {
                     KeyboardAccessoryBar(
                         totalText: viewModel.insight.dayTotal.formattedCurrency(code: viewModel.currencyCode),
-                        animationNamespace: bottomBarNamespace,
-                        onDismissKeyboard: { isComposerFocused = false }
+                        onDismissKeyboard: { clearEditorFocus() }
                     )
                     .padding(.horizontal, 8)
                     .padding(.top, 10)
@@ -92,7 +116,6 @@ struct HomeView: View {
                             insight: viewModel.insight,
                             entryCount: viewModel.displayedEntries.count,
                             currencyCode: viewModel.currencyCode,
-                            animationNamespace: bottomBarNamespace,
                             onTap: {
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.9)) {
                                     isSummaryExpanded.toggle()
@@ -103,7 +126,6 @@ struct HomeView: View {
                     .animation(.spring(response: 0.3, dampingFraction: 0.9), value: isSummaryExpanded)
                 }
             }
-            .animation(.spring(response: 0.38, dampingFraction: 0.92), value: isComposerFocused)
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
                 DatePickerSheetView(
                     selection: selectedDateBinding,
@@ -148,12 +170,33 @@ private extension HomeView {
     }
 
     func presentDatePicker() {
-        isComposerFocused = false
+        clearEditorFocus()
         isSummaryExpanded = false
 
         DispatchQueue.main.async {
             viewModel.isDatePickerPresented = true
         }
+    }
+
+    func applyFocusRequest(
+        _ action: () -> JournalEditorFocusRequest?
+    ) {
+        var transaction = Transaction()
+        transaction.animation = nil
+
+        let request = withTransaction(transaction) {
+            action()
+        }
+
+        if let request {
+            focusedEditor = request.target
+            editorFocusRequest = request
+        }
+    }
+
+    func clearEditorFocus() {
+        focusedEditor = nil
+        editorFocusRequest = nil
     }
 }
 
@@ -162,10 +205,15 @@ private struct DayJournalPager: View {
     let currentEntries: [ExpenseEntry]
     let nextEntries: [ExpenseEntry]
     @Binding var composerText: String
-    var isComposerFocused: FocusState<Bool>.Binding
+    @Binding var focusedEditor: JournalEditorTarget?
+    @Binding var editorFocusRequest: JournalEditorFocusRequest?
     let feedback: DraftComposerFeedback?
-    let onTextChange: () -> Void
+    let onComposerTextChange: (String) -> Void
+    let onComposerSplit: (String, String) -> Void
+    let onComposerMergeBackward: () -> Void
     let onEntryTextChange: (ExpenseEntry, String) -> Void
+    let onEntrySplit: (ExpenseEntry, String, String) -> Void
+    let onEntryMergeBackward: (ExpenseEntry) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
     let onMoveSelection: (Int) -> Void
 
@@ -200,10 +248,15 @@ private struct DayJournalPager: View {
         DayJournalPage(
             entries: entries,
             composerText: $composerText,
-            isComposerFocused: isComposerFocused,
+            focusedEditor: $focusedEditor,
+            editorFocusRequest: $editorFocusRequest,
             feedback: feedback,
-            onTextChange: onTextChange,
+            onComposerTextChange: onComposerTextChange,
+            onComposerSplit: onComposerSplit,
+            onComposerMergeBackward: onComposerMergeBackward,
             onEntryTextChange: onEntryTextChange,
+            onEntrySplit: onEntrySplit,
+            onEntryMergeBackward: onEntryMergeBackward,
             onEntryTap: onEntryTap,
             scrollDisabled: scrollDisabled
         )
@@ -327,10 +380,15 @@ private struct DayJournalPager: View {
 private struct DayJournalPage: View {
     let entries: [ExpenseEntry]
     @Binding var composerText: String
-    var isComposerFocused: FocusState<Bool>.Binding
+    @Binding var focusedEditor: JournalEditorTarget?
+    @Binding var editorFocusRequest: JournalEditorFocusRequest?
     let feedback: DraftComposerFeedback?
-    let onTextChange: () -> Void
+    let onComposerTextChange: (String) -> Void
+    let onComposerSplit: (String, String) -> Void
+    let onComposerMergeBackward: () -> Void
     let onEntryTextChange: (ExpenseEntry, String) -> Void
+    let onEntrySplit: (ExpenseEntry, String, String) -> Void
+    let onEntryMergeBackward: (ExpenseEntry) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
     let scrollDisabled: Bool
 
@@ -340,8 +398,16 @@ private struct DayJournalPage: View {
                 ForEach(entries) { entry in
                     ExpensePreviewRow(
                         entry: entry,
+                        focusedEditor: $focusedEditor,
+                        focusRequest: $editorFocusRequest,
                         onTextChange: { rawText in
                             onEntryTextChange(entry, rawText)
+                        },
+                        onSplitText: { leadingText, trailingText in
+                            onEntrySplit(entry, leadingText, trailingText)
+                        },
+                        onMergeBackward: {
+                            onEntryMergeBackward(entry)
                         },
                         onAccessoryTap: {
                             Haptics.mediumImpact()
@@ -352,10 +418,13 @@ private struct DayJournalPage: View {
 
                 QuickCaptureComposer(
                     text: $composerText,
-                    isFocused: isComposerFocused,
+                    focusedEditor: $focusedEditor,
+                    focusRequest: $editorFocusRequest,
                     showsPlaceholder: entries.isEmpty,
                     feedback: feedback,
-                    onTextChange: onTextChange
+                    onTextChange: onComposerTextChange,
+                    onSplitText: onComposerSplit,
+                    onMergeBackward: onComposerMergeBackward
                 )
 
                 Color.clear
@@ -376,16 +445,11 @@ private enum PagerDragAxisLock {
 
 private struct KeyboardAccessoryBar: View {
     let totalText: String
-    let animationNamespace: Namespace.ID
     let onDismissKeyboard: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
-            HomeTotalCounterPill(totalText: totalText)
-                .matchedGeometryEffect(id: "homeTotalCounter", in: animationNamespace)
-
-            Spacer(minLength: 0)
-
+            KeyboardTotalPill(totalText: totalText)
             KeyboardCircleButton(systemImage: "mic.fill", tint: Color(red: 0.03, green: 0.51, blue: 0.98))
             KeyboardCircleButton(systemImage: "camera.fill", tint: Color(red: 0.76, green: 0.17, blue: 0.87))
             KeyboardCircleButton(systemImage: "plus", tint: Color(red: 0.98, green: 0.54, blue: 0.13))
@@ -395,7 +459,41 @@ private struct KeyboardAccessoryBar: View {
                 action: onDismissKeyboard
             )
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+}
+
+private struct KeyboardTotalPill: View {
+    let totalText: String
+
+    var body: some View {
+        Button(action: {
+            Haptics.mediumImpact()
+        }) {
+            HStack(spacing: 10) {
+                Text("\u{1F525}")
+                    .font(.system(size: 17))
+
+                Text(totalText)
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary.opacity(0.96))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .padding(.horizontal, 20)
+            .frame(minHeight: 46)
+            .background {
+                Capsule()
+                    .fill(NotelyTheme.surface)
+                    .overlay {
+                        Capsule()
+                            .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
+                    }
+                    .shadow(color: NotelyTheme.shadow, radius: 18, x: 0, y: 10)
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 
