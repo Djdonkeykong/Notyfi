@@ -9,9 +9,9 @@ workflows:
         - appstore_credentials
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.olechristian.notely
+        bundle_identifier: com.notely.notely
       vars:
-        BUNDLE_ID: "com.olechristian.notely"
+        BUNDLE_ID: "com.notely.notely"
         XCODE_PROJECT: "Notely.xcodeproj"
         XCODE_SCHEME: "Notely"
       xcode: latest
@@ -54,4 +54,3 @@ workflows:
         api_key: $APP_STORE_CONNECT_PRIVATE_KEY
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-
