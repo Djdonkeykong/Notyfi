@@ -152,14 +152,13 @@ final class HomeViewModel: ObservableObject {
     }
 
     func entries(for date: Date) -> [ExpenseEntry] {
-        store.entries(on: date)
-            .sorted { $0.date > $1.date }
+        sortEntriesChronologically(store.entries(on: date))
     }
 
     private func recompute(entries: [ExpenseEntry], selectedDate: Date) {
-        displayedEntries = entries
-            .filter { calendar.isDate($0.date, inSameDayAs: selectedDate) }
-            .sorted { $0.date > $1.date }
+        displayedEntries = sortEntriesChronologically(
+            entries.filter { calendar.isDate($0.date, inSameDayAs: selectedDate) }
+        )
 
         let monthEntries = entries.filter {
             calendar.isDate($0.date, equalTo: selectedDate, toGranularity: .month)
@@ -183,5 +182,15 @@ final class HomeViewModel: ObservableObject {
             topCategory: topCategory,
             reviewCount: displayedEntries.filter { $0.confidence.needsReview }.count
         )
+    }
+
+    private func sortEntriesChronologically(_ entries: [ExpenseEntry]) -> [ExpenseEntry] {
+        entries.sorted { lhs, rhs in
+            if calendar.isDate(lhs.date, equalTo: rhs.date, toGranularity: .minute) {
+                return lhs.createdAt < rhs.createdAt
+            }
+
+            return lhs.date < rhs.date
+        }
     }
 }
