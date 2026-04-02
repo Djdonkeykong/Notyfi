@@ -10,6 +10,20 @@ This workspace uses `XcodeGen` to keep the project file lightweight.
 2. Run `xcodegen generate` from the repo root.
 3. Open `Notely.xcodeproj` in Xcode.
 
+## Codemagic
+
+`codemagic.yaml` is included at the repo root for internal TestFlight uploads.
+
+Before the workflow can publish, add these in Codemagic:
+
+- Environment variable group `appstore_credentials`
+- `APP_STORE_CONNECT_PRIVATE_KEY`
+- `APP_STORE_CONNECT_KEY_IDENTIFIER`
+- `APP_STORE_CONNECT_ISSUER_ID`
+- An App Store distribution certificate and provisioning profile for `com.olechristian.notely`
+
+The workflow uses `testFlightInternalTestingOnly`, so the uploaded build is meant for internal TestFlight viewing rather than external beta review.
+
 ## Structure
 
 - `App`: app entry and root view
