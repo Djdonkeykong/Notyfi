@@ -35,6 +35,9 @@ struct HomeView: View {
                         isComposerFocused: $isComposerFocused,
                         feedback: viewModel.draftFeedback,
                         onTextChange: { viewModel.handleComposerChange() },
+                        onEntryTextChange: { entry, rawText in
+                            viewModel.updateEntryText(entry, rawText: rawText)
+                        },
                         onEntryTap: { entry in
                             selectedEntry = entry
                         },
@@ -84,9 +87,10 @@ struct HomeView: View {
             }
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
                 DatePickerSheetView(selection: selectedDateBinding)
-                    .presentationDetents([.height(460)])
+                    .presentationDetents([.height(430)])
                     .presentationDragIndicator(.hidden)
                     .presentationBackground(.clear)
+                    .presentationBackgroundInteraction(.enabled(upThrough: .height(430)))
                     .presentationCornerRadius(34)
             }
             .sheet(isPresented: $viewModel.isSettingsPresented) {
@@ -130,6 +134,7 @@ private struct DayJournalPager: View {
     var isComposerFocused: FocusState<Bool>.Binding
     let feedback: DraftComposerFeedback?
     let onTextChange: () -> Void
+    let onEntryTextChange: (ExpenseEntry, String) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
     let onMoveSelection: (Int) -> Void
 
@@ -167,6 +172,7 @@ private struct DayJournalPager: View {
             isComposerFocused: isComposerFocused,
             feedback: feedback,
             onTextChange: onTextChange,
+            onEntryTextChange: onEntryTextChange,
             onEntryTap: onEntryTap,
             scrollDisabled: scrollDisabled
         )
@@ -289,20 +295,24 @@ private struct DayJournalPage: View {
     var isComposerFocused: FocusState<Bool>.Binding
     let feedback: DraftComposerFeedback?
     let onTextChange: () -> Void
+    let onEntryTextChange: (ExpenseEntry, String) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
     let scrollDisabled: Bool
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 12) {
                 ForEach(entries) { entry in
-                    Button(action: {
-                        Haptics.mediumImpact()
-                        onEntryTap(entry)
-                    }) {
-                        ExpensePreviewRow(entry: entry)
-                    }
-                    .buttonStyle(.plain)
+                    ExpensePreviewRow(
+                        entry: entry,
+                        onTextChange: { rawText in
+                            onEntryTextChange(entry, rawText)
+                        },
+                        onAccessoryTap: {
+                            Haptics.mediumImpact()
+                            onEntryTap(entry)
+                        }
+                    )
                 }
 
                 QuickCaptureComposer(

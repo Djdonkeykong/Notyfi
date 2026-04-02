@@ -6,8 +6,8 @@ struct DatePickerSheetView: View {
 
     private let selectedRingColor = Color(red: 0.58, green: 0.43, blue: 0.96)
     private let dayCellSize: CGFloat = 42
-    private let actionButtonWidth: CGFloat = 102
-    private let actionButtonHeight: CGFloat = 44
+    private let actionButtonWidth: CGFloat = 94
+    private let actionButtonHeight: CGFloat = 38
 
     private var calendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
@@ -54,11 +54,11 @@ struct DatePickerSheetView: View {
                 .fill(.ultraThinMaterial)
                 .overlay {
                     Rectangle()
-                        .fill(Color.white.opacity(0.42))
+                        .fill(Color.white.opacity(0.18))
                 }
                 .overlay {
                     Rectangle()
-                        .stroke(Color.white.opacity(0.55), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.35), lineWidth: 1)
                 }
                 .ignoresSafeArea()
 
@@ -78,7 +78,7 @@ struct DatePickerSheetView: View {
                     Spacer()
 
                     Text(monthTitle)
-                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
                         .foregroundStyle(.primary.opacity(0.96))
 
                     Spacer()
@@ -170,7 +170,7 @@ private struct CalendarPillButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(foregroundStyle)
                 .frame(width: width, height: height)
                 .background {

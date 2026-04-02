@@ -2,11 +2,26 @@ import SwiftUI
 
 struct ExpensePreviewRow: View {
     let entry: ExpenseEntry
+    let onTextChange: (String) -> Void
+    let onAccessoryTap: () -> Void
+
+    @State private var draftText: String
 
     private let trailingColumnWidth: CGFloat = 96
     private let trailingSecondaryHeight: CGFloat = 16
 
-    private var leadingText: String {
+    init(
+        entry: ExpenseEntry,
+        onTextChange: @escaping (String) -> Void = { _ in },
+        onAccessoryTap: @escaping () -> Void = {}
+    ) {
+        self.entry = entry
+        self.onTextChange = onTextChange
+        self.onAccessoryTap = onAccessoryTap
+        _draftText = State(initialValue: entry.rawText)
+    }
+
+    private var leadingPlaceholder: String {
         let raw = entry.rawText.trimmingCharacters(in: .whitespacesAndNewlines)
         return raw.isEmpty ? entry.title : raw
     }
@@ -49,31 +64,44 @@ struct ExpensePreviewRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 18) {
-            Text(leadingText)
+            TextField(leadingPlaceholder, text: $draftText, axis: .vertical)
+                .textFieldStyle(.plain)
                 .font(.notely(.body))
                 .foregroundStyle(.primary.opacity(0.86))
                 .lineSpacing(3)
+                .lineLimit(1...6)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .onChange(of: draftText) { _, newValue in
+                    onTextChange(newValue)
+                }
+                .onChange(of: entry.rawText) { _, newValue in
+                    if draftText != newValue {
+                        draftText = newValue
+                    }
+                }
 
-            VStack(alignment: .trailing, spacing: 5) {
-                Text(trailingPrimary)
-                    .font(.notely(.body, weight: .semibold))
-                    .foregroundStyle(trailingPrimaryColor)
-                    .multilineTextAlignment(.trailing)
-                    .lineLimit(1)
+            Button(action: onAccessoryTap) {
+                VStack(alignment: .trailing, spacing: 5) {
+                    Text(trailingPrimary)
+                        .font(.notely(.body, weight: .semibold))
+                        .foregroundStyle(trailingPrimaryColor)
+                        .multilineTextAlignment(.trailing)
+                        .lineLimit(1)
 
-                Text(trailingSecondaryDisplay)
-                    .font(.notely(.footnote))
-                    .foregroundStyle(NotelyTheme.tertiaryText)
-                    .multilineTextAlignment(.trailing)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .frame(height: trailingSecondaryHeight, alignment: .top)
-                    .opacity(trailingSecondary == nil ? 0 : 1)
+                    Text(trailingSecondaryDisplay)
+                        .font(.notely(.footnote))
+                        .foregroundStyle(NotelyTheme.tertiaryText)
+                        .multilineTextAlignment(.trailing)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(height: trailingSecondaryHeight, alignment: .top)
+                        .opacity(trailingSecondary == nil ? 0 : 1)
+                }
+                .frame(width: trailingColumnWidth, alignment: .topTrailing)
+                .padding(.top, 1)
             }
-            .frame(width: trailingColumnWidth, alignment: .topTrailing)
-            .padding(.top, 1)
+            .buttonStyle(.plain)
         }
         .padding(.vertical, 4)
     }

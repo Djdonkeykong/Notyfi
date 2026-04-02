@@ -2,6 +2,14 @@ import Foundation
 
 extension Date {
     func notelyDayTitle(calendar: Calendar = .current) -> String {
+        if calendar.isDateInToday(self) {
+            return "Today"
+        }
+
+        if calendar.isDateInYesterday(self) {
+            return "Yesterday"
+        }
+
         let formatter = DateFormatter()
         formatter.calendar = calendar
         formatter.locale = Locale(identifier: "en_US_POSIX")

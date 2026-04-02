@@ -139,6 +139,30 @@ final class HomeViewModel: ObservableObject {
         composerText = trailingDraft
     }
 
+    func updateEntryText(_ entry: ExpenseEntry, rawText: String) {
+        let parsed = parser.parse(
+            rawText: rawText.trimmingCharacters(in: .whitespacesAndNewlines),
+            date: entry.date,
+            currencyCode: entry.currencyCode
+        )
+
+        let updated = ExpenseEntry(
+            id: entry.id,
+            rawText: parsed.rawText,
+            title: parsed.title,
+            amount: parsed.amount,
+            currencyCode: parsed.currencyCode,
+            category: parsed.category,
+            merchant: parsed.merchant,
+            date: entry.date,
+            note: entry.note,
+            confidence: parsed.confidence,
+            createdAt: entry.createdAt
+        )
+
+        store.updateEntry(updated)
+    }
+
     func resetToToday() {
         setSelectedDate(Date())
     }
