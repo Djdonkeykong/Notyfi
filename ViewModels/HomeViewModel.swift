@@ -279,22 +279,52 @@ final class HomeViewModel: ObservableObject {
 
         let dayTotal = displayedEntries.reduce(0) { $0 + $1.amount }
         let monthTotal = monthEntries.reduce(0) { $0 + $1.amount }
-
-        let weekEntries = entries.filter {
-            calendar.isDate($0.date, equalTo: selectedDate, toGranularity: .weekOfYear)
-        }
-
-        let grouped = Dictionary(grouping: weekEntries, by: \.category)
-        let topCategory = grouped.max { lhs, rhs in
-            lhs.value.reduce(0) { $0 + $1.amount } < rhs.value.reduce(0) { $0 + $1.amount }
-        }?.key
+        let monthAveragePerEntry = monthEntries.isEmpty
+            ? 0
+            : monthTotal / Double(monthEntries.count)
+        let categoryBreakdown = makeCategoryBreakdown(from: monthEntries, monthTotal: monthTotal)
+        let topCategory = categoryBreakdown.first?.category
+        let topCategoryShare = categoryBreakdown.first?.share ?? 0
 
         insight = JournalInsight(
             dayTotal: dayTotal,
             monthTotal: monthTotal,
             topCategory: topCategory,
-            reviewCount: displayedEntries.filter { $0.confidence.needsReview }.count
+            reviewCount: monthEntries.filter { $0.confidence.needsReview }.count,
+            monthEntryCount: monthEntries.count,
+            monthAveragePerEntry: monthAveragePerEntry,
+            topCategoryShare: topCategoryShare,
+            categoryBreakdown: categoryBreakdown
         )
+    }
+
+    private func makeCategoryBreakdown(
+        from entries: [ExpenseEntry],
+        monthTotal: Double
+    ) -> [JournalCategoryBreakdown] {
+        guard monthTotal > 0 else {
+            return []
+        }
+
+        let groupedEntries = Dictionary(grouping: entries, by: \.category)
+
+        return groupedEntries.map { category, categoryEntries in
+            let total = categoryEntries.reduce(0) { $0 + $1.amount }
+
+            return JournalCategoryBreakdown(
+                category: category,
+                total: total,
+                share: total / monthTotal,
+                entryCount: categoryEntries.count
+            )
+        }
+        .sorted { lhs, rhs in
+            if lhs.total == rhs.total {
+                return lhs.category.title < rhs.category.title
+            }
+
+            return lhs.total > rhs.total
+        }
     }
 
     private func sortEntriesChronologically(_ entries: [ExpenseEntry]) -> [ExpenseEntry] {

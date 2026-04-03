@@ -110,8 +110,6 @@ struct HomeView: View {
                         if isSummaryExpanded {
                             HomeSnapshotCard(
                                 insight: viewModel.insight,
-                                entryCount: viewModel.displayedEntries.count,
-                                averageSpend: averageSpend,
                                 currencyCode: viewModel.currencyCode
                             )
                             .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -162,11 +160,6 @@ struct HomeView: View {
 }
 
 private extension HomeView {
-    var averageSpend: Double {
-        let count = max(viewModel.displayedEntries.count, 1)
-        return viewModel.insight.dayTotal / Double(count)
-    }
-
     var selectedDateBinding: Binding<Date> {
         Binding(
             get: { viewModel.selectedDate },
