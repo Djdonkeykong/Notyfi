@@ -334,6 +334,7 @@ final class HomeViewModel: ObservableObject {
             date: entry.date,
             note: entry.note,
             confidence: .uncertain,
+            parseFailureMessage: nil,
             createdAt: entry.createdAt
         )
     }

@@ -122,6 +122,25 @@ struct EntryDetailView: View {
                             }
                             .padding(.horizontal, 20)
                             .padding(.vertical, 16)
+
+                            if let parseFailureMessage = viewModel.parseFailureMessage,
+                               !parseFailureMessage.isEmpty {
+                                Divider()
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Parser Debug")
+                                        .font(.notely(.footnote, weight: .medium))
+                                        .foregroundStyle(NotelyTheme.secondaryText)
+
+                                    Text(parseFailureMessage)
+                                        .font(.notely(.footnote))
+                                        .foregroundStyle(.red.opacity(0.78))
+                                        .textSelection(.enabled)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                            }
                         }
                     }
                 }

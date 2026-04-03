@@ -34,6 +34,7 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
     var date: Date
     var note: String
     var confidence: ParsingConfidence
+    var parseFailureMessage: String?
     var createdAt: Date
 
     init(
@@ -47,6 +48,7 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         date: Date,
         note: String = "",
         confidence: ParsingConfidence,
+        parseFailureMessage: String? = nil,
         createdAt: Date = Date()
     ) {
         self.id = id
@@ -59,7 +61,7 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         self.date = date
         self.note = note
         self.confidence = confidence
+        self.parseFailureMessage = parseFailureMessage
         self.createdAt = createdAt
     }
 }
-

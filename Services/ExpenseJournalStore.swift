@@ -191,6 +191,7 @@ final class ExpenseJournalStore: ObservableObject {
             date: date,
             note: "",
             confidence: .uncertain,
+            parseFailureMessage: nil,
             createdAt: createdAt
         )
     }
@@ -239,7 +240,8 @@ final class ExpenseJournalStore: ObservableObject {
 
                 self.markParsingFailed(
                     entryID: entryID,
-                    expectedRawText: rawText
+                    expectedRawText: rawText,
+                    error: error
                 )
             }
         }
@@ -277,6 +279,7 @@ final class ExpenseJournalStore: ObservableObject {
             date: currentEntry.date,
             note: draft.note.isEmpty ? currentEntry.note : draft.note,
             confidence: resolvedConfidence,
+            parseFailureMessage: nil,
             createdAt: currentEntry.createdAt
         )
         sortAndPersist()
@@ -284,7 +287,8 @@ final class ExpenseJournalStore: ObservableObject {
 
     private func markParsingFailed(
         entryID: UUID,
-        expectedRawText: String
+        expectedRawText: String,
+        error: Error
     ) {
         parseTasksByEntryID[entryID] = nil
 
@@ -297,7 +301,27 @@ final class ExpenseJournalStore: ObservableObject {
         }
 
         entries[index].confidence = .review
+        entries[index].parseFailureMessage = parserFailureMessage(for: error)
         persist()
+    }
+
+    private func parserFailureMessage(for error: Error) -> String {
+        if case ExpenseParsingServiceError.missingAPIKey = error {
+            return "Missing OPENAI_API_KEY"
+        }
+
+        if case ExpenseParsingServiceError.emptyModelResponse = error {
+            return "Empty parser response"
+        }
+
+        if let urlError = error as? URLError {
+            return "Network error: \(urlError.code.rawValue)"
+        }
+
+        let message = (error as NSError).localizedDescription
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        return message.isEmpty ? "Parser request failed" : message
     }
 
     private func resumePendingParsesIfNeeded() {

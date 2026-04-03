@@ -58,6 +58,10 @@ struct ExpensePreviewRow: View {
         }
 
         if entry.confidence.needsReview {
+            if entry.amount == 0 {
+                return entry.parseFailureMessage
+            }
+
             return entry.amount > 0 ? entry.amount.formattedCurrency(code: entry.currencyCode) : nil
         }
 
