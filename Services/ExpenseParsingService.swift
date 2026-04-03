@@ -51,8 +51,23 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
             return environmentKey
         }
 
-        return (Bundle.main.object(forInfoDictionaryKey: "OPENAI_API_KEY") as? String)?
+        let bundleKey = (Bundle.main.object(forInfoDictionaryKey: "OPENAI_API_KEY") as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let bundleKey,
+           !bundleKey.isEmpty,
+           bundleKey != "$(OPENAI_API_KEY)" {
+            return bundleKey
+        }
+
+        let generatedKey = OpenAISecrets.apiKey
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !generatedKey.isEmpty {
+            return generatedKey
+        }
+
+        return nil
     }
 
     func parse(
