@@ -19,6 +19,11 @@ workflows:
       xcode: latest
 
     scripts:
+      - name: Write secrets xcconfig
+        script: |
+          mkdir -p "$CM_BUILD_DIR/Config"
+          printf 'OPENAI_API_KEY = %s\n' "$OPENAI_API_KEY" > "$CM_BUILD_DIR/Config/Secrets.xcconfig"
+
       - name: Install XcodeGen
         script: |
           brew install xcodegen
