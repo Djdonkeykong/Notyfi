@@ -21,6 +21,11 @@ workflows:
     scripts:
       - name: Write secrets xcconfig
         script: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "OPENAI_API_KEY is empty or unavailable in Codemagic."
+            exit 1
+          fi
+
           mkdir -p "$CM_BUILD_DIR/Config"
           printf 'OPENAI_API_KEY = %s\n' "$OPENAI_API_KEY" > "$CM_BUILD_DIR/Config/Secrets.xcconfig"
 
@@ -31,6 +36,17 @@ workflows:
       - name: Generate Xcode project
         script: |
           xcodegen generate
+
+      - name: Verify OpenAI key build setting
+        script: |
+          cd "$CM_BUILD_DIR"
+          value=$(xcodebuild -project "$XCODE_PROJECT" -scheme "$XCODE_SCHEME" -showBuildSettings | awk -F' = ' '/OPENAI_API_KEY/ {print $2; exit}')
+          if [ -z "$value" ]; then
+            echo "OPENAI_API_KEY did not resolve in Xcode build settings."
+            exit 1
+          fi
+
+          echo "OPENAI_API_KEY resolved in Xcode build settings."
 
       - name: Apply App Store signing profiles
         script: |
