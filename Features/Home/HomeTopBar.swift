@@ -56,19 +56,10 @@ struct HomeTopBar: View {
 
 private struct NotelyMark: View {
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            Text("N")
-                .font(.system(size: 21, weight: .bold, design: .serif))
-                .foregroundStyle(Color(red: 0.20, green: 0.20, blue: 0.52))
-                .rotationEffect(.degrees(-18))
-
-            Image(systemName: "scribble")
-                .font(.system(size: 17, weight: .regular))
-                .foregroundStyle(.primary.opacity(0.55))
-                .offset(x: 7, y: 12)
-        }
-        .frame(width: 28, height: 28, alignment: .topLeading)
-        .padding(.leading, 2)
+        Image("HomeBrandMark")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 42, height: 42)
     }
 }
 
