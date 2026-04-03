@@ -45,6 +45,10 @@ struct ExpensePreviewRow: View {
             return entry.confidence == .review ? "Review" : "Thinking"
         }
 
+        if entry.isAmountEstimated {
+            return entry.amount.formattedCurrency(code: entry.currencyCode)
+        }
+
         if entry.confidence.needsReview {
             return "Review"
         }
@@ -58,8 +62,12 @@ struct ExpensePreviewRow: View {
         }
 
         if entry.confidence.needsReview {
+            if entry.isAmountEstimated, entry.amount > 0 {
+                return "Estimated"
+            }
+
             if entry.amount == 0 {
-                return entry.parseFailureMessage
+                return "Add price"
             }
 
             return entry.amount > 0 ? entry.amount.formattedCurrency(code: entry.currencyCode) : nil

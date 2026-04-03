@@ -122,25 +122,6 @@ struct EntryDetailView: View {
                             }
                             .padding(.horizontal, 20)
                             .padding(.vertical, 16)
-
-                            if let parseFailureMessage = viewModel.parseFailureMessage,
-                               !parseFailureMessage.isEmpty {
-                                Divider()
-
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("Parser Debug")
-                                        .font(.notely(.footnote, weight: .medium))
-                                        .foregroundStyle(NotelyTheme.secondaryText)
-
-                                    Text(parseFailureMessage)
-                                        .font(.notely(.footnote))
-                                        .foregroundStyle(.red.opacity(0.78))
-                                        .textSelection(.enabled)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 16)
-                            }
                         }
                     }
                 }
@@ -376,6 +357,10 @@ private extension EntryDetailViewModel {
     }
 
     var confidenceTitle: String {
+        if isAmountEstimated, needsReview {
+            return "Estimated price"
+        }
+
         needsReview ? "Needs review" : "Ready"
     }
 
@@ -384,10 +369,18 @@ private extension EntryDetailViewModel {
     }
 
     var confidenceIcon: String {
+        if isAmountEstimated, needsReview {
+            return "sparkles"
+        }
+
         needsReview ? "wand.and.stars" : "checkmark.seal.fill"
     }
 
     var summaryCaption: String {
+        if isAmountEstimated, needsReview {
+            return "estimated total"
+        }
+
         amountText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "amount pending" : "captured total"
     }
 }

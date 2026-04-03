@@ -252,9 +252,11 @@ private extension HomeView {
     }
 
     func clearEditorFocus(cancelsPendingPresentation: Bool = true) {
-        if case .composer = focusedEditor {
+        let activeEditor = focusedEditor
+
+        if case .composer = activeEditor {
             viewModel.addEntry()
-        } else if case .entry(let entryID) = focusedEditor {
+        } else if case .entry(let entryID) = activeEditor {
             store.reparseEntryImmediately(id: entryID)
         }
 
@@ -263,9 +265,17 @@ private extension HomeView {
         }
 
         focusRequestGeneration += 1
-        focusedEditor = nil
+        let requestGeneration = focusRequestGeneration
         editorFocusRequest = nil
         forceResignKeyboard()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+            guard requestGeneration == focusRequestGeneration else {
+                return
+            }
+
+            focusedEditor = nil
+        }
     }
 
     func forceResignKeyboard() {

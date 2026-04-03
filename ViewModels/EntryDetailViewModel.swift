@@ -10,7 +10,7 @@ final class EntryDetailViewModel: ObservableObject {
     @Published var merchant: String
     @Published var note: String
     @Published var needsReview: Bool
-    @Published private(set) var parseFailureMessage: String?
+    @Published private(set) var isAmountEstimated: Bool
 
     let currencyCode: String
 
@@ -27,7 +27,7 @@ final class EntryDetailViewModel: ObservableObject {
         self.merchant = entry.merchant ?? ""
         self.note = entry.note
         self.needsReview = entry.confidence.needsReview
-        self.parseFailureMessage = entry.parseFailureMessage
+        self.isAmountEstimated = entry.isAmountEstimated
         self.currencyCode = entry.currencyCode
         self.store = store
         self.entryID = entry.id
@@ -47,7 +47,7 @@ final class EntryDetailViewModel: ObservableObject {
             date: date,
             note: note.trimmingCharacters(in: .whitespacesAndNewlines),
             confidence: needsReview ? .review : .certain,
-            parseFailureMessage: nil,
+            isAmountEstimated: needsReview && isAmountEstimated,
             createdAt: createdAt
         )
 

@@ -34,7 +34,7 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
     var date: Date
     var note: String
     var confidence: ParsingConfidence
-    var parseFailureMessage: String?
+    var isAmountEstimated: Bool
     var createdAt: Date
 
     init(
@@ -48,7 +48,7 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         date: Date,
         note: String = "",
         confidence: ParsingConfidence,
-        parseFailureMessage: String? = nil,
+        isAmountEstimated: Bool = false,
         createdAt: Date = Date()
     ) {
         self.id = id
@@ -61,7 +61,56 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         self.date = date
         self.note = note
         self.confidence = confidence
-        self.parseFailureMessage = parseFailureMessage
+        self.isAmountEstimated = isAmountEstimated
         self.createdAt = createdAt
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case rawText
+        case title
+        case amount
+        case currencyCode
+        case category
+        case merchant
+        case date
+        case note
+        case confidence
+        case isAmountEstimated
+        case createdAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        id = try container.decode(UUID.self, forKey: .id)
+        rawText = try container.decode(String.self, forKey: .rawText)
+        title = try container.decode(String.self, forKey: .title)
+        amount = try container.decode(Double.self, forKey: .amount)
+        currencyCode = try container.decode(String.self, forKey: .currencyCode)
+        category = try container.decode(ExpenseCategory.self, forKey: .category)
+        merchant = try container.decodeIfPresent(String.self, forKey: .merchant)
+        date = try container.decode(Date.self, forKey: .date)
+        note = try container.decode(String.self, forKey: .note)
+        confidence = try container.decode(ParsingConfidence.self, forKey: .confidence)
+        isAmountEstimated = try container.decodeIfPresent(Bool.self, forKey: .isAmountEstimated) ?? false
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(id, forKey: .id)
+        try container.encode(rawText, forKey: .rawText)
+        try container.encode(title, forKey: .title)
+        try container.encode(amount, forKey: .amount)
+        try container.encode(currencyCode, forKey: .currencyCode)
+        try container.encode(category, forKey: .category)
+        try container.encodeIfPresent(merchant, forKey: .merchant)
+        try container.encode(date, forKey: .date)
+        try container.encode(note, forKey: .note)
+        try container.encode(confidence, forKey: .confidence)
+        try container.encode(isAmountEstimated, forKey: .isAmountEstimated)
+        try container.encode(createdAt, forKey: .createdAt)
     }
 }

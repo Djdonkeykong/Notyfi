@@ -1,6 +1,6 @@
 import Foundation
 
-struct ParsedExpenseDraft: Decodable {
+struct ParsedExpenseDraft: Codable {
     var rawText: String
     var title: String
     var amount: Double
@@ -9,6 +9,55 @@ struct ParsedExpenseDraft: Decodable {
     var merchant: String?
     var note: String
     var confidence: ParsingConfidence
+    var isAmountEstimated: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case rawText
+        case title
+        case amount
+        case currencyCode
+        case category
+        case merchant
+        case note
+        case confidence
+        case isAmountEstimated
+    }
+
+    init(
+        rawText: String,
+        title: String,
+        amount: Double,
+        currencyCode: String,
+        category: ExpenseCategory,
+        merchant: String?,
+        note: String,
+        confidence: ParsingConfidence,
+        isAmountEstimated: Bool = false
+    ) {
+        self.rawText = rawText
+        self.title = title
+        self.amount = amount
+        self.currencyCode = currencyCode
+        self.category = category
+        self.merchant = merchant
+        self.note = note
+        self.confidence = confidence
+        self.isAmountEstimated = isAmountEstimated
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        rawText = try container.decode(String.self, forKey: .rawText)
+        title = try container.decode(String.self, forKey: .title)
+        amount = try container.decode(Double.self, forKey: .amount)
+        currencyCode = try container.decode(String.self, forKey: .currencyCode)
+        category = try container.decode(ExpenseCategory.self, forKey: .category)
+        merchant = try container.decodeIfPresent(String.self, forKey: .merchant)
+        note = try container.decode(String.self, forKey: .note)
+        confidence = try container.decode(ParsingConfidence.self, forKey: .confidence)
+        isAmountEstimated = try container.decodeIfPresent(Bool.self, forKey: .isAmountEstimated) ?? false
+    }
 }
 
 protocol ExpenseParsingServicing {
@@ -25,6 +74,27 @@ enum ExpenseParsingServiceError: Error {
 }
 
 struct OpenAIExpenseParsingService: ExpenseParsingServicing {
+    enum RequestError: LocalizedError {
+        case http(statusCode: Int, message: String)
+
+        var errorDescription: String? {
+            switch self {
+            case let .http(_, message):
+                return message
+            }
+        }
+
+        var isRetryable: Bool {
+            switch self {
+            case let .http(statusCode, _):
+                return statusCode == 408
+                    || statusCode == 409
+                    || statusCode == 429
+                    || (500...599).contains(statusCode)
+            }
+        }
+    }
+
     private let apiKey: String?
     private let model: String
     private let endpointURL: URL
@@ -96,11 +166,7 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         if let httpResponse = response as? HTTPURLResponse,
            !(200...299).contains(httpResponse.statusCode) {
             let message = String(data: data, encoding: .utf8) ?? "Unknown API error"
-            throw NSError(
-                domain: "OpenAIExpenseParsingService",
-                code: httpResponse.statusCode,
-                userInfo: [NSLocalizedDescriptionKey: message]
-            )
+            throw RequestError.http(statusCode: httpResponse.statusCode, message: message)
         }
 
         let completion = try decoder.decode(ChatCompletionResponse.self, from: data)
@@ -119,7 +185,8 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
             category: parsedDraft.category,
             merchant: parsedDraft.merchant?.trimmingCharacters(in: .whitespacesAndNewlines),
             note: parsedDraft.note.trimmingCharacters(in: .whitespacesAndNewlines),
-            confidence: parsedDraft.confidence
+            confidence: parsedDraft.confidence,
+            isAmountEstimated: parsedDraft.isAmountEstimated
         )
     }
 
@@ -128,25 +195,13 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         date: Date,
         currencyCode: String
     ) -> [String: Any] {
-        let categoryValues = ExpenseCategory.allCases
-            .map(\.rawValue)
-            .joined(separator: ", ")
         let userContent = """
-        Parse this personal finance note into one transaction.
-
         Note: \(rawText)
         Date: \(ISO8601DateFormatter().string(from: date))
-        Default currency: \(currencyCode)
+        Currency: \(currencyCode)
 
-        Rules:
-        - Return one JSON object only.
-        - Infer a concise title from the note.
-        - Extract the numeric amount as a positive number.
-        - Use one category from: \(categoryValues).
-        - If no category clearly fits, use "uncategorized".
-        - Extract merchant only when one is explicitly implied.
-        - Keep note as "" unless there is extra context worth preserving.
-        - confidence must be "certain" when the note is clear, otherwise "review" or "uncertain".
+        Return one transaction JSON object. Infer a short title, amount as a positive number, one allowed category, merchant if explicit, note as "" unless useful, confidence as certain/review/uncertain, and isAmountEstimated as true/false.
+        If no amount is written but the note mentions a concrete item/place, estimate a plausible amount in the given currency, set confidence "review", and set isAmountEstimated true. If there is not enough context to estimate, use amount 0, confidence "review", and isAmountEstimated false.
         """
 
         return [
@@ -155,7 +210,7 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
             "messages": [
                 [
                     "role": "system",
-                    "content": "You convert short personal finance notes into strict transaction JSON for a budgeting app."
+                    "content": "You convert Norwegian or English personal finance notes into strict transaction JSON for a budgeting app."
                 ],
                 [
                     "role": "user",
@@ -189,7 +244,8 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
                             "confidence": [
                                 "type": "string",
                                 "enum": ParsingConfidence.allCases.map(\.rawValue)
-                            ]
+                            ],
+                            "isAmountEstimated": ["type": "boolean"]
                         ],
                         "required": [
                             "rawText",
@@ -199,7 +255,8 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
                             "category",
                             "merchant",
                             "note",
-                            "confidence"
+                            "confidence",
+                            "isAmountEstimated"
                         ]
                     ]
                 ]

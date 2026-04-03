@@ -9,7 +9,10 @@ final class ExpenseJournalStore: ObservableObject {
     private let defaults: UserDefaults
     private let calendar: Calendar
     private let storageKey = "notely.expense.entries"
+    private let parseCacheStorageKey = "notely.expense.parse-cache"
+    private let maxParseCacheEntryCount = 300
     private var parseTasksByEntryID: [UUID: Task<Void, Never>] = [:]
+    private var parseCacheByKey: [String: ParsedExpenseDraft] = [:]
 
     init(
         parser: ExpenseParsingServicing = OpenAIExpenseParsingService(),
@@ -25,6 +28,7 @@ final class ExpenseJournalStore: ObservableObject {
             entries = Self.mockEntries(calendar: calendar)
         } else {
             load()
+            loadParseCache()
             resumePendingParsesIfNeeded()
         }
     }
@@ -98,6 +102,7 @@ final class ExpenseJournalStore: ObservableObject {
         } else {
             parseTasksByEntryID[entry.id]?.cancel()
             parseTasksByEntryID[entry.id] = nil
+            cacheManuallyVerifiedEntryIfNeeded(entry)
         }
     }
 
@@ -115,8 +120,10 @@ final class ExpenseJournalStore: ObservableObject {
     func clearAllEntries() {
         parseTasksByEntryID.values.forEach { $0.cancel() }
         parseTasksByEntryID.removeAll()
+        parseCacheByKey.removeAll()
         entries.removeAll()
         persist()
+        persistParseCache()
     }
 
     func entries(on date: Date) -> [ExpenseEntry] {
@@ -191,7 +198,7 @@ final class ExpenseJournalStore: ObservableObject {
             date: date,
             note: "",
             confidence: .uncertain,
-            parseFailureMessage: nil,
+            isAmountEstimated: false,
             createdAt: createdAt
         )
     }
@@ -211,6 +218,28 @@ final class ExpenseJournalStore: ObservableObject {
             return
         }
 
+        let cacheKey = parseCacheKey(rawText: trimmedText, currencyCode: currencyCode)
+        if let cachedDraft = parseCacheByKey[cacheKey] {
+            parseTasksByEntryID[entryID] = nil
+            applyParsedDraft(
+                ParsedExpenseDraft(
+                    rawText: trimmedText,
+                    title: cachedDraft.title,
+                    amount: cachedDraft.amount,
+                    currencyCode: cachedDraft.currencyCode,
+                    category: cachedDraft.category,
+                    merchant: cachedDraft.merchant,
+                    note: cachedDraft.note,
+                    confidence: cachedDraft.confidence,
+                    isAmountEstimated: cachedDraft.isAmountEstimated
+                ),
+                entryID: entryID,
+                expectedRawText: rawText,
+                createdCurrencyCode: currencyCode
+            )
+            return
+        }
+
         parseTasksByEntryID[entryID] = Task { [weak self] in
             if debounceNanoseconds > 0 {
                 try? await Task.sleep(nanoseconds: debounceNanoseconds)
@@ -221,11 +250,17 @@ final class ExpenseJournalStore: ObservableObject {
             }
 
             do {
-                let draft = try await self.parser.parse(
+                let draft = try await self.parseWithRetry(
                     rawText: trimmedText,
                     date: date,
                     currencyCode: currencyCode
                 )
+
+                guard !Task.isCancelled else {
+                    return
+                }
+
+                self.cacheParsedDraft(draft, for: cacheKey)
 
                 self.applyParsedDraft(
                     draft,
@@ -279,7 +314,7 @@ final class ExpenseJournalStore: ObservableObject {
             date: currentEntry.date,
             note: draft.note.isEmpty ? currentEntry.note : draft.note,
             confidence: resolvedConfidence,
-            parseFailureMessage: nil,
+            isAmountEstimated: draft.isAmountEstimated,
             createdAt: currentEntry.createdAt
         )
         sortAndPersist()
@@ -301,27 +336,7 @@ final class ExpenseJournalStore: ObservableObject {
         }
 
         entries[index].confidence = .review
-        entries[index].parseFailureMessage = parserFailureMessage(for: error)
         persist()
-    }
-
-    private func parserFailureMessage(for error: Error) -> String {
-        if case ExpenseParsingServiceError.missingAPIKey = error {
-            return "Missing OPENAI_API_KEY"
-        }
-
-        if case ExpenseParsingServiceError.emptyModelResponse = error {
-            return "Empty parser response"
-        }
-
-        if let urlError = error as? URLError {
-            return "Network error: \(urlError.code.rawValue)"
-        }
-
-        let message = (error as NSError).localizedDescription
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        return message.isEmpty ? "Parser request failed" : message
     }
 
     private func resumePendingParsesIfNeeded() {
@@ -334,6 +349,137 @@ final class ExpenseJournalStore: ObservableObject {
                 debounceNanoseconds: 0
             )
         }
+    }
+
+    private func parseWithRetry(
+        rawText: String,
+        date: Date,
+        currencyCode: String
+    ) async throws -> ParsedExpenseDraft {
+        do {
+            return try await parser.parse(
+                rawText: rawText,
+                date: date,
+                currencyCode: currencyCode
+            )
+        } catch {
+            guard shouldRetryParsing(after: error), !Task.isCancelled else {
+                throw error
+            }
+
+            try await Task.sleep(nanoseconds: 700_000_000)
+
+            guard !Task.isCancelled else {
+                throw error
+            }
+
+            return try await parser.parse(
+                rawText: rawText,
+                date: date,
+                currencyCode: currencyCode
+            )
+        }
+    }
+
+    private func shouldRetryParsing(after error: Error) -> Bool {
+        if let parsingError = error as? OpenAIExpenseParsingService.RequestError {
+            return parsingError.isRetryable
+        }
+
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .timedOut,
+                .cannotFindHost,
+                .cannotConnectToHost,
+                .networkConnectionLost,
+                .dnsLookupFailed,
+                .notConnectedToInternet,
+                .internationalRoamingOff,
+                .callIsActive,
+                .dataNotAllowed:
+                return true
+            default:
+                return false
+            }
+        }
+
+        return false
+    }
+
+    private func cacheParsedDraft(_ draft: ParsedExpenseDraft, for cacheKey: String) {
+        parseCacheByKey[cacheKey] = ParsedExpenseDraft(
+            rawText: cacheKey,
+            title: draft.title,
+            amount: draft.amount,
+            currencyCode: draft.currencyCode,
+            category: draft.category,
+            merchant: draft.merchant,
+            note: draft.note,
+            confidence: draft.confidence,
+            isAmountEstimated: draft.isAmountEstimated
+        )
+
+        if parseCacheByKey.count > maxParseCacheEntryCount {
+            let overflowCount = parseCacheByKey.count - maxParseCacheEntryCount
+            let keysToRemove = parseCacheByKey.keys.prefix(overflowCount)
+            keysToRemove.forEach { parseCacheByKey.removeValue(forKey: $0) }
+        }
+
+        persistParseCache()
+    }
+
+    private func cacheManuallyVerifiedEntryIfNeeded(_ entry: ExpenseEntry) {
+        let trimmedText = entry.rawText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard
+            !trimmedText.isEmpty,
+            entry.amount > 0,
+            entry.confidence == .certain
+        else {
+            return
+        }
+
+        cacheParsedDraft(
+            ParsedExpenseDraft(
+                rawText: trimmedText,
+                title: entry.title,
+                amount: entry.amount,
+                currencyCode: entry.currencyCode,
+                category: entry.category,
+                merchant: entry.merchant,
+                note: entry.note,
+                confidence: entry.confidence,
+                isAmountEstimated: false
+            ),
+            for: parseCacheKey(rawText: trimmedText, currencyCode: entry.currencyCode)
+        )
+    }
+
+    private func parseCacheKey(rawText: String, currencyCode: String) -> String {
+        let normalizedText = rawText
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
+
+        return "\(currencyCode.uppercased())|\(normalizedText)"
+    }
+
+    private func loadParseCache() {
+        guard let data = defaults.data(forKey: parseCacheStorageKey),
+              let decoded = try? JSONDecoder().decode([String: ParsedExpenseDraft].self, from: data) else {
+            parseCacheByKey = [:]
+            return
+        }
+
+        parseCacheByKey = decoded
+    }
+
+    private func persistParseCache() {
+        guard let data = try? JSONEncoder().encode(parseCacheByKey) else {
+            return
+        }
+
+        defaults.set(data, forKey: parseCacheStorageKey)
     }
 
     private func createdAtForInsertion(after referenceEntry: ExpenseEntry, on date: Date) -> Date {
@@ -386,7 +532,8 @@ private extension ExpenseJournalStore {
                 merchant: "Talormade",
                 date: morning,
                 note: "Quick stop before the train.",
-                confidence: .certain
+                confidence: .certain,
+                isAmountEstimated: false
             ),
             ExpenseEntry(
                 rawText: "Train ticket 299",
@@ -396,7 +543,8 @@ private extension ExpenseJournalStore {
                 merchant: "Vy",
                 date: noon,
                 note: "",
-                confidence: .review
+                confidence: .review,
+                isAmountEstimated: false
             ),
             ExpenseEntry(
                 rawText: "Dinner at McDonald's 145",
@@ -406,7 +554,8 @@ private extension ExpenseJournalStore {
                 merchant: "McDonald's",
                 date: evening,
                 note: "Late dinner after work.",
-                confidence: .certain
+                confidence: .certain,
+                isAmountEstimated: false
             ),
             ExpenseEntry(
                 rawText: "Split dinner with friends 320",
@@ -416,7 +565,8 @@ private extension ExpenseJournalStore {
                 merchant: nil,
                 date: yesterday,
                 note: "Needs a quick review before export.",
-                confidence: .review
+                confidence: .review,
+                isAmountEstimated: false
             ),
             ExpenseEntry(
                 rawText: "Rent 12000",
@@ -426,7 +576,8 @@ private extension ExpenseJournalStore {
                 merchant: nil,
                 date: earlier,
                 note: "",
-                confidence: .certain
+                confidence: .certain,
+                isAmountEstimated: false
             )
         ].sorted { $0.date > $1.date }
     }
