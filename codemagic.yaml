@@ -7,6 +7,8 @@ workflows:
       app_store_connect: Snaplook Codemagic
 
     environment:
+      groups:
+        - dev-test
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.djdonkeykong.notely
