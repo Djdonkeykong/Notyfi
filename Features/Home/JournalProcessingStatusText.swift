@@ -69,8 +69,6 @@ struct JournalProcessingStatusText: View {
                 return
             }
 
-            shimmerCycleStart = Date()
-
             withAnimation(.spring(response: 0.42, dampingFraction: 0.92)) {
                 statusIndex = (statusIndex + 1) % statuses.count
             }

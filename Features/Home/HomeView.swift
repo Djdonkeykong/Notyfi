@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct HomeView: View {
     @ObservedObject private var store: ExpenseJournalStore
@@ -7,6 +8,8 @@ struct HomeView: View {
     @State private var selectedEntry: ExpenseEntry?
     @State private var focusedEditor: JournalEditorTarget?
     @State private var editorFocusRequest: JournalEditorFocusRequest?
+    @State private var focusRequestGeneration = 0
+    @State private var presentationRequestGeneration = 0
 
     init(store: ExpenseJournalStore) {
         self.store = store
@@ -23,7 +26,7 @@ struct HomeView: View {
                         selectedDate: viewModel.selectedDate,
                         entryCount: viewModel.displayedEntries.count,
                         onDateTap: { presentDatePicker() },
-                        onSettingsTap: { viewModel.isSettingsPresented = true }
+                        onSettingsTap: { presentSettings() }
                     )
                     .padding(.horizontal, 20)
                     .padding(.top, 4)
@@ -85,7 +88,7 @@ struct HomeView: View {
                             }
                         },
                         onEntryTap: { entry in
-                            selectedEntry = entry
+                            presentEntryDetail(entry)
                         },
                         onMoveSelection: { dayOffset in
                             clearEditorFocus()
@@ -160,6 +163,10 @@ struct HomeView: View {
 }
 
 private extension HomeView {
+    var isPresentingModalSurface: Bool {
+        viewModel.isDatePickerPresented || viewModel.isSettingsPresented || selectedEntry != nil
+    }
+
     var selectedDateBinding: Binding<Date> {
         Binding(
             get: { viewModel.selectedDate },
@@ -168,11 +175,49 @@ private extension HomeView {
     }
 
     func presentDatePicker() {
-        clearEditorFocus()
-        isSummaryExpanded = false
-
-        DispatchQueue.main.async {
+        presentAfterEditorSettles {
             viewModel.isDatePickerPresented = true
+        }
+    }
+
+    func presentSettings() {
+        presentAfterEditorSettles {
+            viewModel.isSettingsPresented = true
+        }
+    }
+
+    func presentEntryDetail(_ entry: ExpenseEntry) {
+        presentAfterEditorSettles {
+            selectedEntry = entry
+        }
+    }
+
+    func presentAfterEditorSettles(_ action: @escaping () -> Void) {
+        guard !isPresentingModalSurface else {
+            return
+        }
+
+        let hadFocusedEditor = focusedEditor != nil
+        presentationRequestGeneration += 1
+        let requestGeneration = presentationRequestGeneration
+
+        clearEditorFocus(cancelsPendingPresentation: false)
+
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.9)) {
+            isSummaryExpanded = false
+        }
+
+        let presentationDelay: TimeInterval = hadFocusedEditor ? 0.18 : 0.01
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + presentationDelay) {
+            guard
+                requestGeneration == presentationRequestGeneration,
+                !isPresentingModalSurface
+            else {
+                return
+            }
+
+            action()
         }
     }
 
@@ -187,7 +232,14 @@ private extension HomeView {
         }
 
         if let request {
+            focusRequestGeneration += 1
+            let requestGeneration = focusRequestGeneration
+
             DispatchQueue.main.async {
+                guard requestGeneration == focusRequestGeneration else {
+                    return
+                }
+
                 var focusTransaction = Transaction()
                 focusTransaction.animation = nil
 
@@ -199,9 +251,24 @@ private extension HomeView {
         }
     }
 
-    func clearEditorFocus() {
+    func clearEditorFocus(cancelsPendingPresentation: Bool = true) {
+        if case .composer = focusedEditor {
+            viewModel.addEntry()
+        }
+
+        if cancelsPendingPresentation {
+            presentationRequestGeneration += 1
+        }
+
+        focusRequestGeneration += 1
         focusedEditor = nil
         editorFocusRequest = nil
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
     }
 }
 

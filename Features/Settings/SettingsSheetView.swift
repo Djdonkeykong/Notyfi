@@ -214,7 +214,7 @@ private struct SettingsToggleRow: View {
 
             Toggle("", isOn: $isOn)
                 .labelsHidden()
-                .tint(NotelyTheme.reviewTint)
+                .tint(NotelyTheme.brandBlue)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
@@ -245,7 +245,7 @@ private struct SettingsPickerRow: View {
             }
             .pickerStyle(.menu)
             .labelsHidden()
-            .tint(NotelyTheme.secondaryText)
+            .tint(NotelyTheme.brandBlue)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
@@ -263,7 +263,7 @@ private struct SettingsActionRow: View {
         Button(action: action) {
             HStack(spacing: 14) {
                 Image(systemName: icon)
-                    .foregroundStyle(isDestructive ? .red.opacity(0.75) : .blue.opacity(0.72))
+                    .foregroundStyle(isDestructive ? .red.opacity(0.75) : NotelyTheme.brandBlue.opacity(0.9))
                     .frame(width: 18)
 
                 Text(title)

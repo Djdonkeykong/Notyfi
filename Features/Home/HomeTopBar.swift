@@ -59,7 +59,7 @@ private struct NotelyMark: View {
         Image("HomeBrandMark")
             .resizable()
             .scaledToFit()
-            .frame(width: 42, height: 42)
+            .frame(width: 48, height: 48)
     }
 }
 

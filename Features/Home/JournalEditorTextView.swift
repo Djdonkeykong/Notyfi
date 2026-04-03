@@ -94,6 +94,7 @@ struct JournalEditorTextView: UIViewRepresentable {
             }
         } else if uiView.isFirstResponder, focusedEditor != editorTarget {
             uiView.resignFirstResponder()
+            context.coordinator.lastAppliedFocusToken = nil
         }
     }
 
@@ -165,6 +166,8 @@ struct JournalEditorTextView: UIViewRepresentable {
             if parent.focusedEditor == parent.editorTarget {
                 parent.focusedEditor = nil
             }
+
+            lastAppliedFocusToken = nil
         }
 
         func textViewDidChange(_ textView: UITextView) {
