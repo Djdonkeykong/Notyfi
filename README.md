@@ -9,6 +9,7 @@ This workspace uses `XcodeGen` to keep the project file lightweight.
 1. Install XcodeGen on your Mac.
 2. Run `xcodegen generate` from the repo root.
 3. Open `Notely.xcodeproj` in Xcode.
+4. Add `OPENAI_API_KEY` to your Xcode scheme environment variables to enable AI parsing during development.
 
 ## Codemagic
 
@@ -43,7 +44,12 @@ The workflow uses `testFlightInternalTestingOnly`, so the uploaded build is mean
 - `Features/Settings/SettingsSheetView.swift`
 - `Services/ExpenseParsingService.swift`
 
+## AI Parsing
+
+`OpenAIExpenseParsingService` reads `OPENAI_API_KEY` from the app process environment first, then falls back to `Info.plist` so Codemagic builds can temporarily receive the key from an environment variable.
+
+This is a testing shortcut only. Before shipping, move parsing behind a small backend endpoint so the API key is not embedded in the client app.
+
 ## Extension Points
 
-- AI parsing should replace `PlaceholderExpenseParsingService` behind the `ExpenseParsingServicing` protocol.
 - Cloud sync should sit beside `ExpenseJournalStore` and mirror entries to Supabase without changing the views.

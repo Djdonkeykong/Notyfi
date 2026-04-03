@@ -42,7 +42,7 @@ struct ExpensePreviewRow: View {
         }
 
         if entry.amount == 0 {
-            return "Thinking"
+            return entry.confidence == .review ? "Review" : "Thinking"
         }
 
         if entry.confidence.needsReview {

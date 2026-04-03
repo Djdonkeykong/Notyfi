@@ -17,7 +17,6 @@ final class SettingsViewModel: ObservableObject {
     @Published var automaticCurrency = true
     @Published var notificationsEnabled = false
     @Published var gentleReviewMode = true
-    @Published var aiParsingEnabled = true
     @Published var syncEnabled = false
     @Published var appearanceMode: AppearanceMode = .system
     @Published var currencyCode = "NOK"

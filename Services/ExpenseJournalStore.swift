@@ -9,9 +9,10 @@ final class ExpenseJournalStore: ObservableObject {
     private let defaults: UserDefaults
     private let calendar: Calendar
     private let storageKey = "notely.expense.entries"
+    private var parseTasksByEntryID: [UUID: Task<Void, Never>] = [:]
 
     init(
-        parser: ExpenseParsingServicing = PlaceholderExpenseParsingService(),
+        parser: ExpenseParsingServicing = OpenAIExpenseParsingService(),
         defaults: UserDefaults = .standard,
         calendar: Calendar = .current,
         previewMode: Bool = false
@@ -24,11 +25,12 @@ final class ExpenseJournalStore: ObservableObject {
             entries = Self.mockEntries(calendar: calendar)
         } else {
             load()
+            resumePendingParsesIfNeeded()
         }
     }
 
     func addEntry(from rawText: String, on date: Date, currencyCode: String = "NOK") {
-        let entry = makeEntry(
+        let entry = makePendingEntry(
             rawText: rawText,
             date: date,
             currencyCode: currencyCode,
@@ -37,6 +39,13 @@ final class ExpenseJournalStore: ObservableObject {
 
         entries.insert(entry, at: 0)
         sortAndPersist()
+        scheduleParse(
+            entryID: entry.id,
+            rawText: entry.rawText,
+            date: entry.date,
+            currencyCode: entry.currencyCode,
+            debounceNanoseconds: 0
+        )
     }
 
     func insertEntry(
@@ -46,7 +55,7 @@ final class ExpenseJournalStore: ObservableObject {
         currencyCode: String = "NOK"
     ) -> UUID {
         let createdAt = createdAtForInsertion(after: referenceEntry, on: date)
-        let entry = makeEntry(
+        let entry = makePendingEntry(
             rawText: rawText,
             date: date,
             currencyCode: currencyCode,
@@ -55,11 +64,18 @@ final class ExpenseJournalStore: ObservableObject {
 
         entries.insert(entry, at: 0)
         sortAndPersist()
+        scheduleParse(
+            entryID: entry.id,
+            rawText: entry.rawText,
+            date: entry.date,
+            currencyCode: entry.currencyCode,
+            debounceNanoseconds: 0
+        )
 
         return entry.id
     }
 
-    func updateEntry(_ entry: ExpenseEntry) {
+    func updateEntry(_ entry: ExpenseEntry, shouldReparseRawText: Bool = false) {
         guard let index = entries.firstIndex(where: { $0.id == entry.id }) else {
             return
         }
@@ -70,6 +86,19 @@ final class ExpenseJournalStore: ObservableObject {
 
         entries[index] = entry
         sortAndPersist()
+
+        if shouldReparseRawText {
+            scheduleParse(
+                entryID: entry.id,
+                rawText: entry.rawText,
+                date: entry.date,
+                currencyCode: entry.currencyCode,
+                debounceNanoseconds: 550_000_000
+            )
+        } else {
+            parseTasksByEntryID[entry.id]?.cancel()
+            parseTasksByEntryID[entry.id] = nil
+        }
     }
 
     func removeEntry(id: UUID) {
@@ -77,17 +106,35 @@ final class ExpenseJournalStore: ObservableObject {
             return
         }
 
+        parseTasksByEntryID[id]?.cancel()
+        parseTasksByEntryID[id] = nil
         entries.remove(at: index)
         persist()
     }
 
     func clearAllEntries() {
+        parseTasksByEntryID.values.forEach { $0.cancel() }
+        parseTasksByEntryID.removeAll()
         entries.removeAll()
         persist()
     }
 
     func entries(on date: Date) -> [ExpenseEntry] {
         entries.filter { calendar.isDate($0.date, inSameDayAs: date) }
+    }
+
+    func reparseEntryImmediately(id: UUID) {
+        guard let entry = entries.first(where: { $0.id == id }) else {
+            return
+        }
+
+        scheduleParse(
+            entryID: entry.id,
+            rawText: entry.rawText,
+            date: entry.date,
+            currencyCode: entry.currencyCode,
+            debounceNanoseconds: 0
+        )
     }
 
     private func load() {
@@ -126,26 +173,143 @@ final class ExpenseJournalStore: ObservableObject {
         defaults.set(data, forKey: storageKey)
     }
 
-    private func makeEntry(
+    private func makePendingEntry(
         rawText: String,
         date: Date,
         currencyCode: String,
         createdAt: Date
     ) -> ExpenseEntry {
-        let draft = parser.parse(rawText: rawText, date: date, currencyCode: currencyCode)
+        let trimmedText = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         return ExpenseEntry(
             rawText: rawText,
-            title: draft.title,
-            amount: draft.amount,
-            currencyCode: draft.currencyCode,
-            category: draft.category,
-            merchant: draft.merchant,
+            title: trimmedText.isEmpty ? "Untitled entry" : trimmedText,
+            amount: 0,
+            currencyCode: currencyCode,
+            category: .uncategorized,
+            merchant: nil,
             date: date,
-            note: draft.note,
-            confidence: draft.confidence,
+            note: "",
+            confidence: .uncertain,
             createdAt: createdAt
         )
+    }
+
+    private func scheduleParse(
+        entryID: UUID,
+        rawText: String,
+        date: Date,
+        currencyCode: String,
+        debounceNanoseconds: UInt64
+    ) {
+        parseTasksByEntryID[entryID]?.cancel()
+
+        let trimmedText = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedText.isEmpty else {
+            parseTasksByEntryID[entryID] = nil
+            return
+        }
+
+        parseTasksByEntryID[entryID] = Task { [weak self] in
+            if debounceNanoseconds > 0 {
+                try? await Task.sleep(nanoseconds: debounceNanoseconds)
+            }
+
+            guard !Task.isCancelled, let self else {
+                return
+            }
+
+            do {
+                let draft = try await self.parser.parse(
+                    rawText: trimmedText,
+                    date: date,
+                    currencyCode: currencyCode
+                )
+
+                self.applyParsedDraft(
+                    draft,
+                    entryID: entryID,
+                    expectedRawText: rawText,
+                    createdCurrencyCode: currencyCode
+                )
+            } catch {
+                guard !Task.isCancelled else {
+                    return
+                }
+
+                self.markParsingFailed(
+                    entryID: entryID,
+                    expectedRawText: rawText
+                )
+            }
+        }
+    }
+
+    private func applyParsedDraft(
+        _ draft: ParsedExpenseDraft,
+        entryID: UUID,
+        expectedRawText: String,
+        createdCurrencyCode: String
+    ) {
+        parseTasksByEntryID[entryID] = nil
+
+        guard let index = entries.firstIndex(where: { $0.id == entryID }) else {
+            return
+        }
+
+        guard entries[index].rawText == expectedRawText else {
+            return
+        }
+
+        let currentEntry = entries[index]
+        let resolvedConfidence: ParsingConfidence = draft.amount == 0 && draft.confidence == .uncertain
+            ? .review
+            : draft.confidence
+
+        entries[index] = ExpenseEntry(
+            id: currentEntry.id,
+            rawText: currentEntry.rawText,
+            title: draft.title.isEmpty ? currentEntry.title : draft.title,
+            amount: draft.amount,
+            currencyCode: draft.currencyCode.isEmpty ? createdCurrencyCode : draft.currencyCode,
+            category: draft.category,
+            merchant: draft.merchant?.isEmpty == true ? nil : draft.merchant,
+            date: currentEntry.date,
+            note: draft.note.isEmpty ? currentEntry.note : draft.note,
+            confidence: resolvedConfidence,
+            createdAt: currentEntry.createdAt
+        )
+        sortAndPersist()
+    }
+
+    private func markParsingFailed(
+        entryID: UUID,
+        expectedRawText: String
+    ) {
+        parseTasksByEntryID[entryID] = nil
+
+        guard let index = entries.firstIndex(where: { $0.id == entryID }) else {
+            return
+        }
+
+        guard entries[index].rawText == expectedRawText else {
+            return
+        }
+
+        entries[index].confidence = .review
+        persist()
+    }
+
+    private func resumePendingParsesIfNeeded() {
+        for entry in entries where entry.amount == 0 && !entry.rawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            scheduleParse(
+                entryID: entry.id,
+                rawText: entry.rawText,
+                date: entry.date,
+                currencyCode: entry.currencyCode,
+                debounceNanoseconds: 0
+            )
+        }
     }
 
     private func createdAtForInsertion(after referenceEntry: ExpenseEntry, on date: Date) -> Date {

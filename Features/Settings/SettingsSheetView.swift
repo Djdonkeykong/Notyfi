@@ -64,11 +64,10 @@ struct SettingsSheetView: View {
                     SectionHeader(title: "AI Parsing")
                     SettingsCard {
                         VStack(spacing: 0) {
-                            SettingsToggleRow(
+                            SettingsValueRow(
                                 icon: "wand.and.stars",
                                 title: "AI Parsing",
-                                subtitle: "Interpret natural notes quietly in the background",
-                                isOn: $viewModel.aiParsingEnabled
+                                value: "Always on"
                             )
                             Divider()
                             SettingsToggleRow(

@@ -254,6 +254,8 @@ private extension HomeView {
     func clearEditorFocus(cancelsPendingPresentation: Bool = true) {
         if case .composer = focusedEditor {
             viewModel.addEntry()
+        } else if case .entry(let entryID) = focusedEditor {
+            store.reparseEntryImmediately(id: entryID)
         }
 
         if cancelsPendingPresentation {

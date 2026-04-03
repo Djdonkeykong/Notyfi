@@ -1,6 +1,6 @@
 import Foundation
 
-struct ParsedExpenseDraft {
+struct ParsedExpenseDraft: Decodable {
     var rawText: String
     var title: String
     var amount: Double
@@ -12,113 +12,195 @@ struct ParsedExpenseDraft {
 }
 
 protocol ExpenseParsingServicing {
-    func parse(rawText: String, date: Date, currencyCode: String) -> ParsedExpenseDraft
+    func parse(
+        rawText: String,
+        date: Date,
+        currencyCode: String
+    ) async throws -> ParsedExpenseDraft
 }
 
-struct PlaceholderExpenseParsingService: ExpenseParsingServicing {
-    func parse(rawText: String, date: Date, currencyCode: String) -> ParsedExpenseDraft {
-        let trimmed = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
-        let lowercased = trimmed.lowercased()
-        let amountToken = extractAmountMatch(from: lowercased)
-        let amount = amountToken
-            .map { $0.replacingOccurrences(of: ",", with: ".") }
-            .flatMap(Double.init) ?? 0
-        let merchant = extractMerchant(from: trimmed)
-        let category = categorize(text: lowercased)
-        let title = cleanedTitle(from: trimmed, merchant: merchant, amountToken: amountToken)
-        let confidence: ParsingConfidence
+enum ExpenseParsingServiceError: Error {
+    case missingAPIKey
+    case emptyModelResponse
+}
 
-        if amount > 0, title.count > 1 {
-            confidence = (merchant == nil && category != .uncategorized) ? .certain : .review
-        } else {
-            confidence = .uncertain
+struct OpenAIExpenseParsingService: ExpenseParsingServicing {
+    private let apiKey: String?
+    private let model: String
+    private let endpointURL: URL
+    private let session: URLSession
+    private let decoder = JSONDecoder()
+
+    init(
+        apiKey: String? = OpenAIExpenseParsingService.resolveAPIKey(),
+        model: String = "gpt-4.1-mini",
+        endpointURL: URL = URL(string: "https://api.openai.com/v1/chat/completions")!,
+        session: URLSession = .shared
+    ) {
+        self.apiKey = apiKey?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.model = model
+        self.endpointURL = endpointURL
+        self.session = session
+    }
+
+    private static func resolveAPIKey() -> String? {
+        let environmentKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"]?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let environmentKey, !environmentKey.isEmpty {
+            return environmentKey
         }
 
-        return ParsedExpenseDraft(
-            rawText: trimmed,
-            title: title.isEmpty ? "Untitled expense" : title,
-            amount: amount > 0 ? amount : 0,
-            currencyCode: currencyCode,
-            category: category,
-            merchant: merchant,
-            note: "",
-            confidence: confidence
+        return (Bundle.main.object(forInfoDictionaryKey: "OPENAI_API_KEY") as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func parse(
+        rawText: String,
+        date: Date,
+        currencyCode: String
+    ) async throws -> ParsedExpenseDraft {
+        guard let apiKey, !apiKey.isEmpty else {
+            throw ExpenseParsingServiceError.missingAPIKey
+        }
+
+        let requestBody = makeRequestBody(
+            rawText: rawText,
+            date: date,
+            currencyCode: currencyCode
         )
-    }
+        let payload = try JSONSerialization.data(withJSONObject: requestBody)
+        var request = URLRequest(url: endpointURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.httpBody = payload
 
-    private func extractAmountMatch(from text: String) -> String? {
-        let pattern = #"(\d+[.,]?\d{0,2})"#
-        guard
-            let regex = try? NSRegularExpression(pattern: pattern),
-            let match = regex.matches(
-                in: text,
-                range: NSRange(text.startIndex..., in: text)
-            ).last,
-            let range = Range(match.range(at: 1), in: text)
-        else {
-            return nil
-        }
+        let (data, response) = try await session.data(for: request)
 
-        return String(text[range])
-    }
-
-    private func extractMerchant(from text: String) -> String? {
-        let pattern = #"\bat\s+([A-Za-z0-9&'\-\s]+?)(?:\s+\d+[.,]?\d{0,2}\s*(?:kr|nok)?)?$"#
-        guard
-            let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
-            let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-            let range = Range(match.range(at: 1), in: text)
-        else {
-            return nil
-        }
-
-        let merchant = text[range].trimmingCharacters(in: .whitespacesAndNewlines)
-        return merchant.isEmpty ? nil : merchant
-    }
-
-    private func cleanedTitle(from text: String, merchant: String?, amountToken: String?) -> String {
-        var output = text
-
-        if let amountToken {
-            output = output.replacingOccurrences(of: amountToken, with: "")
-        }
-
-        ["kr", "nok", "usd", "eur", "$"].forEach { token in
-            output = output.replacingOccurrences(of: token, with: "", options: [.caseInsensitive])
-        }
-
-        if let merchant {
-            output = output.replacingOccurrences(
-                of: "at \(merchant)",
-                with: "",
-                options: [.caseInsensitive]
+        if let httpResponse = response as? HTTPURLResponse,
+           !(200...299).contains(httpResponse.statusCode) {
+            let message = String(data: data, encoding: .utf8) ?? "Unknown API error"
+            throw NSError(
+                domain: "OpenAIExpenseParsingService",
+                code: httpResponse.statusCode,
+                userInfo: [NSLocalizedDescriptionKey: message]
             )
         }
 
-        output = output
-            .replacingOccurrences(of: "  ", with: " ")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        return output.capitalized
-    }
-
-    private func categorize(text: String) -> ExpenseCategory {
-        let keywordMap: [(ExpenseCategory, [String])] = [
-            (.housing, ["rent", "mortgage", "apartment"]),
-            (.transport, ["uber", "train", "bus", "taxi", "fuel", "parking"]),
-            (.travel, ["flight", "hotel", "airbnb"]),
-            (.groceries, ["grocery", "groceries", "rema", "kiwi", "coop"]),
-            (.food, ["coffee", "dinner", "lunch", "breakfast", "food", "restaurant", "mcdonald"]),
-            (.bills, ["invoice", "bill", "subscription", "electricity", "internet"]),
-            (.shopping, ["shopping", "clothes", "ikea", "amazon"]),
-            (.health, ["doctor", "pharmacy", "medicine", "gym"]),
-            (.social, ["friends", "split", "drinks", "bar"])
-        ]
-
-        for (category, keywords) in keywordMap where keywords.contains(where: text.contains) {
-            return category
+        let completion = try decoder.decode(ChatCompletionResponse.self, from: data)
+        guard let content = completion.choices.first?.message.content else {
+            throw ExpenseParsingServiceError.emptyModelResponse
         }
 
-        return .uncategorized
+        let parsedData = Data(content.utf8)
+        let parsedDraft = try decoder.decode(ParsedExpenseDraft.self, from: parsedData)
+
+        return ParsedExpenseDraft(
+            rawText: rawText,
+            title: parsedDraft.title.trimmingCharacters(in: .whitespacesAndNewlines),
+            amount: max(parsedDraft.amount, 0),
+            currencyCode: parsedDraft.currencyCode.isEmpty ? currencyCode : parsedDraft.currencyCode,
+            category: parsedDraft.category,
+            merchant: parsedDraft.merchant?.trimmingCharacters(in: .whitespacesAndNewlines),
+            note: parsedDraft.note.trimmingCharacters(in: .whitespacesAndNewlines),
+            confidence: parsedDraft.confidence
+        )
     }
+
+    private func makeRequestBody(
+        rawText: String,
+        date: Date,
+        currencyCode: String
+    ) -> [String: Any] {
+        let categoryValues = ExpenseCategory.allCases
+            .map(\.rawValue)
+            .joined(separator: ", ")
+        let userContent = """
+        Parse this personal finance note into one transaction.
+
+        Note: \(rawText)
+        Date: \(ISO8601DateFormatter().string(from: date))
+        Default currency: \(currencyCode)
+
+        Rules:
+        - Return one JSON object only.
+        - Infer a concise title from the note.
+        - Extract the numeric amount as a positive number.
+        - Use one category from: \(categoryValues).
+        - If no category clearly fits, use "uncategorized".
+        - Extract merchant only when one is explicitly implied.
+        - Keep note as "" unless there is extra context worth preserving.
+        - confidence must be "certain" when the note is clear, otherwise "review" or "uncertain".
+        """
+
+        return [
+            "model": model,
+            "temperature": 0,
+            "messages": [
+                [
+                    "role": "system",
+                    "content": "You convert short personal finance notes into strict transaction JSON for a budgeting app."
+                ],
+                [
+                    "role": "user",
+                    "content": userContent
+                ]
+            ],
+            "response_format": [
+                "type": "json_schema",
+                "json_schema": [
+                    "name": "notely_transaction_parse",
+                    "strict": true,
+                    "schema": [
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": [
+                            "rawText": ["type": "string"],
+                            "title": ["type": "string"],
+                            "amount": ["type": "number"],
+                            "currencyCode": ["type": "string"],
+                            "category": [
+                                "type": "string",
+                                "enum": ExpenseCategory.allCases.map(\.rawValue)
+                            ],
+                            "merchant": [
+                                "anyOf": [
+                                    ["type": "string"],
+                                    ["type": "null"]
+                                ]
+                            ],
+                            "note": ["type": "string"],
+                            "confidence": [
+                                "type": "string",
+                                "enum": ParsingConfidence.allCases.map(\.rawValue)
+                            ]
+                        ],
+                        "required": [
+                            "rawText",
+                            "title",
+                            "amount",
+                            "currencyCode",
+                            "category",
+                            "merchant",
+                            "note",
+                            "confidence"
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    }
+}
+
+private struct ChatCompletionResponse: Decodable {
+    struct Choice: Decodable {
+        struct Message: Decodable {
+            let content: String?
+        }
+
+        let message: Message
+    }
+
+    let choices: [Choice]
 }

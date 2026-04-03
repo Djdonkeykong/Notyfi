@@ -25,19 +25,16 @@ final class HomeViewModel: ObservableObject {
 
     private let store: ExpenseJournalStore
     private let calendar: Calendar
-    private let parser: ExpenseParsingServicing
     private var composerDraftsByDay: [Date: String] = [:]
     private var cancellables = Set<AnyCancellable>()
 
     init(
         store: ExpenseJournalStore,
-        calendar: Calendar = .current,
-        parser: ExpenseParsingServicing = PlaceholderExpenseParsingService()
+        calendar: Calendar = .current
     ) {
         self.selectedDate = calendar.startOfDay(for: Date())
         self.store = store
         self.calendar = calendar
-        self.parser = parser
 
         Publishers.CombineLatest(store.$entries, $selectedDate)
             .sink { [weak self] entries, date in
@@ -61,34 +58,8 @@ final class HomeViewModel: ObservableObject {
             return nil
         }
 
-        let parsed = parser.parse(rawText: trimmed, date: selectedDate, currencyCode: currencyCode)
-
-        if parsed.amount > 0 {
-            if parsed.confidence == .certain {
-                return DraftComposerFeedback(
-                    primaryText: parsed.amount.formattedCurrency(code: parsed.currencyCode),
-                    secondaryText: nil,
-                    primaryColorName: .accent
-                )
-            }
-
-            return DraftComposerFeedback(
-                primaryText: "Reviewing",
-                secondaryText: parsed.amount.formattedCurrency(code: parsed.currencyCode),
-                primaryColorName: .neutral
-            )
-        }
-
-        if trimmed.count < 8 {
-            return DraftComposerFeedback(
-                primaryText: "Reading",
-                secondaryText: nil,
-                primaryColorName: .neutral
-            )
-        }
-
         return DraftComposerFeedback(
-            primaryText: "Parsing",
+            primaryText: "Checking",
             secondaryText: nil,
             primaryColorName: .neutral
         )
@@ -154,7 +125,10 @@ final class HomeViewModel: ObservableObject {
 
         let insertionOffset = previousEntry.rawText.utf16.count
         let mergedText = previousEntry.rawText + composerText
-        store.updateEntry(updatedEntry(previousEntry, rawText: mergedText))
+        store.updateEntry(
+            pendingTextEntry(previousEntry, rawText: mergedText),
+            shouldReparseRawText: true
+        )
         composerText = ""
         composerDraftsByDay[dayKey(for: selectedDate)] = ""
 
@@ -166,7 +140,10 @@ final class HomeViewModel: ObservableObject {
 
     func updateEntryText(_ entry: ExpenseEntry, rawText: String) {
         let normalized = rawText.replacingOccurrences(of: "\r\n", with: "\n")
-        store.updateEntry(updatedEntry(entry, rawText: normalized))
+        store.updateEntry(
+            pendingTextEntry(entry, rawText: normalized),
+            shouldReparseRawText: true
+        )
     }
 
     func splitEntryText(
@@ -177,7 +154,10 @@ final class HomeViewModel: ObservableObject {
         let normalizedLeadingText = leadingText.replacingOccurrences(of: "\r\n", with: "\n")
         let normalizedTrailingText = trailingText.replacingOccurrences(of: "\r\n", with: "\n")
 
-        store.updateEntry(updatedEntry(entry, rawText: normalizedLeadingText))
+        store.updateEntry(
+            pendingTextEntry(entry, rawText: normalizedLeadingText),
+            shouldReparseRawText: true
+        )
 
         let insertedEntryID = store.insertEntry(
             after: entry,
@@ -228,7 +208,10 @@ final class HomeViewModel: ObservableObject {
         let insertionOffset = previousEntry.rawText.utf16.count
         let mergedText = previousEntry.rawText + entry.rawText
 
-        store.updateEntry(updatedEntry(previousEntry, rawText: mergedText))
+        store.updateEntry(
+            pendingTextEntry(previousEntry, rawText: mergedText),
+            shouldReparseRawText: true
+        )
         store.removeEntry(id: entry.id)
 
         return JournalEditorFocusRequest(
@@ -337,24 +320,20 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
-    private func updatedEntry(_ entry: ExpenseEntry, rawText: String) -> ExpenseEntry {
-        let parsed = parser.parse(
-            rawText: rawText.trimmingCharacters(in: .whitespacesAndNewlines),
-            date: entry.date,
-            currencyCode: entry.currencyCode
-        )
+    private func pendingTextEntry(_ entry: ExpenseEntry, rawText: String) -> ExpenseEntry {
+        let trimmedText = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         return ExpenseEntry(
             id: entry.id,
             rawText: rawText,
-            title: parsed.title,
-            amount: parsed.amount,
-            currencyCode: parsed.currencyCode,
-            category: parsed.category,
-            merchant: parsed.merchant,
+            title: trimmedText.isEmpty ? entry.title : trimmedText,
+            amount: 0,
+            currencyCode: entry.currencyCode,
+            category: .uncategorized,
+            merchant: nil,
             date: entry.date,
             note: entry.note,
-            confidence: parsed.confidence,
+            confidence: .uncertain,
             createdAt: entry.createdAt
         )
     }
