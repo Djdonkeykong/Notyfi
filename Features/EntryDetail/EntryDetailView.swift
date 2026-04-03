@@ -361,7 +361,7 @@ private extension EntryDetailViewModel {
             return "Estimated price"
         }
 
-        needsReview ? "Needs review" : "Ready"
+        return needsReview ? "Needs review" : "Ready"
     }
 
     var confidenceColor: Color {
@@ -373,7 +373,7 @@ private extension EntryDetailViewModel {
             return "sparkles"
         }
 
-        needsReview ? "wand.and.stars" : "checkmark.seal.fill"
+        return needsReview ? "wand.and.stars" : "checkmark.seal.fill"
     }
 
     var summaryCaption: String {
@@ -381,7 +381,7 @@ private extension EntryDetailViewModel {
             return "estimated total"
         }
 
-        amountText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "amount pending" : "captured total"
+        return amountText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "amount pending" : "captured total"
     }
 }
 
