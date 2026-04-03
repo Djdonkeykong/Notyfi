@@ -35,9 +35,9 @@ workflows:
 
           key = os.environ["OPENAI_API_KEY"].replace("\\", "\\\\").replace('"', '\\"')
           Path("Services/OpenAISecrets.swift").write_text(
-              'enum OpenAISecrets {\\n'
-              f'    static let apiKey = "{key}"\\n'
-              '}\\n'
+              'enum OpenAISecrets {\n'
+              f'    static let apiKey = "{key}"\n'
+              '}\n'
           )
           PY
 
