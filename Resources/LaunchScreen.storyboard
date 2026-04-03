@@ -16,10 +16,10 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="LaunchLogo" translatesAutoresizingMaskIntoConstraints="NO" id="launch-logo-view">
-                                <rect key="frame" x="106.66666666666669" y="336" width="180" height="180"/>
+                                <rect key="frame" x="16.666666666666686" y="246" width="360" height="360"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="180" id="launch-logo-width"/>
-                                    <constraint firstAttribute="height" constant="180" id="launch-logo-height"/>
+                                    <constraint firstAttribute="width" constant="360" id="launch-logo-width"/>
+                                    <constraint firstAttribute="height" constant="360" id="launch-logo-height"/>
                                 </constraints>
                             </imageView>
                         </subviews>

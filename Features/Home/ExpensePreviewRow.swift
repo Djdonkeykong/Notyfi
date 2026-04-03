@@ -61,11 +61,11 @@ struct ExpensePreviewRow: View {
             return entry.amount > 0 ? entry.amount.formattedCurrency(code: entry.currencyCode) : nil
         }
 
-        if let merchant = entry.merchant, !merchant.isEmpty {
-            return merchant
+        if entry.category != .uncategorized {
+            return entry.category.title
         }
 
-        return nil
+        return entry.merchant
     }
 
     private var trailingPrimaryColor: Color {

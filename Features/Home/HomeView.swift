@@ -263,12 +263,25 @@ private extension HomeView {
         focusRequestGeneration += 1
         focusedEditor = nil
         editorFocusRequest = nil
+        forceResignKeyboard()
+    }
+
+    func forceResignKeyboard() {
         UIApplication.shared.sendAction(
             #selector(UIResponder.resignFirstResponder),
             to: nil,
             from: nil,
             for: nil
         )
+
+        DispatchQueue.main.async {
+            UIApplication.shared.sendAction(
+                #selector(UIResponder.resignFirstResponder),
+                to: nil,
+                from: nil,
+                for: nil
+            )
+        }
     }
 }
 
