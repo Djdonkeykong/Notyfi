@@ -1,8 +1,12 @@
 import Foundation
 
 struct JournalInsight {
-    var dayTotal: Double
-    var monthTotal: Double
+    var dayExpenseTotal: Double
+    var dayIncomeTotal: Double
+    var dayNetTotal: Double
+    var monthExpenseTotal: Double
+    var monthIncomeTotal: Double
+    var monthNetTotal: Double
     var topCategory: ExpenseCategory?
     var reviewCount: Int
     var monthEntryCount: Int = 0
@@ -11,8 +15,12 @@ struct JournalInsight {
     var categoryBreakdown: [JournalCategoryBreakdown] = []
 
     static let empty = JournalInsight(
-        dayTotal: 0,
-        monthTotal: 0,
+        dayExpenseTotal: 0,
+        dayIncomeTotal: 0,
+        dayNetTotal: 0,
+        monthExpenseTotal: 0,
+        monthIncomeTotal: 0,
+        monthNetTotal: 0,
         topCategory: nil,
         reviewCount: 0,
         monthEntryCount: 0,

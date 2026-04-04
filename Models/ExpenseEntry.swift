@@ -23,12 +23,38 @@ enum ParsingConfidence: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum TransactionKind: String, Codable, CaseIterable, Identifiable {
+    case expense
+    case income
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .expense:
+            return "Expense"
+        case .income:
+            return "Income"
+        }
+    }
+
+    var signedMultiplier: Double {
+        switch self {
+        case .expense:
+            return -1
+        case .income:
+            return 1
+        }
+    }
+}
+
 struct ExpenseEntry: Identifiable, Codable, Hashable {
     let id: UUID
     var rawText: String
     var title: String
     var amount: Double
     var currencyCode: String
+    var transactionKind: TransactionKind
     var category: ExpenseCategory
     var merchant: String?
     var date: Date
@@ -43,6 +69,7 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         title: String,
         amount: Double,
         currencyCode: String = "NOK",
+        transactionKind: TransactionKind = .expense,
         category: ExpenseCategory,
         merchant: String? = nil,
         date: Date,
@@ -56,6 +83,7 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         self.title = title
         self.amount = amount
         self.currencyCode = currencyCode
+        self.transactionKind = transactionKind
         self.category = category
         self.merchant = merchant
         self.date = date
@@ -71,6 +99,7 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         case title
         case amount
         case currencyCode
+        case transactionKind
         case category
         case merchant
         case date
@@ -88,6 +117,7 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         title = try container.decode(String.self, forKey: .title)
         amount = try container.decode(Double.self, forKey: .amount)
         currencyCode = try container.decode(String.self, forKey: .currencyCode)
+        transactionKind = try container.decodeIfPresent(TransactionKind.self, forKey: .transactionKind) ?? .expense
         category = try container.decode(ExpenseCategory.self, forKey: .category)
         merchant = try container.decodeIfPresent(String.self, forKey: .merchant)
         date = try container.decode(Date.self, forKey: .date)
@@ -105,6 +135,7 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         try container.encode(title, forKey: .title)
         try container.encode(amount, forKey: .amount)
         try container.encode(currencyCode, forKey: .currencyCode)
+        try container.encode(transactionKind, forKey: .transactionKind)
         try container.encode(category, forKey: .category)
         try container.encodeIfPresent(merchant, forKey: .merchant)
         try container.encode(date, forKey: .date)

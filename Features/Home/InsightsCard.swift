@@ -13,12 +13,12 @@ struct InsightsCard: View {
             VStack(spacing: 10) {
                 InsightRow(
                     title: "Spent today",
-                    value: insight.dayTotal.formattedCurrency(code: currencyCode)
+                    value: insight.dayExpenseTotal.formattedCurrency(code: currencyCode)
                 )
 
                 InsightRow(
-                    title: "Spent this month",
-                    value: insight.monthTotal.formattedCurrency(code: currencyCode)
+                    title: "Net this month",
+                    value: signedCurrency(insight.monthNetTotal)
                 )
 
                 InsightRow(
@@ -38,6 +38,20 @@ struct InsightsCard: View {
                         .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
                 }
         }
+    }
+
+    private func signedCurrency(_ amount: Double) -> String {
+        let formattedAmount = abs(amount).formattedCurrency(code: currencyCode)
+
+        if amount > 0 {
+            return "+\(formattedAmount)"
+        }
+
+        if amount < 0 {
+            return "-\(formattedAmount)"
+        }
+
+        return formattedAmount
     }
 }
 
@@ -66,8 +80,12 @@ private struct InsightRow: View {
 #Preview {
     InsightsCard(
         insight: JournalInsight(
-            dayTotal: 493,
-            monthTotal: 12877,
+            dayExpenseTotal: 493,
+            dayIncomeTotal: 0,
+            dayNetTotal: -493,
+            monthExpenseTotal: 12877,
+            monthIncomeTotal: 28000,
+            monthNetTotal: 15123,
             topCategory: .food,
             reviewCount: 1
         ),

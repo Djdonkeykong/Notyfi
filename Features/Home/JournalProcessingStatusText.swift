@@ -2,31 +2,59 @@ import SwiftUI
 
 struct JournalProcessingStatusText: View {
     private let statuses = ["Checking", "Reading", "Finding", "Thinking"]
+    private let loadingDotsDuration: TimeInterval = 0.8
     private let statusDuration: TimeInterval = 2.4
     private let shimmerDuration: TimeInterval = 1.8
 
     @State private var statusIndex = 0
     @State private var shimmerCycleStart = Date()
+    @State private var isShowingLoadingDots = true
 
     var body: some View {
-        TimelineView(.animation) { context in
-            ZStack(alignment: .leading) {
-                shimmeredStatusText(
-                    statuses[statusIndex],
-                    timestamp: context.date
-                )
-                .id(statusIndex)
+        ZStack(alignment: .trailing) {
+            if isShowingLoadingDots {
+                JournalProcessingLoadingDots()
+                    .transition(.opacity.combined(with: .scale(scale: 0.94)))
+            } else {
+                TimelineView(.animation) { context in
+                    ZStack(alignment: .leading) {
+                        shimmeredStatusText(
+                            statuses[statusIndex],
+                            timestamp: context.date
+                        )
+                        .id(statusIndex)
+                        .transition(
+                            .asymmetric(
+                                insertion: .move(edge: .bottom).combined(with: .opacity),
+                                removal: .move(edge: .top).combined(with: .opacity)
+                            )
+                        )
+                    }
+                    .clipped()
+                }
                 .transition(
                     .asymmetric(
                         insertion: .move(edge: .bottom).combined(with: .opacity),
-                        removal: .move(edge: .top).combined(with: .opacity)
+                        removal: .opacity
                     )
                 )
             }
-            .clipped()
         }
         .task {
             shimmerCycleStart = Date()
+            statusIndex = 0
+            isShowingLoadingDots = true
+
+            try? await Task.sleep(for: .seconds(loadingDotsDuration))
+
+            guard !Task.isCancelled else {
+                return
+            }
+
+            withAnimation(.spring(response: 0.38, dampingFraction: 0.92)) {
+                isShowingLoadingDots = false
+            }
+
             await rotateStatuses()
         }
     }
@@ -73,5 +101,40 @@ struct JournalProcessingStatusText: View {
                 statusIndex = (statusIndex + 1) % statuses.count
             }
         }
+    }
+}
+
+private struct JournalProcessingLoadingDots: View {
+    private let dotSize: CGFloat = 4
+    private let dotSpacing: CGFloat = 4
+    private let animationDuration: TimeInterval = 0.9
+
+    var body: some View {
+        TimelineView(.animation) { context in
+            HStack(spacing: dotSpacing) {
+                ForEach(0..<3, id: \.self) { index in
+                    Circle()
+                        .fill(NotelyTheme.secondaryText.opacity(0.8))
+                        .frame(width: dotSize, height: dotSize)
+                        .scaleEffect(dotScale(index: index, timestamp: context.date))
+                        .offset(y: dotOffset(index: index, timestamp: context.date))
+                }
+            }
+        }
+        .frame(height: 16, alignment: .center)
+    }
+
+    private func dotPhase(index: Int, timestamp: Date) -> Double {
+        let elapsed = timestamp.timeIntervalSinceReferenceDate
+        let progress = elapsed.truncatingRemainder(dividingBy: animationDuration) / animationDuration
+        return (progress * 2 * .pi) - (Double(index) * 0.7)
+    }
+
+    private func dotScale(index: Int, timestamp: Date) -> CGFloat {
+        0.82 + (0.18 * max(0, sin(dotPhase(index: index, timestamp: timestamp))))
+    }
+
+    private func dotOffset(index: Int, timestamp: Date) -> CGFloat {
+        -2.5 * max(0, sin(dotPhase(index: index, timestamp: timestamp)))
     }
 }

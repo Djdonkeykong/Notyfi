@@ -5,6 +5,7 @@ final class EntryDetailViewModel: ObservableObject {
     @Published var rawText: String
     @Published var title: String
     @Published var amountText: String
+    @Published var transactionKind: TransactionKind
     @Published var category: ExpenseCategory
     @Published var date: Date
     @Published var merchant: String
@@ -22,6 +23,7 @@ final class EntryDetailViewModel: ObservableObject {
         self.rawText = entry.rawText
         self.title = entry.title
         self.amountText = entry.amount == 0 ? "" : String(format: "%.0f", entry.amount)
+        self.transactionKind = entry.transactionKind
         self.category = entry.category
         self.date = entry.date
         self.merchant = entry.merchant ?? ""
@@ -42,6 +44,7 @@ final class EntryDetailViewModel: ObservableObject {
             title: title.trimmingCharacters(in: .whitespacesAndNewlines),
             amount: amount,
             currencyCode: currencyCode,
+            transactionKind: transactionKind,
             category: category,
             merchant: merchant.isEmpty ? nil : merchant,
             date: date,

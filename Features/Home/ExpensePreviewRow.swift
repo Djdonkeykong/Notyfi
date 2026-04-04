@@ -5,6 +5,7 @@ struct ExpensePreviewRow: View {
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var focusRequest: JournalEditorFocusRequest?
     let isEditable: Bool
+    let isAccessoryTapEnabled: Bool
     let onTextChange: (String) -> Void
     let onSplitText: (String, String) -> Void
     let onMergeBackward: () -> Void
@@ -20,6 +21,7 @@ struct ExpensePreviewRow: View {
         focusedEditor: Binding<JournalEditorTarget?> = .constant(nil),
         focusRequest: Binding<JournalEditorFocusRequest?> = .constant(nil),
         isEditable: Bool = true,
+        isAccessoryTapEnabled: Bool = true,
         onTextChange: @escaping (String) -> Void = { _ in },
         onSplitText: @escaping (String, String) -> Void = { _, _ in },
         onMergeBackward: @escaping () -> Void = {},
@@ -29,6 +31,7 @@ struct ExpensePreviewRow: View {
         _focusedEditor = focusedEditor
         _focusRequest = focusRequest
         self.isEditable = isEditable
+        self.isAccessoryTapEnabled = isAccessoryTapEnabled
         self.onTextChange = onTextChange
         self.onSplitText = onSplitText
         self.onMergeBackward = onMergeBackward
@@ -46,14 +49,14 @@ struct ExpensePreviewRow: View {
         }
 
         if entry.isAmountEstimated {
-            return entry.amount.formattedCurrency(code: entry.currencyCode)
+            return signedAmountText
         }
 
         if entry.confidence.needsReview {
             return "Review"
         }
 
-        return entry.amount.formattedCurrency(code: entry.currencyCode)
+        return signedAmountText
     }
 
     private var trailingSecondary: String? {
@@ -62,30 +65,50 @@ struct ExpensePreviewRow: View {
         }
 
         if entry.confidence.needsReview {
-            if entry.isAmountEstimated, entry.amount > 0 {
-                return "Estimated"
-            }
-
             if entry.amount == 0 {
                 return "Add price"
             }
 
-            return entry.amount > 0 ? entry.amount.formattedCurrency(code: entry.currencyCode) : nil
+            if entry.category != .uncategorized {
+                return entry.category.title
+            }
+
+            if entry.transactionKind == .income {
+                return TransactionKind.income.title
+            }
+
+            return entry.amount > 0 ? signedAmountText : nil
         }
 
         if entry.category != .uncategorized {
             return entry.category.title
         }
 
+        if entry.transactionKind == .income {
+            return TransactionKind.income.title
+        }
+
         return entry.merchant
     }
 
     private var trailingPrimaryColor: Color {
-        if entry.amount == 0 || entry.confidence.needsReview {
+        if entry.amount == 0 {
             return NotelyTheme.secondaryText
         }
 
-        return Color(red: 0.26, green: 0.56, blue: 0.96)
+        if entry.confidence.needsReview, !entry.isAmountEstimated {
+            return NotelyTheme.secondaryText
+        }
+
+        return entry.transactionKind == .income
+            ? Color(red: 0.28, green: 0.71, blue: 0.45)
+            : Color(red: 0.90, green: 0.36, blue: 0.34)
+    }
+
+    private var signedAmountText: String {
+        let formattedAmount = entry.amount.formattedCurrency(code: entry.currencyCode)
+        let signedAmount = entry.transactionKind == .income ? "+\(formattedAmount)" : "-\(formattedAmount)"
+        return entry.isAmountEstimated ? "\(signedAmount)*" : signedAmount
     }
 
     private var trailingSecondaryDisplay: String {
@@ -154,7 +177,7 @@ struct ExpensePreviewRow: View {
                 .padding(.top, 1)
             }
             .buttonStyle(.plain)
-            .disabled(isDraftEmpty)
+            .disabled(isDraftEmpty || !isAccessoryTapEnabled)
             .opacity(isDraftEmpty ? 0 : 1)
         }
         .padding(.vertical, 4)

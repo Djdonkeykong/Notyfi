@@ -76,6 +76,13 @@ final class HomeViewModel: ObservableObject {
         composerDraftsByDay[dayKey(for: selectedDate)] = ""
     }
 
+    func focusComposer() -> JournalEditorFocusRequest {
+        JournalEditorFocusRequest(
+            target: .composer(dayKey(for: selectedDate)),
+            cursorPlacement: .end
+        )
+    }
+
     func updateComposerText(_ rawText: String) {
         let normalized = rawText.replacingOccurrences(of: "\r\n", with: "\n")
 
@@ -260,18 +267,37 @@ final class HomeViewModel: ObservableObject {
             calendar.isDate($0.date, equalTo: selectedDate, toGranularity: .month)
         }
 
-        let dayTotal = displayedEntries.reduce(0) { $0 + $1.amount }
-        let monthTotal = monthEntries.reduce(0) { $0 + $1.amount }
-        let monthAveragePerEntry = monthEntries.isEmpty
+        let dayExpenseTotal = displayedEntries
+            .filter { $0.transactionKind == .expense }
+            .reduce(0) { $0 + $1.amount }
+        let dayIncomeTotal = displayedEntries
+            .filter { $0.transactionKind == .income }
+            .reduce(0) { $0 + $1.amount }
+        let dayNetTotal = dayIncomeTotal - dayExpenseTotal
+
+        let monthExpenseEntries = monthEntries.filter { $0.transactionKind == .expense }
+        let monthExpenseTotal = monthExpenseEntries.reduce(0) { $0 + $1.amount }
+        let monthIncomeTotal = monthEntries
+            .filter { $0.transactionKind == .income }
+            .reduce(0) { $0 + $1.amount }
+        let monthNetTotal = monthIncomeTotal - monthExpenseTotal
+        let monthAveragePerEntry = monthExpenseEntries.isEmpty
             ? 0
-            : monthTotal / Double(monthEntries.count)
-        let categoryBreakdown = makeCategoryBreakdown(from: monthEntries, monthTotal: monthTotal)
+            : monthExpenseTotal / Double(monthExpenseEntries.count)
+        let categoryBreakdown = makeCategoryBreakdown(
+            from: monthExpenseEntries,
+            monthExpenseTotal: monthExpenseTotal
+        )
         let topCategory = categoryBreakdown.first?.category
         let topCategoryShare = categoryBreakdown.first?.share ?? 0
 
         insight = JournalInsight(
-            dayTotal: dayTotal,
-            monthTotal: monthTotal,
+            dayExpenseTotal: dayExpenseTotal,
+            dayIncomeTotal: dayIncomeTotal,
+            dayNetTotal: dayNetTotal,
+            monthExpenseTotal: monthExpenseTotal,
+            monthIncomeTotal: monthIncomeTotal,
+            monthNetTotal: monthNetTotal,
             topCategory: topCategory,
             reviewCount: monthEntries.filter { $0.confidence.needsReview }.count,
             monthEntryCount: monthEntries.count,
@@ -283,9 +309,9 @@ final class HomeViewModel: ObservableObject {
 
     private func makeCategoryBreakdown(
         from entries: [ExpenseEntry],
-        monthTotal: Double
+        monthExpenseTotal: Double
     ) -> [JournalCategoryBreakdown] {
-        guard monthTotal > 0 else {
+        guard monthExpenseTotal > 0 else {
             return []
         }
 
@@ -297,7 +323,7 @@ final class HomeViewModel: ObservableObject {
             return JournalCategoryBreakdown(
                 category: category,
                 total: total,
-                share: total / monthTotal,
+                share: total / monthExpenseTotal,
                 entryCount: categoryEntries.count
             )
         }
@@ -329,6 +355,7 @@ final class HomeViewModel: ObservableObject {
             title: trimmedText.isEmpty ? entry.title : trimmedText,
             amount: 0,
             currencyCode: entry.currencyCode,
+            transactionKind: entry.transactionKind,
             category: .uncategorized,
             merchant: nil,
             date: entry.date,

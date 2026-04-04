@@ -5,6 +5,7 @@ struct ParsedExpenseDraft: Codable {
     var title: String
     var amount: Double
     var currencyCode: String
+    var transactionKind: TransactionKind
     var category: ExpenseCategory
     var merchant: String?
     var note: String
@@ -16,6 +17,7 @@ struct ParsedExpenseDraft: Codable {
         case title
         case amount
         case currencyCode
+        case transactionKind
         case category
         case merchant
         case note
@@ -28,6 +30,7 @@ struct ParsedExpenseDraft: Codable {
         title: String,
         amount: Double,
         currencyCode: String,
+        transactionKind: TransactionKind = .expense,
         category: ExpenseCategory,
         merchant: String?,
         note: String,
@@ -38,6 +41,7 @@ struct ParsedExpenseDraft: Codable {
         self.title = title
         self.amount = amount
         self.currencyCode = currencyCode
+        self.transactionKind = transactionKind
         self.category = category
         self.merchant = merchant
         self.note = note
@@ -52,6 +56,7 @@ struct ParsedExpenseDraft: Codable {
         title = try container.decode(String.self, forKey: .title)
         amount = try container.decode(Double.self, forKey: .amount)
         currencyCode = try container.decode(String.self, forKey: .currencyCode)
+        transactionKind = try container.decodeIfPresent(TransactionKind.self, forKey: .transactionKind) ?? .expense
         category = try container.decode(ExpenseCategory.self, forKey: .category)
         merchant = try container.decodeIfPresent(String.self, forKey: .merchant)
         note = try container.decode(String.self, forKey: .note)
@@ -182,6 +187,7 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
             title: parsedDraft.title.trimmingCharacters(in: .whitespacesAndNewlines),
             amount: max(parsedDraft.amount, 0),
             currencyCode: parsedDraft.currencyCode.isEmpty ? currencyCode : parsedDraft.currencyCode,
+            transactionKind: parsedDraft.transactionKind,
             category: parsedDraft.category,
             merchant: parsedDraft.merchant?.trimmingCharacters(in: .whitespacesAndNewlines),
             note: parsedDraft.note.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -200,7 +206,8 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         Date: \(ISO8601DateFormatter().string(from: date))
         Currency: \(currencyCode)
 
-        Return one transaction JSON object. Infer a short title, amount as a positive number, one allowed category, merchant if explicit, note as "" unless useful, confidence as certain/review/uncertain, and isAmountEstimated as true/false.
+        Return one transaction JSON object. Infer a short title, amount as a positive number, transactionKind as expense/income, one allowed category, merchant if explicit, note as "" unless useful, confidence as certain/review/uncertain, and isAmountEstimated as true/false.
+        Use transactionKind "income" for salary, freelance pay, refunds, reimbursements, gifts received, or money coming in. Use "expense" for spending, bills, purchases, subscriptions, or money going out.
         If no amount is written but the note mentions a concrete item/place, estimate a plausible amount in the given currency, set confidence "review", and set isAmountEstimated true. If there is not enough context to estimate, use amount 0, confidence "review", and isAmountEstimated false.
         """
 
@@ -230,6 +237,10 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
                             "title": ["type": "string"],
                             "amount": ["type": "number"],
                             "currencyCode": ["type": "string"],
+                            "transactionKind": [
+                                "type": "string",
+                                "enum": TransactionKind.allCases.map(\.rawValue)
+                            ],
                             "category": [
                                 "type": "string",
                                 "enum": ExpenseCategory.allCases.map(\.rawValue)
@@ -252,6 +263,7 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
                             "title",
                             "amount",
                             "currencyCode",
+                            "transactionKind",
                             "category",
                             "merchant",
                             "note",

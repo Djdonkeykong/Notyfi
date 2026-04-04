@@ -16,13 +16,15 @@ struct HomeSummaryBar: View {
                     SummaryItem(
                         symbol: "sun.max.fill",
                         symbolColor: NotelyTheme.reviewTint,
-                        text: insight.dayTotal.formattedCurrency(code: currencyCode)
+                        text: insight.dayExpenseTotal.formattedCurrency(code: currencyCode)
                     )
 
                     SummaryItem(
                         symbol: "calendar",
-                        symbolColor: Color(red: 0.73, green: 0.40, blue: 0.47),
-                        text: insight.monthTotal.formattedCurrency(code: currencyCode)
+                        symbolColor: insight.monthNetTotal >= 0
+                            ? Color(red: 0.28, green: 0.71, blue: 0.45)
+                            : Color(red: 0.90, green: 0.36, blue: 0.34),
+                        text: Self.signedCurrency(insight.monthNetTotal, currencyCode: currencyCode)
                     )
 
                     SummaryItem(
@@ -84,27 +86,29 @@ struct HomeSnapshotCard: View {
 
                 HStack(spacing: 12) {
                     SnapshotMetricTile(
-                        title: "Today",
-                        value: insight.dayTotal.formattedCurrency(code: currencyCode),
-                        caption: "Logged now",
+                        title: "Spend",
+                        value: insight.monthExpenseTotal.formattedCurrency(code: currencyCode),
+                        caption: "This month",
                         symbol: "sun.max.fill",
-                        tint: NotelyTheme.reviewTint
+                        tint: Color(red: 0.90, green: 0.36, blue: 0.34)
                     )
 
                     SnapshotMetricTile(
-                        title: "Month",
-                        value: insight.monthTotal.formattedCurrency(code: currencyCode),
+                        title: "Income",
+                        value: insight.monthIncomeTotal.formattedCurrency(code: currencyCode),
                         caption: "\(insight.monthEntryCount) notes",
-                        symbol: "calendar",
-                        tint: Color(red: 0.73, green: 0.40, blue: 0.47)
+                        symbol: "arrow.down.circle.fill",
+                        tint: Color(red: 0.28, green: 0.71, blue: 0.45)
                     )
 
                     SnapshotMetricTile(
-                        title: "Average",
-                        value: insight.monthAveragePerEntry.formattedCurrency(code: currencyCode),
-                        caption: "Per note",
+                        title: "Net",
+                        value: Self.signedCurrency(insight.monthNetTotal, currencyCode: currencyCode),
+                        caption: "Balance",
                         symbol: "chart.bar.fill",
-                        tint: Color(red: 0.42, green: 0.73, blue: 0.47)
+                        tint: insight.monthNetTotal >= 0
+                            ? Color(red: 0.28, green: 0.71, blue: 0.45)
+                            : Color(red: 0.90, green: 0.36, blue: 0.34)
                     )
                 }
 
@@ -137,7 +141,21 @@ struct HomeSnapshotCard: View {
         }
 
         let share = Int((insight.topCategoryShare * 100).rounded())
-        return "\(topCategory.title) leads this month at \(share)%."
+        return "\(topCategory.title) leads spending this month at \(share)%."
+    }
+
+    private static func signedCurrency(_ amount: Double, currencyCode: String) -> String {
+        let formattedAmount = abs(amount).formattedCurrency(code: currencyCode)
+
+        if amount > 0 {
+            return "+\(formattedAmount)"
+        }
+
+        if amount < 0 {
+            return "-\(formattedAmount)"
+        }
+
+        return formattedAmount
     }
 }
 
@@ -288,8 +306,12 @@ private struct EmptyCategoryBreakdownRow: View {
             Spacer()
             HomeSnapshotCard(
                 insight: JournalInsight(
-                    dayTotal: 810,
-                    monthTotal: 2166,
+                    dayExpenseTotal: 810,
+                    dayIncomeTotal: 0,
+                    dayNetTotal: -810,
+                    monthExpenseTotal: 2166,
+                    monthIncomeTotal: 28000,
+                    monthNetTotal: 25834,
                     topCategory: .food,
                     reviewCount: 2,
                     monthEntryCount: 8,
@@ -320,8 +342,12 @@ private struct EmptyCategoryBreakdownRow: View {
             )
             HomeSummaryBar(
                 insight: JournalInsight(
-                    dayTotal: 810,
-                    monthTotal: 2166,
+                    dayExpenseTotal: 810,
+                    dayIncomeTotal: 0,
+                    dayNetTotal: -810,
+                    monthExpenseTotal: 2166,
+                    monthIncomeTotal: 28000,
+                    monthNetTotal: 25834,
                     topCategory: .food,
                     reviewCount: 2,
                     monthEntryCount: 8,

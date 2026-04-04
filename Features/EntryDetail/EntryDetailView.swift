@@ -47,6 +47,19 @@ struct EntryDetailView: View {
 
                             Divider()
 
+                            DetailPickerRow(title: "Type") {
+                                Picker("Type", selection: $viewModel.transactionKind) {
+                                    ForEach(TransactionKind.allCases) { kind in
+                                        Text(kind.title).tag(kind)
+                                    }
+                                }
+                                .pickerStyle(.menu)
+                                .labelsHidden()
+                                .tint(.primary.opacity(0.84))
+                            }
+
+                            Divider()
+
                             DetailPickerRow(title: "Category") {
                                 Picker("Category", selection: $viewModel.category) {
                                     ForEach(ExpenseCategory.allCases) { category in
@@ -174,7 +187,7 @@ struct EntryDetailView: View {
 
                     Text(viewModel.formattedAmount)
                         .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(.primary.opacity(0.94))
+                        .foregroundStyle(viewModel.amountColor)
                         .monospacedDigit()
 
                     Text(viewModel.summaryCaption)
@@ -348,7 +361,14 @@ private extension EntryDetailViewModel {
 
     var formattedAmount: String {
         let amount = Double(amountText.replacingOccurrences(of: ",", with: ".")) ?? 0
-        return amount.formattedCurrency(code: currencyCode)
+        let formattedAmount = amount.formattedCurrency(code: currencyCode)
+        return transactionKind == .income ? "+\(formattedAmount)" : "-\(formattedAmount)"
+    }
+
+    var amountColor: Color {
+        transactionKind == .income
+            ? Color(red: 0.28, green: 0.71, blue: 0.45)
+            : Color(red: 0.90, green: 0.36, blue: 0.34)
     }
 
     var merchantDisplay: String {

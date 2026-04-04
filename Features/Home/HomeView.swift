@@ -90,6 +90,11 @@ struct HomeView: View {
                         onEntryTap: { entry in
                             presentEntryDetail(entry)
                         },
+                        onBlankSpaceTap: {
+                            applyFocusRequest {
+                                viewModel.focusComposer()
+                            }
+                        },
                         onMoveSelection: { dayOffset in
                             clearEditorFocus()
                             isSummaryExpanded = false
@@ -101,7 +106,7 @@ struct HomeView: View {
             .safeAreaInset(edge: .bottom) {
                 if focusedEditor != nil {
                     KeyboardAccessoryBar(
-                        totalText: viewModel.insight.dayTotal.formattedCurrency(code: viewModel.currencyCode),
+                        totalText: viewModel.insight.dayExpenseTotal.formattedCurrency(code: viewModel.currencyCode),
                         onDismissKeyboard: { clearEditorFocus() }
                     )
                     .padding(.horizontal, 8)
@@ -233,20 +238,13 @@ private extension HomeView {
 
         if let request {
             focusRequestGeneration += 1
-            let requestGeneration = focusRequestGeneration
 
-            DispatchQueue.main.async {
-                guard requestGeneration == focusRequestGeneration else {
-                    return
-                }
+            var focusTransaction = Transaction()
+            focusTransaction.animation = nil
 
-                var focusTransaction = Transaction()
-                focusTransaction.animation = nil
-
-                withTransaction(focusTransaction) {
-                    focusedEditor = request.target
-                    editorFocusRequest = request
-                }
+            withTransaction(focusTransaction) {
+                focusedEditor = request.target
+                editorFocusRequest = request
             }
         }
     }
@@ -317,6 +315,7 @@ private struct DayJournalPager: View {
     let onEntrySplit: (ExpenseEntry, String, String) -> Void
     let onEntryMergeBackward: (ExpenseEntry) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
+    let onBlankSpaceTap: () -> Void
     let onMoveSelection: (Int) -> Void
 
     @State private var dragOffset: CGFloat = 0
@@ -382,6 +381,7 @@ private struct DayJournalPager: View {
             onEntrySplit: onEntrySplit,
             onEntryMergeBackward: onEntryMergeBackward,
             onEntryTap: onEntryTap,
+            onBlankSpaceTap: onBlankSpaceTap,
             scrollDisabled: scrollDisabled
         )
     }
@@ -407,6 +407,7 @@ private struct DayJournalPager: View {
             onEntrySplit: { _, _, _ in },
             onEntryMergeBackward: { _ in },
             onEntryTap: onEntryTap,
+            onBlankSpaceTap: {},
             scrollDisabled: scrollDisabled
         )
     }
@@ -541,56 +542,83 @@ private struct DayJournalPage: View {
     let onEntrySplit: (ExpenseEntry, String, String) -> Void
     let onEntryMergeBackward: (ExpenseEntry) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
+    let onBlankSpaceTap: () -> Void
     let scrollDisabled: Bool
 
+    @State private var contentHeight: CGFloat = 0
+
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 12) {
-                ForEach(entries) { entry in
-                    ExpensePreviewRow(
-                        entry: entry,
+        GeometryReader { geometry in
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(entries) { entry in
+                        ExpensePreviewRow(
+                            entry: entry,
+                            focusedEditor: $focusedEditor,
+                            focusRequest: $editorFocusRequest,
+                            isEditable: isEditable,
+                            isAccessoryTapEnabled: !scrollDisabled,
+                            onTextChange: { rawText in
+                                onEntryTextChange(entry, rawText)
+                            },
+                            onSplitText: { leadingText, trailingText in
+                                onEntrySplit(entry, leadingText, trailingText)
+                            },
+                            onMergeBackward: {
+                                onEntryMergeBackward(entry)
+                            },
+                            onAccessoryTap: {
+                                Haptics.mediumImpact()
+                                onEntryTap(entry)
+                            }
+                        )
+                    }
+
+                    QuickCaptureComposer(
+                        text: $composerText,
                         focusedEditor: $focusedEditor,
                         focusRequest: $editorFocusRequest,
+                        editorTarget: .composer(Calendar.current.startOfDay(for: date)),
                         isEditable: isEditable,
-                        onTextChange: { rawText in
-                            onEntryTextChange(entry, rawText)
-                        },
-                        onSplitText: { leadingText, trailingText in
-                            onEntrySplit(entry, leadingText, trailingText)
-                        },
-                        onMergeBackward: {
-                            onEntryMergeBackward(entry)
-                        },
-                        onAccessoryTap: {
-                            Haptics.mediumImpact()
-                            onEntryTap(entry)
-                        }
+                        showsPlaceholder: entries.isEmpty,
+                        feedback: feedback,
+                        onTextChange: onComposerTextChange,
+                        onSplitText: onComposerSplit,
+                        onMergeBackward: onComposerMergeBackward
                     )
+
+                    Color.clear
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 180)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            guard isEditable, !scrollDisabled else {
+                                return
+                            }
+
+                            onBlankSpaceTap()
+                        }
                 }
-
-                QuickCaptureComposer(
-                    text: $composerText,
-                    focusedEditor: $focusedEditor,
-                    focusRequest: $editorFocusRequest,
-                    editorTarget: .composer(Calendar.current.startOfDay(for: date)),
-                    isEditable: isEditable,
-                    showsPlaceholder: entries.isEmpty,
-                    feedback: feedback,
-                    onTextChange: onComposerTextChange,
-                    onSplitText: onComposerSplit,
-                    onMergeBackward: onComposerMergeBackward
-                )
-
-                Color.clear
-                    .frame(height: 140)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 140)
+                .background {
+                    GeometryReader { contentGeometry in
+                        Color.clear
+                            .onAppear {
+                                contentHeight = contentGeometry.size.height
+                            }
+                            .onChange(of: contentGeometry.size.height) { _, newHeight in
+                                contentHeight = newHeight
+                            }
+                    }
+                }
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 140)
+            .scrollDisabled(scrollDisabled || contentHeight <= geometry.size.height + 1)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .scrollDisabled(scrollDisabled)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 }
+
 
 private enum PagerDragAxisLock {
     case horizontal
