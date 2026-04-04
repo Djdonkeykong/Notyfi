@@ -26,7 +26,7 @@ struct JournalLogTextView: UIViewRepresentable {
     private static var textAttributes: [NSAttributedString.Key: Any] {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineSpacing = 1
-        paragraphStyle.paragraphSpacing = 10
+        paragraphStyle.paragraphSpacing = 16
         paragraphStyle.lineBreakMode = .byWordWrapping
 
         return [
@@ -51,6 +51,13 @@ struct JournalLogTextView: UIViewRepresentable {
         textView.isSelectable = isEditable
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        textView.onLayoutUpdate = { [weak coordinator = context.coordinator, weak textView] in
+            guard let textView else {
+                return
+            }
+
+            coordinator?.publishLineFrames(from: textView)
+        }
 
         return textView
     }
@@ -61,6 +68,13 @@ struct JournalLogTextView: UIViewRepresentable {
         uiView.isSelectable = isEditable
         uiView.typingAttributes = Self.textAttributes
         uiView.textContainerInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: trailingInset)
+        uiView.onLayoutUpdate = { [weak coordinator = context.coordinator, weak uiView] in
+            guard let uiView else {
+                return
+            }
+
+            coordinator?.publishLineFrames(from: uiView)
+        }
 
         if uiView.text != text {
             let cursorLocation = min(uiView.selectedRange.location, text.utf16.count)

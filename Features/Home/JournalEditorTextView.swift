@@ -225,6 +225,7 @@ final class EditableJournalTextView: UITextView {
     private static var pendingBridgeAttempts = 0
 
     var onBackspaceAtLeadingEdge: (() -> Void)?
+    var onLayoutUpdate: (() -> Void)?
 
     static func activate(_ editor: EditableJournalTextView) {
         activeEditor = editor
@@ -274,6 +275,11 @@ final class EditableJournalTextView: UITextView {
 
         Self.shouldBridgeBackspace = false
         super.deleteBackward()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        onLayoutUpdate?()
     }
 
     private static func dispatchBridgedBackspace() {

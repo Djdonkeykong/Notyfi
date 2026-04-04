@@ -631,7 +631,7 @@ private struct DayJournalPage: View {
     private static func estimatedLineFrames(for text: String) -> [JournalTextLineFrame] {
         let lines = text.components(separatedBy: "\n")
         let lineHeight: CGFloat = 22
-        let rowHeight: CGFloat = 32
+        let rowHeight: CGFloat = 38
 
         var frames: [JournalTextLineFrame] = []
         var currentY: CGFloat = 0
