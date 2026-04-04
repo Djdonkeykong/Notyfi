@@ -6,7 +6,7 @@ struct InsightsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Quiet snapshot")
+            Text("Quiet snapshot".notelyLocalized)
                 .font(.notely(.caption, weight: .medium))
                 .foregroundStyle(NotelyTheme.secondaryText)
 
@@ -22,10 +22,12 @@ struct InsightsCard: View {
                 )
 
                 InsightRow(
-                    title: insight.reviewCount > 0 ? "Needs review" : "Top category",
+                    title: insight.reviewCount > 0
+                        ? "Needs review".notelyLocalized
+                        : "Top category".notelyLocalized,
                     value: insight.reviewCount > 0
-                        ? "\(insight.reviewCount) note\(insight.reviewCount == 1 ? "" : "s")"
-                        : (insight.topCategory?.title ?? "Quiet week")
+                        ? String.notelyNotesCount(insight.reviewCount)
+                        : (insight.topCategory?.title ?? "Quiet week".notelyLocalized)
                 )
             }
         }
@@ -61,7 +63,7 @@ private struct InsightRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Text(title)
+            Text(title.notelyLocalized)
                 .font(.notely(.footnote))
                 .foregroundStyle(NotelyTheme.secondaryText)
 

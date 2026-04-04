@@ -8,6 +8,7 @@ struct HomeView: View {
     @State private var selectedEntry: ExpenseEntry?
     @State private var focusedEditor: JournalEditorTarget?
     @State private var editorFocusRequest: JournalEditorFocusRequest?
+    @State private var journalCursorLineIndex = 0
     @State private var focusRequestGeneration = 0
     @State private var presentationRequestGeneration = 0
 
@@ -43,6 +44,7 @@ struct HomeView: View {
                         nextJournalText: viewModel.journalDraft(for: viewModel.date(forDayOffset: 1)),
                         focusedEditor: $focusedEditor,
                         editorFocusRequest: $editorFocusRequest,
+                        journalCursorLineIndex: $journalCursorLineIndex,
                         feedback: viewModel.draftFeedback,
                         onJournalTextChange: { rawText in
                             var transaction = Transaction()
@@ -217,7 +219,13 @@ private extension HomeView {
         let activeEditor = focusedEditor
 
         if case .composer = activeEditor {
-            viewModel.addEntry()
+            if journalCursorLineIndex < viewModel.displayedEntries.count,
+               journalCursorLineIndex >= 0 {
+                let editedEntry = viewModel.displayedEntries[journalCursorLineIndex]
+                store.reparseEntryImmediately(id: editedEntry.id)
+            } else {
+                viewModel.addEntry()
+            }
         } else if case .entry(let entryID) = activeEditor {
             store.reparseEntryImmediately(id: entryID)
         }
@@ -275,6 +283,7 @@ private struct DayJournalPager: View {
     let nextJournalText: String
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var editorFocusRequest: JournalEditorFocusRequest?
+    @Binding var journalCursorLineIndex: Int
     let feedback: DraftComposerFeedback?
     let onJournalTextChange: (String) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
@@ -336,6 +345,7 @@ private struct DayJournalPager: View {
             journalText: $journalText,
             focusedEditor: $focusedEditor,
             editorFocusRequest: $editorFocusRequest,
+            journalCursorLineIndex: $journalCursorLineIndex,
             feedback: feedback,
             onJournalTextChange: onJournalTextChange,
             onEntryTap: onEntryTap,
@@ -358,6 +368,7 @@ private struct DayJournalPager: View {
             journalText: .constant(journalText),
             focusedEditor: .constant(nil),
             editorFocusRequest: .constant(nil),
+            journalCursorLineIndex: .constant(0),
             feedback: nil,
             onJournalTextChange: { _ in },
             onEntryTap: onEntryTap,
@@ -489,6 +500,7 @@ private struct DayJournalPage: View {
     @Binding var journalText: String
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var editorFocusRequest: JournalEditorFocusRequest?
+    @Binding var journalCursorLineIndex: Int
     let feedback: DraftComposerFeedback?
     let onJournalTextChange: (String) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
@@ -508,6 +520,7 @@ private struct DayJournalPage: View {
         journalText: Binding<String>,
         focusedEditor: Binding<JournalEditorTarget?>,
         editorFocusRequest: Binding<JournalEditorFocusRequest?>,
+        journalCursorLineIndex: Binding<Int>,
         feedback: DraftComposerFeedback?,
         onJournalTextChange: @escaping (String) -> Void,
         onEntryTap: @escaping (ExpenseEntry) -> Void,
@@ -520,6 +533,7 @@ private struct DayJournalPage: View {
         _journalText = journalText
         _focusedEditor = focusedEditor
         _editorFocusRequest = editorFocusRequest
+        _journalCursorLineIndex = journalCursorLineIndex
         self.feedback = feedback
         self.onJournalTextChange = onJournalTextChange
         self.onEntryTap = onEntryTap
@@ -541,6 +555,7 @@ private struct DayJournalPage: View {
                         text: $journalText,
                         focusedEditor: $focusedEditor,
                         focusRequest: $editorFocusRequest,
+                        cursorLineIndex: $journalCursorLineIndex,
                         editorTarget: .composer(Calendar.current.startOfDay(for: date)),
                         minHeight: max(geometry.size.height - 140, 240),
                         isEditable: isEditable,
@@ -558,7 +573,7 @@ private struct DayJournalPage: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     if journalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Text("Start typing your money notes...")
+                        Text("Start typing your money notes...".notelyLocalized)
                             .font(.notely(.body))
                             .foregroundStyle(NotelyTheme.tertiaryText)
                             .padding(.leading, 1)
@@ -630,8 +645,8 @@ private struct DayJournalPage: View {
 
     private static func estimatedLineFrames(for text: String) -> [JournalTextLineFrame] {
         let lines = text.components(separatedBy: "\n")
-        let lineHeight: CGFloat = 22
-        let rowHeight: CGFloat = 46
+        let lineHeight = JournalLogTextView.estimatedLineHeight
+        let rowHeight = lineHeight + JournalLogTextView.paragraphSpacing
 
         var frames: [JournalTextLineFrame] = []
         var currentY: CGFloat = 0
@@ -695,7 +710,9 @@ private struct JournalLineAccessoryView: View {
         }
 
         if entry.amount == 0 {
-            return entry.confidence == .review ? "Review" : "Thinking"
+            return entry.confidence == .review
+                ? "Review".notelyLocalized
+                : "Thinking".notelyLocalized
         }
 
         if entry.isAmountEstimated {
@@ -703,7 +720,7 @@ private struct JournalLineAccessoryView: View {
         }
 
         if entry.confidence.needsReview {
-            return "Review"
+            return "Review".notelyLocalized
         }
 
         return signedAmountText(for: entry)
@@ -776,7 +793,7 @@ private struct JournalLineAccessoryView: View {
                     .lineLimit(1)
 
                 Text(trailingSecondary ?? " ")
-                    .font(.notely(.footnote))
+                    .font(.system(size: 10.5, weight: .regular, design: .rounded))
                     .foregroundStyle(NotelyTheme.tertiaryText)
                     .multilineTextAlignment(.trailing)
                     .lineLimit(1)
@@ -799,7 +816,7 @@ private struct JournalLineAccessoryView: View {
                 }
 
                 Text(feedback.secondaryText ?? " ")
-                    .font(.notely(.footnote))
+                    .font(.system(size: 10.5, weight: .regular, design: .rounded))
                     .foregroundStyle(NotelyTheme.tertiaryText)
                     .multilineTextAlignment(.trailing)
                     .lineLimit(1)

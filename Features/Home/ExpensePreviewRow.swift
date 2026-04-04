@@ -45,7 +45,9 @@ struct ExpensePreviewRow: View {
         }
 
         if entry.amount == 0 {
-            return entry.confidence == .review ? "Review" : "Thinking"
+            return entry.confidence == .review
+                ? "Review".notelyLocalized
+                : "Thinking".notelyLocalized
         }
 
         if entry.isAmountEstimated {
@@ -53,7 +55,7 @@ struct ExpensePreviewRow: View {
         }
 
         if entry.confidence.needsReview {
-            return "Review"
+            return "Review".notelyLocalized
         }
 
         return signedAmountText

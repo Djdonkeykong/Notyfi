@@ -282,6 +282,17 @@ final class EditableJournalTextView: UITextView {
         onLayoutUpdate?()
     }
 
+    override func caretRect(for position: UITextPosition) -> CGRect {
+        var rect = super.caretRect(for: position)
+        let targetHeight = font?.lineHeight ?? UIFont.notelyBody.lineHeight
+
+        if rect.height > targetHeight * 1.2 {
+            rect.size.height = targetHeight
+        }
+
+        return rect
+    }
+
     private static func dispatchBridgedBackspace() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
             guard shouldBridgeBackspace else {

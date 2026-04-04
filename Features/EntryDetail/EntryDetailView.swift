@@ -19,7 +19,7 @@ struct EntryDetailView: View {
                     SectionHeader(title: "Original Note")
                     detailCard {
                         VStack(alignment: .leading, spacing: 14) {
-                            TextField("Coffee 49 kr", text: $viewModel.rawText, axis: .vertical)
+                            TextField("Coffee 49 kr".notelyLocalized, text: $viewModel.rawText, axis: .vertical)
                                 .lineLimit(3...6)
                                 .font(.notely(.title3, weight: .medium))
                                 .foregroundStyle(.primary.opacity(0.86))
@@ -48,7 +48,7 @@ struct EntryDetailView: View {
                             Divider()
 
                             DetailPickerRow(title: "Type") {
-                                Picker("Type", selection: $viewModel.transactionKind) {
+                                Picker("Type".notelyLocalized, selection: $viewModel.transactionKind) {
                                     ForEach(TransactionKind.allCases) { kind in
                                         Text(kind.title).tag(kind)
                                     }
@@ -61,7 +61,7 @@ struct EntryDetailView: View {
                             Divider()
 
                             DetailPickerRow(title: "Category") {
-                                Picker("Category", selection: $viewModel.category) {
+                                Picker("Category".notelyLocalized, selection: $viewModel.category) {
                                     ForEach(ExpenseCategory.allCases) { category in
                                         Text(category.title).tag(category)
                                     }
@@ -88,7 +88,7 @@ struct EntryDetailView: View {
                     SectionHeader(title: "Notes & Review")
                     detailCard {
                         VStack(alignment: .leading, spacing: 0) {
-                            Toggle("Needs review", isOn: $viewModel.needsReview)
+                            Toggle("Needs review".notelyLocalized, isOn: $viewModel.needsReview)
                                 .tint(NotelyTheme.reviewTint)
                                 .font(.notely(.body, weight: .medium))
                                 .padding(.horizontal, 20)
@@ -97,11 +97,11 @@ struct EntryDetailView: View {
                             Divider()
 
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Note")
+                                Text("Note".notelyLocalized)
                                     .font(.notely(.footnote, weight: .medium))
                                     .foregroundStyle(NotelyTheme.secondaryText)
 
-                                TextField("Optional context", text: $viewModel.note, axis: .vertical)
+                                TextField("Optional context".notelyLocalized, text: $viewModel.note, axis: .vertical)
                                     .lineLimit(3...6)
                                     .font(.notely(.body))
                                     .foregroundStyle(.primary.opacity(0.84))
@@ -122,7 +122,7 @@ struct EntryDetailView: View {
                                     }
 
                                 VStack(alignment: .leading, spacing: 3) {
-                                    Text("Confidence")
+                                    Text("Confidence".notelyLocalized)
                                         .font(.notely(.footnote, weight: .medium))
                                         .foregroundStyle(NotelyTheme.secondaryText)
 
@@ -151,7 +151,7 @@ struct EntryDetailView: View {
     private var header: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Entry Details")
+                Text("Entry Details".notelyLocalized)
                     .font(.notely(.footnote, weight: .semibold))
                     .foregroundStyle(NotelyTheme.secondaryText)
 
@@ -286,7 +286,7 @@ private struct SummaryMetricChip: View {
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(tint)
 
-                Text(label)
+                Text(label.notelyLocalized)
                     .font(.notely(.caption))
                     .foregroundStyle(NotelyTheme.secondaryText)
             }
@@ -302,11 +302,11 @@ private struct DetailTextField: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title)
+            Text(title.notelyLocalized)
                 .font(.notely(.footnote, weight: .medium))
                 .foregroundStyle(NotelyTheme.secondaryText)
 
-            TextField(placeholder, text: $text)
+            TextField(placeholder.notelyLocalized, text: $text)
                 .font(.notely(.body))
                 .foregroundStyle(.primary.opacity(0.84))
         }
@@ -323,7 +323,7 @@ private struct DetailPickerRow<Content: View>: View {
     var body: some View {
         HStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(title)
+                Text(title.notelyLocalized)
                     .font(.notely(.footnote, weight: .medium))
                     .foregroundStyle(NotelyTheme.secondaryText)
 
@@ -342,7 +342,7 @@ private struct DetailDateRow: View {
 
     var body: some View {
         DatePicker(
-            "Date",
+            "Date".notelyLocalized,
             selection: $date,
             displayedComponents: [.date, .hourAndMinute]
         )
@@ -356,7 +356,7 @@ private struct DetailDateRow: View {
 private extension EntryDetailViewModel {
     var displayTitle: String {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Untitled entry" : trimmed
+        return trimmed.isEmpty ? "Untitled entry".notelyLocalized : trimmed
     }
 
     var formattedAmount: String {
@@ -373,15 +373,15 @@ private extension EntryDetailViewModel {
 
     var merchantDisplay: String {
         let trimmed = merchant.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Personal" : trimmed
+        return trimmed.isEmpty ? "Personal".notelyLocalized : trimmed
     }
 
     var confidenceTitle: String {
         if isAmountEstimated, needsReview {
-            return "Estimated price"
+            return "Estimated price".notelyLocalized
         }
 
-        return needsReview ? "Needs review" : "Ready"
+        return needsReview ? "Needs review".notelyLocalized : "Ready".notelyLocalized
     }
 
     var confidenceColor: Color {
@@ -398,10 +398,12 @@ private extension EntryDetailViewModel {
 
     var summaryCaption: String {
         if isAmountEstimated, needsReview {
-            return "estimated total"
+            return "estimated total".notelyLocalized
         }
 
-        return amountText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "amount pending" : "captured total"
+        return amountText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? "amount pending".notelyLocalized
+            : "captured total".notelyLocalized
     }
 }
 

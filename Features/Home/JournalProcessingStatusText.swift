@@ -4,7 +4,12 @@ struct JournalProcessingStatusText: View {
     let activityText: String
     let showsTypingDots: Bool
 
-    private let statuses = ["Checking", "Reading", "Finding", "Thinking"]
+    private let statuses = [
+        "Checking".notelyLocalized,
+        "Reading".notelyLocalized,
+        "Finding".notelyLocalized,
+        "Thinking".notelyLocalized
+    ]
     private let typingIdleDelay: TimeInterval = 0.7
     private let statusDuration: TimeInterval = 2.4
     private let shimmerDuration: TimeInterval = 1.8

@@ -17,25 +17,25 @@ enum ExpenseCategory: String, CaseIterable, Codable, Identifiable {
     var title: String {
         switch self {
         case .food:
-            return "Food"
+            return "Food".notelyLocalized
         case .groceries:
-            return "Groceries"
+            return "Groceries".notelyLocalized
         case .transport:
-            return "Transport"
+            return "Transport".notelyLocalized
         case .housing:
-            return "Housing"
+            return "Housing".notelyLocalized
         case .travel:
-            return "Travel"
+            return "Travel".notelyLocalized
         case .shopping:
-            return "Shopping"
+            return "Shopping".notelyLocalized
         case .bills:
-            return "Bills"
+            return "Bills".notelyLocalized
         case .health:
-            return "Health"
+            return "Health".notelyLocalized
         case .social:
-            return "Social"
+            return "Social".notelyLocalized
         case .uncategorized:
-            return "Other"
+            return "Other".notelyLocalized
         }
     }
 
@@ -89,4 +89,3 @@ enum ExpenseCategory: String, CaseIterable, Codable, Identifiable {
         }
     }
 }
-

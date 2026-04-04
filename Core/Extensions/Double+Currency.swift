@@ -5,15 +5,8 @@ extension Double {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = code
-
-        if code == "NOK" {
-            formatter.locale = Locale(identifier: "nb_NO")
-        } else {
-            formatter.locale = .current
-        }
-
+        formatter.locale = .autoupdatingCurrent
         formatter.maximumFractionDigits = self.rounded() == self ? 0 : 2
         return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
     }
 }
-

@@ -10,7 +10,14 @@ final class SettingsViewModel: ObservableObject {
         var id: String { rawValue }
 
         var title: String {
-            rawValue.capitalized
+            switch self {
+            case .system:
+                return "System".notelyLocalized
+            case .light:
+                return "Light".notelyLocalized
+            case .dark:
+                return "Dark".notelyLocalized
+            }
         }
     }
 

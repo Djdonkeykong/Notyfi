@@ -12,9 +12,13 @@ struct JournalTextLineFrame: Equatable, Identifiable {
 }
 
 struct JournalLogTextView: UIViewRepresentable {
+    static let paragraphSpacing: CGFloat = 29
+    static let estimatedLineHeight: CGFloat = 22
+
     @Binding var text: String
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var focusRequest: JournalEditorFocusRequest?
+    @Binding var cursorLineIndex: Int
 
     let editorTarget: JournalEditorTarget
     let minHeight: CGFloat
@@ -26,7 +30,7 @@ struct JournalLogTextView: UIViewRepresentable {
     private static var textAttributes: [NSAttributedString.Key: Any] {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineSpacing = 1
-        paragraphStyle.paragraphSpacing = 24
+        paragraphStyle.paragraphSpacing = Self.paragraphSpacing
         paragraphStyle.lineBreakMode = .byWordWrapping
 
         return [
@@ -176,6 +180,7 @@ struct JournalLogTextView: UIViewRepresentable {
             }
 
             parent.focusedEditor = parent.editorTarget
+            publishCursorLineIndex(from: textView)
             publishLineFrames(from: textView)
         }
 
@@ -189,6 +194,7 @@ struct JournalLogTextView: UIViewRepresentable {
             }
 
             lastAppliedFocusToken = nil
+            publishCursorLineIndex(from: textView)
             publishLineFrames(from: textView)
         }
 
@@ -200,11 +206,31 @@ struct JournalLogTextView: UIViewRepresentable {
             }
 
             parent.onTextChange(normalizedText)
+            publishCursorLineIndex(from: textView)
             publishLineFrames(from: textView)
         }
 
         func textViewDidChangeSelection(_ textView: UITextView) {
+            publishCursorLineIndex(from: textView)
             publishLineFrames(from: textView)
+        }
+
+        private func publishCursorLineIndex(from textView: UITextView) {
+            let nsText = (textView.text ?? "") as NSString
+            let cursorLocation = min(
+                max(textView.selectedRange.location, 0),
+                nsText.length
+            )
+            let textBeforeCursor = nsText.substring(to: cursorLocation)
+            let lineIndex = textBeforeCursor.reduce(into: 0) { count, character in
+                if character == "\n" {
+                    count += 1
+                }
+            }
+
+            if parent.cursorLineIndex != lineIndex {
+                parent.cursorLineIndex = lineIndex
+            }
         }
 
         func publishLineFrames(from textView: UITextView) {
@@ -225,7 +251,10 @@ struct JournalLogTextView: UIViewRepresentable {
             let lines = text.components(separatedBy: "\n")
             let layoutManager = textView.layoutManager
             let textContainer = textView.textContainer
-            let lineHeight = max(textView.font?.lineHeight ?? 22, 22)
+            let lineHeight = max(
+                textView.font?.lineHeight ?? JournalLogTextView.estimatedLineHeight,
+                JournalLogTextView.estimatedLineHeight
+            )
             let textStorage = textView.textStorage.string as NSString
             var frames: [JournalTextLineFrame] = []
             var characterLocation = 0
@@ -234,7 +263,15 @@ struct JournalLogTextView: UIViewRepresentable {
 
             for lineIndex in lines.indices {
                 let lineLength = (lines[lineIndex] as NSString).length
-                let lineRange = NSRange(location: characterLocation, length: lineLength)
+                let safeLocation = min(characterLocation, textStorage.length)
+                let lineStartPosition = textView.position(
+                    from: textView.beginningOfDocument,
+                    offset: safeLocation
+                )
+                let caretRect = lineStartPosition.map {
+                    textView.caretRect(for: $0)
+                } ?? .zero
+                let lineRange = NSRange(location: safeLocation, length: lineLength)
                 let frame: JournalTextLineFrame
 
                 if lineLength > 0 {
@@ -242,26 +279,27 @@ struct JournalLogTextView: UIViewRepresentable {
                         forCharacterRange: lineRange,
                         actualCharacterRange: nil
                     )
+                    let lineFragmentRect = layoutManager.lineFragmentRect(
+                        forGlyphAt: glyphRange.location,
+                        effectiveRange: nil,
+                        withoutAdditionalLayout: true
+                    )
                     let boundingRect = layoutManager.boundingRect(
                         forGlyphRange: glyphRange,
                         in: textContainer
                     )
+                    let lineTopY = min(caretRect.minY, lineFragmentRect.minY)
 
                     frame = JournalTextLineFrame(
                         lineIndex: lineIndex,
-                        minY: boundingRect.minY,
-                        height: max(boundingRect.height, lineHeight)
+                        minY: lineTopY,
+                        height: max(
+                            boundingRect.maxY - lineTopY,
+                            lineFragmentRect.height,
+                            lineHeight
+                        )
                     )
                 } else {
-                    let safeLocation = min(characterLocation, textStorage.length)
-                    let caretPosition = textView.position(
-                        from: textView.beginningOfDocument,
-                        offset: safeLocation
-                    )
-                    let caretRect = caretPosition.map {
-                        textView.caretRect(for: $0)
-                    } ?? .zero
-
                     frame = JournalTextLineFrame(
                         lineIndex: lineIndex,
                         minY: caretRect.minY,

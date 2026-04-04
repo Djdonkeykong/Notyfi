@@ -201,12 +201,15 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         date: Date,
         currencyCode: String
     ) -> [String: Any] {
+        let appLanguage = Bundle.main.preferredLocalizations.first ?? "en"
         let userContent = """
         Note: \(rawText)
         Date: \(ISO8601DateFormatter().string(from: date))
         Currency: \(currencyCode)
+        App language: \(appLanguage)
 
         Return one transaction JSON object. Infer a short title, amount as a positive number, transactionKind as expense/income, one allowed category, merchant if explicit, note as "" unless useful, confidence as certain/review/uncertain, and isAmountEstimated as true/false.
+        Write title and note in the app language above. Keep transactionKind, category, confidence, and boolean fields as schema values.
         Use transactionKind "income" for salary, freelance pay, refunds, reimbursements, gifts received, or money coming in. Use "expense" for spending, bills, purchases, subscriptions, or money going out.
         If no amount is written but the note mentions a concrete item/place, estimate a plausible amount in the given currency, set confidence "review", and set isAmountEstimated true. If there is not enough context to estimate, use amount 0, confidence "review", and isAmountEstimated false.
         """

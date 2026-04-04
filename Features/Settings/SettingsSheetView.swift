@@ -12,7 +12,7 @@ struct SettingsSheetView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
                     HStack(alignment: .top) {
-                        Text("Settings")
+                        Text("Settings".notelyLocalized)
                             .font(.notely(.title3, weight: .semibold))
                             .foregroundStyle(.primary.opacity(0.84))
 
@@ -44,7 +44,13 @@ struct SettingsSheetView: View {
                     SectionHeader(title: "Preferences")
                     SettingsCard {
                         VStack(spacing: 0) {
-                            SettingsValueRow(icon: "banknote", title: "Currency", value: viewModel.automaticCurrency ? "Auto (NOK)" : viewModel.currencyCode)
+                            SettingsValueRow(
+                                icon: "banknote",
+                                title: "Currency",
+                                value: viewModel.automaticCurrency
+                                    ? String(format: "Auto currency format".notelyLocalized, viewModel.currencyCode)
+                                    : viewModel.currencyCode
+                            )
                             Divider()
                             SettingsToggleRow(
                                 icon: "bell.badge",
@@ -67,7 +73,7 @@ struct SettingsSheetView: View {
                             SettingsValueRow(
                                 icon: "wand.and.stars",
                                 title: "AI Parsing",
-                                value: "Always on"
+                                value: "Always on".notelyLocalized
                             )
                             Divider()
                             SettingsToggleRow(
@@ -89,7 +95,13 @@ struct SettingsSheetView: View {
                                 isOn: $viewModel.syncEnabled
                             )
                             Divider()
-                            SettingsValueRow(icon: "server.rack", title: "Connection", value: viewModel.syncEnabled ? "Supabase placeholder" : "Local only")
+                            SettingsValueRow(
+                                icon: "server.rack",
+                                title: "Connection",
+                                value: viewModel.syncEnabled
+                                    ? "Supabase placeholder".notelyLocalized
+                                    : "Local only".notelyLocalized
+                            )
                         }
                     }
 
@@ -116,7 +128,7 @@ struct SettingsSheetView: View {
                         }
                     }
 
-                    Text("Version 1.0")
+                    Text("Version 1.0".notelyLocalized)
                         .font(.notely(.footnote))
                         .foregroundStyle(NotelyTheme.tertiaryText)
                         .padding(.bottom, 8)
@@ -127,18 +139,18 @@ struct SettingsSheetView: View {
             }
         }
         .confirmationDialog(
-            "Clear your entire log?",
+            "Clear your entire log?".notelyLocalized,
             isPresented: $isClearLogConfirmationPresented,
             titleVisibility: .visible
         ) {
-            Button("Clear Log", role: .destructive) {
+            Button("Clear Log".notelyLocalized, role: .destructive) {
                 viewModel.clearLog()
                 dismiss()
             }
 
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel".notelyLocalized, role: .cancel) {}
         } message: {
-            Text("This removes every saved entry from Notely.")
+            Text("This removes every saved entry from Notely.".notelyLocalized)
         }
     }
 }
@@ -171,7 +183,7 @@ private struct SettingsValueRow: View {
                 .foregroundStyle(NotelyTheme.secondaryText)
                 .frame(width: 18)
 
-            Text(title)
+            Text(title.notelyLocalized)
                 .font(.notely(.body))
                 .foregroundStyle(.primary.opacity(0.82))
 
@@ -200,11 +212,11 @@ private struct SettingsToggleRow: View {
                 .frame(width: 18)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(title)
+                Text(title.notelyLocalized)
                     .font(.notely(.body))
                     .foregroundStyle(.primary.opacity(0.82))
 
-                Text(subtitle)
+                Text(subtitle.notelyLocalized)
                     .font(.notely(.caption))
                     .foregroundStyle(NotelyTheme.secondaryText)
             }
@@ -231,13 +243,13 @@ private struct SettingsPickerRow: View {
                 .foregroundStyle(NotelyTheme.secondaryText)
                 .frame(width: 18)
 
-            Text(title)
+            Text(title.notelyLocalized)
                 .font(.notely(.body))
                 .foregroundStyle(.primary.opacity(0.82))
 
             Spacer()
 
-            Picker(title, selection: $selection) {
+            Picker(title.notelyLocalized, selection: $selection) {
                 ForEach(SettingsViewModel.AppearanceMode.allCases) { mode in
                     Text(mode.title).tag(mode)
                 }
@@ -265,7 +277,7 @@ private struct SettingsActionRow: View {
                     .foregroundStyle(isDestructive ? .red.opacity(0.75) : NotelyTheme.brandBlue.opacity(0.9))
                     .frame(width: 18)
 
-                Text(title)
+                Text(title.notelyLocalized)
                     .font(.notely(.body))
                     .foregroundStyle(isDestructive ? .red.opacity(0.78) : .primary.opacity(0.82))
 

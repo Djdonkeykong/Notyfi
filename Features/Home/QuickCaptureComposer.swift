@@ -36,7 +36,7 @@ struct QuickCaptureComposer: View {
         HStack(alignment: .top, spacing: 18) {
             ZStack(alignment: .topLeading) {
                 if showsPlaceholder && text.isEmpty {
-                    Text("Start typing your money notes...")
+                    Text("Start typing your money notes...".notelyLocalized)
                         .font(.notely(.body))
                         .foregroundStyle(NotelyTheme.tertiaryText)
                         .padding(.top, placeholderTopOffset)

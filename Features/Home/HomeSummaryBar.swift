@@ -32,7 +32,7 @@ struct HomeSummaryBar: View {
                         symbolColor: insight.topCategory?.tint ?? Color(red: 0.79, green: 0.65, blue: 0.36),
                         text: insight.topCategory.map { category in
                             "\(category.title) \(Self.shareText(insight.topCategoryShare))"
-                        } ?? "\(entryCount) notes"
+                        } ?? String.notelyNotesCount(entryCount)
                     )
 
                     if insight.reviewCount > 0 {
@@ -80,7 +80,7 @@ struct HomeSnapshotCard: View {
             VStack(alignment: .leading, spacing: 18) {
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Monthly insight")
+                        Text("Monthly insight".notelyLocalized)
                             .font(.notely(.headline, weight: .semibold))
                             .foregroundStyle(.primary.opacity(0.9))
 
@@ -110,7 +110,7 @@ struct HomeSnapshotCard: View {
                     SnapshotMetricTile(
                         title: "Income",
                         value: insight.monthIncomeTotal.formattedCurrency(code: currencyCode),
-                        caption: "\(insight.monthEntryCount) notes",
+                        caption: String.notelyNotesCount(insight.monthEntryCount),
                         symbol: "arrow.down.circle.fill",
                         tint: Color(red: 0.28, green: 0.71, blue: 0.45)
                     )
@@ -127,7 +127,7 @@ struct HomeSnapshotCard: View {
                 }
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Top categories")
+                    Text("Top categories".notelyLocalized)
                         .font(.notely(.footnote, weight: .semibold))
                         .foregroundStyle(.primary.opacity(0.88))
 
@@ -151,11 +151,15 @@ struct HomeSnapshotCard: View {
 
     private var insightHeadline: String {
         guard let topCategory = insight.topCategory else {
-            return "Start adding notes to see where your money goes."
+            return "Start adding notes to see where your money goes.".notelyLocalized
         }
 
         let share = Int((insight.topCategoryShare * 100).rounded())
-        return "\(topCategory.title) leads spending this month at \(share)%."
+        return String(
+            format: "Top category insight format".notelyLocalized,
+            topCategory.title,
+            share
+        )
     }
 
     private static func signedCurrency(_ amount: Double, currencyCode: String) -> String {
@@ -207,7 +211,7 @@ private struct SnapshotMetricTile: View {
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(tint)
 
-                Text(title)
+                Text(title.notelyLocalized)
                     .font(.notely(.caption, weight: .medium))
                     .foregroundStyle(NotelyTheme.secondaryText)
             }
@@ -219,7 +223,7 @@ private struct SnapshotMetricTile: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
 
-            Text(caption)
+            Text(caption.notelyLocalized)
                 .font(.notely(.caption2, weight: .medium))
                 .foregroundStyle(NotelyTheme.secondaryText)
         }
@@ -299,7 +303,7 @@ private struct EmptyCategoryBreakdownRow: View {
                         .fill(NotelyTheme.reviewTint.opacity(0.12))
                 }
 
-            Text("No notes yet this month.")
+            Text("No notes yet this month.".notelyLocalized)
                 .font(.notely(.footnote, weight: .medium))
                 .foregroundStyle(NotelyTheme.secondaryText)
 

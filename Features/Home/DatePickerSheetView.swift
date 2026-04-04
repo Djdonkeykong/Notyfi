@@ -12,9 +12,7 @@ struct DatePickerSheetView: View {
     private let actionButtonHeight: CGFloat = 44
 
     private var calendar: Calendar {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.firstWeekday = 2
-        return calendar
+        Calendar.autoupdatingCurrent
     }
 
     private var monthTitle: String {
@@ -22,7 +20,17 @@ struct DatePickerSheetView: View {
     }
 
     private var weekdaySymbols: [String] {
-        ["M", "T", "W", "T", "F", "S", "S"]
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.locale = .autoupdatingCurrent
+        let symbols = formatter.veryShortStandaloneWeekdaySymbols ?? []
+
+        guard symbols.count == 7 else {
+            return ["M", "T", "W", "T", "F", "S", "S"]
+        }
+
+        let leadingIndex = max(calendar.firstWeekday - 1, 0)
+        return Array(symbols[leadingIndex...]) + Array(symbols[..<leadingIndex])
     }
 
     private var days: [CalendarDay] {
@@ -180,7 +188,7 @@ private struct CalendarPillButton: View {
 
     var body: some View {
         Button(action: action) {
-            Text(title)
+            Text(title.notelyLocalized)
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(foregroundStyle)
                 .frame(width: width, height: height)

@@ -50,8 +50,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     var entryCountText: String {
-        let count = displayedEntries.count
-        return count == 1 ? "1 note" : "\(count) notes"
+        String.notelyNotesCount(displayedEntries.count)
     }
 
     var hasEntries: Bool {
@@ -79,9 +78,9 @@ final class HomeViewModel: ObservableObject {
             if composerPreviewDraft.amount > 0 {
                 primaryText = Self.signedAmountText(for: composerPreviewDraft)
             } else if composerPreviewDraft.confidence == .review {
-                primaryText = "Review"
+                primaryText = "Review".notelyLocalized
             } else {
-                primaryText = "Checking"
+                primaryText = "Checking".notelyLocalized
             }
 
             let primaryColorName: DraftComposerFeedback.PrimaryColorName
@@ -101,7 +100,7 @@ final class HomeViewModel: ObservableObject {
         }
 
         return DraftComposerFeedback(
-            primaryText: "Checking",
+            primaryText: "Checking".notelyLocalized,
             secondaryText: nil,
             primaryColorName: .neutral
         )

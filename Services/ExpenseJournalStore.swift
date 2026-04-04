@@ -229,7 +229,7 @@ final class ExpenseJournalStore: ObservableObject {
 
         return ExpenseEntry(
             rawText: rawText,
-            title: trimmedText.isEmpty ? "Untitled entry" : trimmedText,
+            title: trimmedText.isEmpty ? "Untitled entry".notelyLocalized : trimmedText,
             amount: 0,
             currencyCode: currencyCode,
             transactionKind: .expense,

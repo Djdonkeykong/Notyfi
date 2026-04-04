@@ -1,25 +1,25 @@
 import Foundation
 
 extension Date {
-    func notelyDayTitle(calendar: Calendar = .current) -> String {
+    func notelyDayTitle(calendar: Calendar = .autoupdatingCurrent) -> String {
         if calendar.isDateInToday(self) {
-            return "Today"
+            return "Today".notelyLocalized
         }
 
         if calendar.isDateInYesterday(self) {
-            return "Yesterday"
+            return "Yesterday".notelyLocalized
         }
 
         let formatter = DateFormatter()
         formatter.calendar = calendar
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "MMM d"
-        return formatter.string(from: self).uppercased()
+        formatter.locale = .autoupdatingCurrent
+        formatter.setLocalizedDateFormatFromTemplate("MMMd")
+        return formatter.string(from: self).uppercased(with: .autoupdatingCurrent)
     }
 
-    func notelySectionTitle(calendar: Calendar = .current) -> String {
+    func notelySectionTitle(calendar: Calendar = .autoupdatingCurrent) -> String {
         if calendar.isDateInToday(self) {
-            return "Today"
+            return "Today".notelyLocalized
         }
 
         return formatted(.dateTime.month(.wide).day())

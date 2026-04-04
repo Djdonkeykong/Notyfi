@@ -4,19 +4,26 @@ struct EmptyJournalStateView: View {
     let selectedDate: Date
 
     private let examples = [
-        "Coffee 49 kr",
-        "Groceries 423 at Rema",
-        "Train ticket 299"
+        "Coffee 49 kr".notelyLocalized,
+        "Groceries 423 at Rema".notelyLocalized,
+        "Train ticket 299".notelyLocalized
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Start with a note")
+                Text("Start with a note".notelyLocalized)
                     .font(.notely(.title3, weight: .semibold))
                     .foregroundStyle(.primary.opacity(0.84))
 
-                Text("Nothing is logged for \(selectedDate.notelySectionTitle().lowercased()) yet. Type naturally and Notely will organize it quietly in the background.")
+                Text(
+                    String(
+                        format: "Nothing logged format".notelyLocalized,
+                        selectedDate.notelySectionTitle().lowercased(
+                            with: .autoupdatingCurrent
+                        )
+                    )
+                )
                     .font(.notely(.body))
                     .foregroundStyle(NotelyTheme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
@@ -52,4 +59,3 @@ struct EmptyJournalStateView: View {
         .padding()
         .background(NotelyTheme.background)
 }
-
