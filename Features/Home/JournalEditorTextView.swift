@@ -39,7 +39,12 @@ struct JournalEditorTextView: UIViewRepresentable {
         textView.textContainer.lineFragmentPadding = 0
         textView.font = .notelyBody
         textView.textColor = textColor
-        textView.tintColor = .label
+        textView.tintColor = UIColor(
+            red: 0.26,
+            green: 0.56,
+            blue: 0.96,
+            alpha: 1
+        )
         textView.isScrollEnabled = false
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -285,28 +290,34 @@ final class EditableJournalTextView: UITextView {
     override func caretRect(for position: UITextPosition) -> CGRect {
         var rect = super.caretRect(for: position)
         let targetHeight = font?.lineHeight ?? UIFont.notelyBody.lineHeight
-        let characterOffset = max(
-            0,
-            offset(from: beginningOfDocument, to: position)
-        )
-        let glyphIndex = layoutManager.glyphIndexForCharacter(
-            at: min(characterOffset, max(textStorage.length - 1, 0))
-        )
-        let lineFragmentRect = layoutManager.lineFragmentRect(
-            forGlyphAt: glyphIndex,
-            effectiveRange: nil,
-            withoutAdditionalLayout: true
-        )
 
         if rect.height > targetHeight * 1.2 {
             rect.size.height = targetHeight
         }
 
-        if lineFragmentRect.height > 0 {
-            rect.origin.y = lineFragmentRect.minY + max((lineFragmentRect.height - rect.height) * 0.5, 0)
-        }
-
         return rect
+    }
+
+    override func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
+        let targetHeight = font?.lineHeight ?? UIFont.notelyBody.lineHeight
+
+        return super.selectionRects(for: range).map { selectionRect in
+            guard selectionRect.rect.height > targetHeight * 1.2 else {
+                return selectionRect
+            }
+
+            let clampedRect = CGRect(
+                x: selectionRect.rect.minX,
+                y: selectionRect.rect.minY,
+                width: selectionRect.rect.width,
+                height: targetHeight
+            )
+
+            return JournalSelectionRect(
+                sourceRect: selectionRect,
+                rect: clampedRect
+            )
+        }
     }
 
     private static func dispatchBridgedBackspace() {
@@ -335,6 +346,37 @@ final class EditableJournalTextView: UITextView {
             pendingBridgeAttempts = 0
             activeEditor.deleteBackward()
         }
+    }
+}
+
+private final class JournalSelectionRect: UITextSelectionRect {
+    private let sourceRect: UITextSelectionRect
+    private let adjustedRect: CGRect
+
+    init(sourceRect: UITextSelectionRect, rect: CGRect) {
+        self.sourceRect = sourceRect
+        self.adjustedRect = rect
+        super.init()
+    }
+
+    override var rect: CGRect {
+        adjustedRect
+    }
+
+    override var writingDirection: UITextWritingDirection {
+        sourceRect.writingDirection
+    }
+
+    override var containsStart: Bool {
+        sourceRect.containsStart
+    }
+
+    override var containsEnd: Bool {
+        sourceRect.containsEnd
+    }
+
+    override var isVertical: Bool {
+        sourceRect.isVertical
     }
 }
 

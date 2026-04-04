@@ -125,6 +125,12 @@ final class HomeViewModel: ObservableObject {
     }
 
     func focusComposer() -> JournalEditorFocusRequest {
+        if composerText.isEmpty,
+           !displayedEntries.isEmpty,
+           !journalText.hasSuffix("\n") {
+            journalText += "\n"
+        }
+
         JournalEditorFocusRequest(
             target: .composer(dayKey(for: selectedDate)),
             cursorPlacement: .end
@@ -139,14 +145,21 @@ final class HomeViewModel: ObservableObject {
     }
 
     func updateJournalText(_ rawText: String) {
+        let previousJournalText = journalText
         let normalized = rawText.replacingOccurrences(of: "\r\n", with: "\n")
+        let lines = normalized.components(separatedBy: "\n")
+        let removedTrailingComposerLine = composerText.isEmpty
+            && previousJournalText.hasSuffix("\n")
+            && String(previousJournalText.dropLast()) == normalized
+            && displayedEntries.count == lines.count
 
         if journalText != normalized {
             journalText = normalized
         }
 
-        let lines = normalized.components(separatedBy: "\n")
-        let entryLineCount = max(lines.count - 1, 0)
+        let entryLineCount = removedTrailingComposerLine
+            ? lines.count
+            : max(lines.count - 1, 0)
         let currentEntries = displayedEntries
         let preservedEntryCount = min(currentEntries.count, entryLineCount)
 
@@ -167,7 +180,7 @@ final class HomeViewModel: ObservableObject {
             )
         }
 
-        let nextComposerText = lines.last ?? ""
+        let nextComposerText = removedTrailingComposerLine ? "" : (lines.last ?? "")
         if composerText != nextComposerText {
             composerText = nextComposerText
         }

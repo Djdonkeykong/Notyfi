@@ -48,7 +48,12 @@ struct JournalLogTextView: UIViewRepresentable {
         textView.textContainer.lineFragmentPadding = 0
         textView.font = .notelyBody
         textView.textColor = UIColor.label.withAlphaComponent(0.86)
-        textView.tintColor = .label
+        textView.tintColor = UIColor(
+            red: 0.26,
+            green: 0.56,
+            blue: 0.96,
+            alpha: 1
+        )
         textView.typingAttributes = Self.textAttributes
         textView.isScrollEnabled = false
         textView.isEditable = isEditable
