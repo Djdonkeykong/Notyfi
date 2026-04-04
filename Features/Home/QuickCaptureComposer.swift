@@ -19,6 +19,10 @@ struct QuickCaptureComposer: View {
         switch feedback?.primaryColorName {
         case .accent:
             return Color(red: 0.26, green: 0.56, blue: 0.96)
+        case .income:
+            return Color(red: 0.28, green: 0.71, blue: 0.45)
+        case .expense:
+            return Color(red: 0.90, green: 0.36, blue: 0.34)
         case .neutral, .none:
             return NotelyTheme.secondaryText
         }

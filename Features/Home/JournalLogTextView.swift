@@ -26,7 +26,7 @@ struct JournalLogTextView: UIViewRepresentable {
     private static var textAttributes: [NSAttributedString.Key: Any] {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineSpacing = 1
-        paragraphStyle.paragraphSpacing = 16
+        paragraphStyle.paragraphSpacing = 24
         paragraphStyle.lineBreakMode = .byWordWrapping
 
         return [

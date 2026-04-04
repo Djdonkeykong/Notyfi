@@ -2,6 +2,7 @@ import SwiftUI
 
 struct JournalProcessingStatusText: View {
     let activityText: String
+    let showsTypingDots: Bool
 
     private let statuses = ["Checking", "Reading", "Finding", "Thinking"]
     private let typingIdleDelay: TimeInterval = 0.7
@@ -11,10 +12,15 @@ struct JournalProcessingStatusText: View {
 
     @State private var statusIndex = 0
     @State private var shimmerCycleStart = Date()
-    @State private var isShowingLoadingDots = true
+    @State private var isShowingLoadingDots: Bool
 
-    init(activityText: String = "") {
+    init(
+        activityText: String = "",
+        showsTypingDots: Bool = true
+    ) {
         self.activityText = activityText
+        self.showsTypingDots = showsTypingDots
+        _isShowingLoadingDots = State(initialValue: showsTypingDots)
     }
 
     var body: some View {
@@ -107,6 +113,11 @@ struct JournalProcessingStatusText: View {
 
     @MainActor
     private func showLoadingDotsUntilTypingSettles() async {
+        guard showsTypingDots else {
+            isShowingLoadingDots = false
+            return
+        }
+
         withAnimation(.spring(response: 0.28, dampingFraction: 0.94)) {
             isShowingLoadingDots = true
         }

@@ -631,7 +631,7 @@ private struct DayJournalPage: View {
     private static func estimatedLineFrames(for text: String) -> [JournalTextLineFrame] {
         let lines = text.components(separatedBy: "\n")
         let lineHeight: CGFloat = 22
-        let rowHeight: CGFloat = 38
+        let rowHeight: CGFloat = 46
 
         var frames: [JournalTextLineFrame] = []
         var currentY: CGFloat = 0
@@ -676,6 +676,10 @@ private struct JournalLineAccessoryView: View {
         switch feedback?.primaryColorName {
         case .accent:
             return Color(red: 0.26, green: 0.56, blue: 0.96)
+        case .income:
+            return Color(red: 0.28, green: 0.71, blue: 0.45)
+        case .expense:
+            return Color(red: 0.90, green: 0.36, blue: 0.34)
         case .neutral, .none:
             return NotelyTheme.secondaryText
         }
@@ -754,9 +758,12 @@ private struct JournalLineAccessoryView: View {
     }
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: 5) {
+        VStack(alignment: .trailing, spacing: 3) {
             if isProcessingEntry, let entry {
-                JournalProcessingStatusText(activityText: entry.rawText)
+                JournalProcessingStatusText(
+                    activityText: entry.rawText,
+                    showsTypingDots: false
+                )
                     .font(.notely(.body, weight: .semibold))
                     .foregroundStyle(trailingPrimaryColor)
                     .multilineTextAlignment(.trailing)

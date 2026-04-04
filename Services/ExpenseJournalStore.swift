@@ -48,7 +48,8 @@ final class ExpenseJournalStore: ObservableObject {
             rawText: entry.rawText,
             date: entry.date,
             currencyCode: entry.currencyCode,
-            debounceNanoseconds: 0
+            debounceNanoseconds: 0,
+            sendsHapticFeedback: true
         )
     }
 
@@ -73,7 +74,8 @@ final class ExpenseJournalStore: ObservableObject {
             rawText: entry.rawText,
             date: entry.date,
             currencyCode: entry.currencyCode,
-            debounceNanoseconds: 0
+            debounceNanoseconds: 0,
+            sendsHapticFeedback: true
         )
 
         return entry.id
@@ -97,7 +99,8 @@ final class ExpenseJournalStore: ObservableObject {
                 rawText: entry.rawText,
                 date: entry.date,
                 currencyCode: entry.currencyCode,
-                debounceNanoseconds: 550_000_000
+                debounceNanoseconds: 550_000_000,
+                sendsHapticFeedback: true
             )
         } else {
             parseTasksByEntryID[entry.id]?.cancel()
@@ -140,8 +143,44 @@ final class ExpenseJournalStore: ObservableObject {
             rawText: entry.rawText,
             date: entry.date,
             currencyCode: entry.currencyCode,
-            debounceNanoseconds: 0
+            debounceNanoseconds: 0,
+            sendsHapticFeedback: true
         )
+    }
+
+    func previewDraft(
+        rawText: String,
+        on date: Date,
+        currencyCode: String = "NOK"
+    ) async throws -> ParsedExpenseDraft {
+        let trimmedText = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedText.isEmpty else {
+            throw ExpenseParsingServiceError.emptyModelResponse
+        }
+
+        let cacheKey = parseCacheKey(rawText: trimmedText, currencyCode: currencyCode)
+        if let cachedDraft = parseCacheByKey[cacheKey] {
+            return ParsedExpenseDraft(
+                rawText: trimmedText,
+                title: cachedDraft.title,
+                amount: cachedDraft.amount,
+                currencyCode: cachedDraft.currencyCode,
+                transactionKind: cachedDraft.transactionKind,
+                category: cachedDraft.category,
+                merchant: cachedDraft.merchant,
+                note: cachedDraft.note,
+                confidence: cachedDraft.confidence,
+                isAmountEstimated: cachedDraft.isAmountEstimated
+            )
+        }
+
+        let draft = try await parseWithRetry(
+            rawText: trimmedText,
+            date: date,
+            currencyCode: currencyCode
+        )
+        cacheParsedDraft(draft, for: cacheKey)
+        return draft
     }
 
     private func load() {
@@ -209,7 +248,8 @@ final class ExpenseJournalStore: ObservableObject {
         rawText: String,
         date: Date,
         currencyCode: String,
-        debounceNanoseconds: UInt64
+        debounceNanoseconds: UInt64,
+        sendsHapticFeedback: Bool
     ) {
         parseTasksByEntryID[entryID]?.cancel()
 
@@ -222,9 +262,9 @@ final class ExpenseJournalStore: ObservableObject {
         let cacheKey = parseCacheKey(rawText: trimmedText, currencyCode: currencyCode)
         if let cachedDraft = parseCacheByKey[cacheKey] {
             parseTasksByEntryID[entryID] = nil
-            applyParsedDraft(
-                ParsedExpenseDraft(
-                    rawText: trimmedText,
+                applyParsedDraft(
+                    ParsedExpenseDraft(
+                        rawText: trimmedText,
                     title: cachedDraft.title,
                     amount: cachedDraft.amount,
                     currencyCode: cachedDraft.currencyCode,
@@ -234,11 +274,12 @@ final class ExpenseJournalStore: ObservableObject {
                     note: cachedDraft.note,
                     confidence: cachedDraft.confidence,
                     isAmountEstimated: cachedDraft.isAmountEstimated
-                ),
-                entryID: entryID,
-                expectedRawText: rawText,
-                createdCurrencyCode: currencyCode
-            )
+                    ),
+                    entryID: entryID,
+                    expectedRawText: rawText,
+                    createdCurrencyCode: currencyCode,
+                    sendsHapticFeedback: sendsHapticFeedback
+                )
             return
         }
 
@@ -268,7 +309,8 @@ final class ExpenseJournalStore: ObservableObject {
                     draft,
                     entryID: entryID,
                     expectedRawText: rawText,
-                    createdCurrencyCode: currencyCode
+                    createdCurrencyCode: currencyCode,
+                    sendsHapticFeedback: sendsHapticFeedback
                 )
             } catch {
                 guard !Task.isCancelled else {
@@ -288,7 +330,8 @@ final class ExpenseJournalStore: ObservableObject {
         _ draft: ParsedExpenseDraft,
         entryID: UUID,
         expectedRawText: String,
-        createdCurrencyCode: String
+        createdCurrencyCode: String,
+        sendsHapticFeedback: Bool
     ) {
         parseTasksByEntryID[entryID] = nil
 
@@ -321,6 +364,10 @@ final class ExpenseJournalStore: ObservableObject {
             createdAt: currentEntry.createdAt
         )
         sortAndPersist()
+
+        if sendsHapticFeedback {
+            Haptics.lightImpact()
+        }
     }
 
     private func markParsingFailed(
@@ -349,7 +396,8 @@ final class ExpenseJournalStore: ObservableObject {
                 rawText: entry.rawText,
                 date: entry.date,
                 currencyCode: entry.currencyCode,
-                debounceNanoseconds: 0
+                debounceNanoseconds: 0,
+                sendsHapticFeedback: false
             )
         }
     }

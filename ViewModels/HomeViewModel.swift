@@ -9,6 +9,8 @@ struct DraftComposerFeedback {
     enum PrimaryColorName {
         case neutral
         case accent
+        case income
+        case expense
     }
 }
 
@@ -26,7 +28,10 @@ final class HomeViewModel: ObservableObject {
 
     private let store: ExpenseJournalStore
     private let calendar: Calendar
+    private let draftPreviewDelayNanoseconds: UInt64 = 1_800_000_000
     private var composerDraftsByDay: [Date: String] = [:]
+    @Published private var composerPreviewDraft: ParsedExpenseDraft?
+    private var composerPreviewTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
 
     init(
@@ -59,6 +64,42 @@ final class HomeViewModel: ObservableObject {
             return nil
         }
 
+        if let composerPreviewDraft,
+           composerPreviewDraft.rawText == trimmed {
+            let categoryText: String?
+            if composerPreviewDraft.category != .uncategorized {
+                categoryText = composerPreviewDraft.category.title
+            } else if composerPreviewDraft.transactionKind == .income {
+                categoryText = TransactionKind.income.title
+            } else {
+                categoryText = composerPreviewDraft.merchant
+            }
+
+            let primaryText: String
+            if composerPreviewDraft.amount > 0 {
+                primaryText = Self.signedAmountText(for: composerPreviewDraft)
+            } else if composerPreviewDraft.confidence == .review {
+                primaryText = "Review"
+            } else {
+                primaryText = "Checking"
+            }
+
+            let primaryColorName: DraftComposerFeedback.PrimaryColorName
+            if composerPreviewDraft.amount > 0 {
+                primaryColorName = composerPreviewDraft.transactionKind == .income
+                    ? .income
+                    : .expense
+            } else {
+                primaryColorName = .neutral
+            }
+
+            return DraftComposerFeedback(
+                primaryText: primaryText,
+                secondaryText: categoryText,
+                primaryColorName: primaryColorName
+            )
+        }
+
         return DraftComposerFeedback(
             primaryText: "Checking",
             secondaryText: nil,
@@ -79,6 +120,9 @@ final class HomeViewModel: ObservableObject {
         store.addEntry(from: trimmed, on: selectedDate, currencyCode: currencyCode)
         composerText = ""
         composerDraftsByDay[dayKey(for: selectedDate)] = ""
+        composerPreviewTask?.cancel()
+        composerPreviewTask = nil
+        composerPreviewDraft = nil
     }
 
     func focusComposer() -> JournalEditorFocusRequest {
@@ -134,6 +178,8 @@ final class HomeViewModel: ObservableObject {
         if journalText != normalized {
             journalText = normalized
         }
+
+        scheduleComposerPreviewParse()
     }
 
     func updateComposerText(_ rawText: String) {
@@ -144,6 +190,7 @@ final class HomeViewModel: ObservableObject {
         }
 
         composerDraftsByDay[dayKey(for: selectedDate)] = composerText
+        scheduleComposerPreviewParse()
     }
 
     func composerDraft(for date: Date) -> String {
@@ -292,6 +339,10 @@ final class HomeViewModel: ObservableObject {
 
         selectedDate = nextDate
         composerText = composerDraftsByDay[nextDate] ?? ""
+        composerPreviewTask?.cancel()
+        composerPreviewTask = nil
+        composerPreviewDraft = nil
+        scheduleComposerPreviewParse()
     }
 
     func moveSelection(by dayOffset: Int) {
@@ -485,5 +536,53 @@ final class HomeViewModel: ObservableObject {
 
     private func dayKey(for date: Date) -> Date {
         calendar.startOfDay(for: date)
+    }
+
+    private func scheduleComposerPreviewParse() {
+        composerPreviewTask?.cancel()
+
+        let previewText = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !previewText.isEmpty else {
+            composerPreviewTask = nil
+            composerPreviewDraft = nil
+            return
+        }
+
+        let previewDate = selectedDate
+        let previewCurrencyCode = currencyCode
+        let previewDelayNanoseconds = draftPreviewDelayNanoseconds
+
+        composerPreviewTask = Task { [weak self, store] in
+            try? await Task.sleep(nanoseconds: previewDelayNanoseconds)
+
+            guard !Task.isCancelled else {
+                return
+            }
+
+            guard let parsedDraft = try? await store.previewDraft(
+                rawText: previewText,
+                on: previewDate,
+                currencyCode: previewCurrencyCode
+            ) else {
+                return
+            }
+
+            guard !Task.isCancelled, let self else {
+                return
+            }
+
+            if self.composerText.trimmingCharacters(in: .whitespacesAndNewlines) == previewText {
+                self.composerPreviewDraft = parsedDraft
+                Haptics.lightImpact()
+            }
+        }
+    }
+
+    private static func signedAmountText(for draft: ParsedExpenseDraft) -> String {
+        let formattedAmount = draft.amount.formattedCurrency(code: draft.currencyCode)
+        let signedAmount = draft.transactionKind == .income
+            ? "+\(formattedAmount)"
+            : "-\(formattedAmount)"
+        return draft.isAmountEstimated ? "\(signedAmount)*" : signedAmount
     }
 }
