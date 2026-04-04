@@ -38,53 +38,18 @@ struct HomeView: View {
                         previousEntries: viewModel.entries(for: viewModel.date(forDayOffset: -1)),
                         currentEntries: viewModel.displayedEntries,
                         nextEntries: viewModel.entries(for: viewModel.date(forDayOffset: 1)),
-                        previousComposerText: viewModel.composerDraft(for: viewModel.date(forDayOffset: -1)),
-                        composerText: $viewModel.composerText,
-                        nextComposerText: viewModel.composerDraft(for: viewModel.date(forDayOffset: 1)),
+                        previousJournalText: viewModel.journalDraft(for: viewModel.date(forDayOffset: -1)),
+                        journalText: $viewModel.journalText,
+                        nextJournalText: viewModel.journalDraft(for: viewModel.date(forDayOffset: 1)),
                         focusedEditor: $focusedEditor,
                         editorFocusRequest: $editorFocusRequest,
                         feedback: viewModel.draftFeedback,
-                        onComposerTextChange: { rawText in
+                        onJournalTextChange: { rawText in
                             var transaction = Transaction()
                             transaction.animation = nil
 
                             withTransaction(transaction) {
-                                viewModel.updateComposerText(rawText)
-                            }
-                        },
-                        onComposerSplit: { leadingText, trailingText in
-                            applyFocusRequest {
-                                viewModel.splitComposerText(
-                                    leadingText: leadingText,
-                                    trailingText: trailingText
-                                )
-                            }
-                        },
-                        onComposerMergeBackward: {
-                            applyFocusRequest {
-                                viewModel.mergeComposerBackward()
-                            }
-                        },
-                        onEntryTextChange: { entry, rawText in
-                            var transaction = Transaction()
-                            transaction.animation = nil
-
-                            withTransaction(transaction) {
-                                viewModel.updateEntryText(entry, rawText: rawText)
-                            }
-                        },
-                        onEntrySplit: { entry, leadingText, trailingText in
-                            applyFocusRequest {
-                                viewModel.splitEntryText(
-                                    entry,
-                                    leadingText: leadingText,
-                                    trailingText: trailingText
-                                )
-                            }
-                        },
-                        onEntryMergeBackward: { entry in
-                            applyFocusRequest {
-                                viewModel.mergeEntryBackward(entry)
+                                viewModel.updateJournalText(rawText)
                             }
                         },
                         onEntryTap: { entry in
@@ -305,18 +270,13 @@ private struct DayJournalPager: View {
     let previousEntries: [ExpenseEntry]
     let currentEntries: [ExpenseEntry]
     let nextEntries: [ExpenseEntry]
-    let previousComposerText: String
-    @Binding var composerText: String
-    let nextComposerText: String
+    let previousJournalText: String
+    @Binding var journalText: String
+    let nextJournalText: String
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var editorFocusRequest: JournalEditorFocusRequest?
     let feedback: DraftComposerFeedback?
-    let onComposerTextChange: (String) -> Void
-    let onComposerSplit: (String, String) -> Void
-    let onComposerMergeBackward: () -> Void
-    let onEntryTextChange: (ExpenseEntry, String) -> Void
-    let onEntrySplit: (ExpenseEntry, String, String) -> Void
-    let onEntryMergeBackward: (ExpenseEntry) -> Void
+    let onJournalTextChange: (String) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
     let onBlankSpaceTap: () -> Void
     let onMoveSelection: (Int) -> Void
@@ -332,7 +292,7 @@ private struct DayJournalPager: View {
                 sidePage(
                     date: previousDate,
                     entries: previousEntries,
-                    composerText: previousComposerText,
+                    journalText: previousJournalText,
                     scrollDisabled: pageScrollDisabled
                 )
                     .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
@@ -346,7 +306,7 @@ private struct DayJournalPager: View {
                 sidePage(
                     date: nextDate,
                     entries: nextEntries,
-                    composerText: nextComposerText,
+                    journalText: nextJournalText,
                     scrollDisabled: pageScrollDisabled
                 )
                     .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
@@ -373,16 +333,11 @@ private struct DayJournalPager: View {
             date: date,
             entries: entries,
             isEditable: true,
-            composerText: $composerText,
+            journalText: $journalText,
             focusedEditor: $focusedEditor,
             editorFocusRequest: $editorFocusRequest,
             feedback: feedback,
-            onComposerTextChange: onComposerTextChange,
-            onComposerSplit: onComposerSplit,
-            onComposerMergeBackward: onComposerMergeBackward,
-            onEntryTextChange: onEntryTextChange,
-            onEntrySplit: onEntrySplit,
-            onEntryMergeBackward: onEntryMergeBackward,
+            onJournalTextChange: onJournalTextChange,
             onEntryTap: onEntryTap,
             onBlankSpaceTap: onBlankSpaceTap,
             scrollDisabled: scrollDisabled
@@ -392,23 +347,18 @@ private struct DayJournalPager: View {
     private func sidePage(
         date: Date,
         entries: [ExpenseEntry],
-        composerText: String,
+        journalText: String,
         scrollDisabled: Bool
     ) -> some View {
         DayJournalPage(
             date: date,
             entries: entries,
             isEditable: false,
-            composerText: .constant(composerText),
+            journalText: .constant(journalText),
             focusedEditor: .constant(nil),
             editorFocusRequest: .constant(nil),
             feedback: nil,
-            onComposerTextChange: { _ in },
-            onComposerSplit: { _, _ in },
-            onComposerMergeBackward: {},
-            onEntryTextChange: { _, _ in },
-            onEntrySplit: { _, _, _ in },
-            onEntryMergeBackward: { _ in },
+            onJournalTextChange: { _ in },
             onEntryTap: onEntryTap,
             onBlankSpaceTap: {},
             scrollDisabled: scrollDisabled
@@ -534,91 +484,277 @@ private struct DayJournalPage: View {
     let date: Date
     let entries: [ExpenseEntry]
     let isEditable: Bool
-    @Binding var composerText: String
+    @Binding var journalText: String
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var editorFocusRequest: JournalEditorFocusRequest?
     let feedback: DraftComposerFeedback?
-    let onComposerTextChange: (String) -> Void
-    let onComposerSplit: (String, String) -> Void
-    let onComposerMergeBackward: () -> Void
-    let onEntryTextChange: (ExpenseEntry, String) -> Void
-    let onEntrySplit: (ExpenseEntry, String, String) -> Void
-    let onEntryMergeBackward: (ExpenseEntry) -> Void
+    let onJournalTextChange: (String) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
     let onBlankSpaceTap: () -> Void
     let scrollDisabled: Bool
 
     @State private var contentHeight: CGFloat = 0
+    @State private var lineFrames: [JournalTextLineFrame] = [
+        JournalTextLineFrame(lineIndex: 0, minY: 0, height: 34)
+    ]
+
+    private let trailingColumnWidth: CGFloat = 96
+    private let trailingGap: CGFloat = 18
 
     var body: some View {
         GeometryReader { geometry in
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(entries) { entry in
-                        ExpensePreviewRow(
-                            entry: entry,
-                            focusedEditor: $focusedEditor,
-                            focusRequest: $editorFocusRequest,
-                            isEditable: isEditable,
-                            isAccessoryTapEnabled: !scrollDisabled,
-                            onTextChange: { rawText in
-                                onEntryTextChange(entry, rawText)
-                            },
-                            onSplitText: { leadingText, trailingText in
-                                onEntrySplit(entry, leadingText, trailingText)
-                            },
-                            onMergeBackward: {
-                                onEntryMergeBackward(entry)
-                            },
-                            onAccessoryTap: {
-                                Haptics.mediumImpact()
-                                onEntryTap(entry)
-                            }
-                        )
-                    }
-
-                    QuickCaptureComposer(
-                        text: $composerText,
+                ZStack(alignment: .topLeading) {
+                    JournalLogTextView(
+                        text: $journalText,
                         focusedEditor: $focusedEditor,
                         focusRequest: $editorFocusRequest,
                         editorTarget: .composer(Calendar.current.startOfDay(for: date)),
+                        minHeight: max(geometry.size.height - 140, 240),
                         isEditable: isEditable,
-                        showsPlaceholder: entries.isEmpty,
-                        feedback: feedback,
-                        onTextChange: onComposerTextChange,
-                        onSplitText: onComposerSplit,
-                        onMergeBackward: onComposerMergeBackward
-                    )
-
-                    Color.clear
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 180)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            guard isEditable, !scrollDisabled else {
-                                return
-                            }
-
-                            onBlankSpaceTap()
+                        trailingInset: trailingColumnWidth + trailingGap,
+                        onTextChange: onJournalTextChange,
+                        onLineFramesChange: { frames in
+                            lineFrames = frames
+                            contentHeight = max(
+                                frames.last.map { $0.minY + $0.height } ?? 0,
+                                max(geometry.size.height - 140, 240)
+                            )
                         }
+                    )
+                    .allowsHitTesting(isEditable)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    if journalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text("Start typing your money notes...")
+                            .font(.notely(.body))
+                            .foregroundStyle(NotelyTheme.tertiaryText)
+                            .padding(.leading, 1)
+                            .allowsHitTesting(false)
+                    }
+
+                    journalAccessoryOverlay(isAccessoryTapEnabled: !scrollDisabled)
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 140)
-                .background {
-                    GeometryReader { contentGeometry in
-                        Color.clear
-                            .onAppear {
-                                contentHeight = contentGeometry.size.height
-                            }
-                            .onChange(of: contentGeometry.size.height) { _, newHeight in
-                                contentHeight = newHeight
-                            }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    guard isEditable, !scrollDisabled else {
+                        return
                     }
+
+                    onBlankSpaceTap()
                 }
             }
             .scrollDisabled(scrollDisabled || contentHeight <= geometry.size.height + 1)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
+    }
+
+    private func journalAccessoryOverlay(isAccessoryTapEnabled: Bool) -> some View {
+        ZStack(alignment: .topTrailing) {
+            ForEach(accessoryRows) { row in
+                Button {
+                    guard let entry = row.entry else {
+                        return
+                    }
+
+                    Haptics.mediumImpact()
+                    onEntryTap(entry)
+                } label: {
+                    JournalLineAccessoryView(
+                        entry: row.entry,
+                        composerText: row.composerText,
+                        feedback: row.feedback
+                    )
+                }
+                .buttonStyle(.plain)
+                .allowsHitTesting(row.entry != nil && isAccessoryTapEnabled)
+                .frame(width: trailingColumnWidth, alignment: .topTrailing)
+                .offset(y: row.frame.minY + 1)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+    }
+
+    private var accessoryRows: [JournalAccessoryRow] {
+        let lines = journalText.components(separatedBy: "\n")
+
+        return lineFrames.map { frame in
+            let entry = frame.lineIndex < entries.count ? entries[frame.lineIndex] : nil
+            let composerText = frame.lineIndex == lines.count - 1 ? lines.last ?? "" : nil
+            let isComposerLine = frame.lineIndex == lines.count - 1
+
+            return JournalAccessoryRow(
+                id: frame.lineIndex,
+                frame: frame,
+                entry: entry,
+                composerText: isComposerLine ? composerText : nil,
+                feedback: isComposerLine ? feedback : nil
+            )
+        }
+    }
+}
+
+private struct JournalAccessoryRow: Identifiable {
+    let id: Int
+    let frame: JournalTextLineFrame
+    let entry: ExpenseEntry?
+    let composerText: String?
+    let feedback: DraftComposerFeedback?
+}
+
+private struct JournalLineAccessoryView: View {
+    let entry: ExpenseEntry?
+    let composerText: String?
+    let feedback: DraftComposerFeedback?
+
+    private let trailingSecondaryHeight: CGFloat = 16
+
+    private var composerTrimmedText: String {
+        composerText?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
+
+    private var primaryFeedbackColor: Color {
+        switch feedback?.primaryColorName {
+        case .accent:
+            return Color(red: 0.26, green: 0.56, blue: 0.96)
+        case .neutral, .none:
+            return NotelyTheme.secondaryText
+        }
+    }
+
+    private var trailingPrimary: String {
+        guard let entry else {
+            return ""
+        }
+
+        if entry.rawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return ""
+        }
+
+        if entry.amount == 0 {
+            return entry.confidence == .review ? "Review" : "Thinking"
+        }
+
+        if entry.isAmountEstimated {
+            return signedAmountText(for: entry)
+        }
+
+        if entry.confidence.needsReview {
+            return "Review"
+        }
+
+        return signedAmountText(for: entry)
+    }
+
+    private var trailingSecondary: String? {
+        guard let entry else {
+            return nil
+        }
+
+        if entry.rawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return nil
+        }
+
+        if entry.category != .uncategorized {
+            return entry.category.title
+        }
+
+        if entry.transactionKind == .income {
+            return TransactionKind.income.title
+        }
+
+        return entry.merchant
+    }
+
+    private var trailingPrimaryColor: Color {
+        guard let entry else {
+            return primaryFeedbackColor
+        }
+
+        if entry.amount == 0 {
+            return NotelyTheme.secondaryText
+        }
+
+        if entry.confidence.needsReview, !entry.isAmountEstimated {
+            return NotelyTheme.secondaryText
+        }
+
+        return entry.transactionKind == .income
+            ? Color(red: 0.28, green: 0.71, blue: 0.45)
+            : Color(red: 0.90, green: 0.36, blue: 0.34)
+    }
+
+    private var isProcessingEntry: Bool {
+        guard let entry else {
+            return false
+        }
+
+        return !entry.rawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && entry.amount == 0
+            && entry.confidence != .review
+    }
+
+    var body: some View {
+        VStack(alignment: .trailing, spacing: 5) {
+            if isProcessingEntry, let entry {
+                JournalProcessingStatusText(activityText: entry.rawText)
+                    .font(.notely(.body, weight: .semibold))
+                    .foregroundStyle(trailingPrimaryColor)
+                    .multilineTextAlignment(.trailing)
+                    .lineLimit(1)
+            } else if let entry {
+                Text(trailingPrimary)
+                    .font(.notely(.body, weight: .semibold))
+                    .foregroundStyle(trailingPrimaryColor)
+                    .multilineTextAlignment(.trailing)
+                    .lineLimit(1)
+
+                Text(trailingSecondary ?? " ")
+                    .font(.notely(.footnote))
+                    .foregroundStyle(NotelyTheme.tertiaryText)
+                    .multilineTextAlignment(.trailing)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .frame(height: trailingSecondaryHeight, alignment: .top)
+                    .opacity(trailingSecondary == nil ? 0 : 1)
+            } else if let feedback, !composerTrimmedText.isEmpty {
+                if feedback.primaryColorName == .neutral {
+                    JournalProcessingStatusText(activityText: composerTrimmedText)
+                        .font(.notely(.body, weight: .semibold))
+                        .foregroundStyle(primaryFeedbackColor)
+                        .multilineTextAlignment(.trailing)
+                        .lineLimit(1)
+                } else {
+                    Text(feedback.primaryText)
+                        .font(.notely(.body, weight: .semibold))
+                        .foregroundStyle(primaryFeedbackColor)
+                        .multilineTextAlignment(.trailing)
+                        .lineLimit(1)
+                }
+
+                Text(feedback.secondaryText ?? " ")
+                    .font(.notely(.footnote))
+                    .foregroundStyle(NotelyTheme.tertiaryText)
+                    .multilineTextAlignment(.trailing)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .frame(height: trailingSecondaryHeight, alignment: .top)
+                    .opacity(feedback.secondaryText == nil ? 0 : 1)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .topTrailing)
+        .padding(.top, 1)
+    }
+
+    private func signedAmountText(for entry: ExpenseEntry) -> String {
+        let formattedAmount = entry.amount.formattedCurrency(code: entry.currencyCode)
+        let signedAmount = entry.transactionKind == .income
+            ? "+\(formattedAmount)"
+            : "-\(formattedAmount)"
+        return entry.isAmountEstimated ? "\(signedAmount)*" : signedAmount
     }
 }
 

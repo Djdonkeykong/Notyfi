@@ -222,6 +222,7 @@ final class EditableJournalTextView: UITextView {
     private static weak var activeEditor: EditableJournalTextView?
     private static var lastDeleteTimestamp = Date.distantPast
     private static var shouldBridgeBackspace = false
+    private static var pendingBridgeAttempts = 0
 
     var onBackspaceAtLeadingEdge: (() -> Void)?
 
@@ -236,10 +237,12 @@ final class EditableJournalTextView: UITextView {
 
         activeEditor = nil
         shouldBridgeBackspace = false
+        pendingBridgeAttempts = 0
     }
 
     static func resignActiveEditor() {
         shouldBridgeBackspace = false
+        pendingBridgeAttempts = 0
         activeEditor?.resignFirstResponder()
     }
 
@@ -249,26 +252,22 @@ final class EditableJournalTextView: UITextView {
         Self.lastDeleteTimestamp = now
 
         if selectedRange.location == 0, selectedRange.length == 0 {
+            guard let onBackspaceAtLeadingEdge else {
+                Self.shouldBridgeBackspace = false
+                Self.pendingBridgeAttempts = 0
+                super.deleteBackward()
+                return
+            }
+
             Self.shouldBridgeBackspace = isLikelyKeyRepeat
-            onBackspaceAtLeadingEdge?()
+            onBackspaceAtLeadingEdge()
 
             guard Self.shouldBridgeBackspace else {
                 return
             }
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) {
-                guard
-                    Self.shouldBridgeBackspace,
-                    let activeEditor = Self.activeEditor,
-                    activeEditor.isFirstResponder
-                else {
-                    Self.shouldBridgeBackspace = false
-                    return
-                }
-
-                Self.shouldBridgeBackspace = false
-                activeEditor.deleteBackward()
-            }
+            Self.pendingBridgeAttempts = 12
+            Self.dispatchBridgedBackspace()
 
             return
         }
@@ -276,9 +275,37 @@ final class EditableJournalTextView: UITextView {
         Self.shouldBridgeBackspace = false
         super.deleteBackward()
     }
+
+    private static func dispatchBridgedBackspace() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
+            guard shouldBridgeBackspace else {
+                pendingBridgeAttempts = 0
+                return
+            }
+
+            guard pendingBridgeAttempts > 0 else {
+                shouldBridgeBackspace = false
+                return
+            }
+
+            pendingBridgeAttempts -= 1
+
+            guard
+                let activeEditor,
+                activeEditor.isFirstResponder
+            else {
+                dispatchBridgedBackspace()
+                return
+            }
+
+            shouldBridgeBackspace = false
+            pendingBridgeAttempts = 0
+            activeEditor.deleteBackward()
+        }
+    }
 }
 
-private extension UIFont {
+extension UIFont {
     static var notelyBody: UIFont {
         let descriptor = UIFont.systemFont(ofSize: 17, weight: .regular).fontDescriptor
 

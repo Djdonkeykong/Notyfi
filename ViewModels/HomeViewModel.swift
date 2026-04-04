@@ -16,6 +16,7 @@ struct DraftComposerFeedback {
 final class HomeViewModel: ObservableObject {
     @Published private(set) var selectedDate: Date
     @Published var composerText = ""
+    @Published var journalText = ""
     @Published var isDatePickerPresented = false
     @Published var isSettingsPresented = false
     @Published private(set) var displayedEntries: [ExpenseEntry] = []
@@ -65,6 +66,10 @@ final class HomeViewModel: ObservableObject {
         )
     }
 
+    var hasFocusedJournalText: Bool {
+        !displayedEntries.isEmpty || !composerText.isEmpty
+    }
+
     func addEntry() {
         let trimmed = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
@@ -81,6 +86,54 @@ final class HomeViewModel: ObservableObject {
             target: .composer(dayKey(for: selectedDate)),
             cursorPlacement: .end
         )
+    }
+
+    func journalDraft(for date: Date) -> String {
+        composeJournalText(
+            entries: entries(for: date),
+            composer: composerDraft(for: date)
+        )
+    }
+
+    func updateJournalText(_ rawText: String) {
+        let normalized = rawText.replacingOccurrences(of: "\r\n", with: "\n")
+
+        if journalText != normalized {
+            journalText = normalized
+        }
+
+        let lines = normalized.components(separatedBy: "\n")
+        let entryLineCount = max(lines.count - 1, 0)
+        let currentEntries = displayedEntries
+        let preservedEntryCount = min(currentEntries.count, entryLineCount)
+
+        if preservedEntryCount > 0 {
+            for index in 0..<preservedEntryCount where currentEntries[index].rawText != lines[index] {
+                updateEntryText(currentEntries[index], rawText: lines[index])
+            }
+        }
+
+        if currentEntries.count > entryLineCount {
+            currentEntries[entryLineCount...].forEach { entry in
+                store.removeEntry(id: entry.id)
+            }
+        } else if entryLineCount > currentEntries.count {
+            appendJournalLines(
+                Array(lines[currentEntries.count..<entryLineCount]),
+                after: currentEntries.last
+            )
+        }
+
+        let nextComposerText = lines.last ?? ""
+        if composerText != nextComposerText {
+            composerText = nextComposerText
+        }
+
+        composerDraftsByDay[dayKey(for: selectedDate)] = composerText
+
+        if journalText != normalized {
+            journalText = normalized
+        }
     }
 
     func updateComposerText(_ rawText: String) {
@@ -263,6 +316,15 @@ final class HomeViewModel: ObservableObject {
             entries.filter { calendar.isDate($0.date, inSameDayAs: selectedDate) }
         )
 
+        let nextJournalText = composeJournalText(
+            entries: displayedEntries,
+            composer: composerText
+        )
+
+        if journalText != nextJournalText {
+            journalText = nextJournalText
+        }
+
         let monthEntries = entries.filter {
             calendar.isDate($0.date, equalTo: selectedDate, toGranularity: .month)
         }
@@ -305,6 +367,61 @@ final class HomeViewModel: ObservableObject {
             topCategoryShare: topCategoryShare,
             categoryBreakdown: categoryBreakdown
         )
+    }
+
+    private func appendJournalLines(
+        _ lines: [String],
+        after trailingEntry: ExpenseEntry?
+    ) {
+        var currentTrailingEntry = trailingEntry
+
+        for line in lines {
+            if let trailingEntry = currentTrailingEntry,
+               let insertedEntry = insertEntryAfterReference(
+                   trailingEntry,
+                   rawText: line,
+                   on: selectedDate
+               ) {
+                currentTrailingEntry = insertedEntry
+            } else {
+                store.addEntry(
+                    from: line,
+                    on: selectedDate,
+                    currencyCode: currencyCode
+                )
+                currentTrailingEntry = store.entries(on: selectedDate).max {
+                    $0.createdAt < $1.createdAt
+                }
+            }
+        }
+    }
+
+    private func insertEntryAfterReference(
+        _ referenceEntry: ExpenseEntry,
+        rawText: String,
+        on date: Date
+    ) -> ExpenseEntry? {
+        let insertedEntryID = store.insertEntry(
+            after: referenceEntry,
+            rawText: rawText,
+            on: date,
+            currencyCode: currencyCode
+        )
+
+        return store.entries.first { $0.id == insertedEntryID }
+    }
+
+    private func composeJournalText(
+        entries: [ExpenseEntry],
+        composer: String
+    ) -> String {
+        let entryText = entries.map(\.rawText).joined(separator: "\n")
+
+        guard !entryText.isEmpty else {
+            return composer
+        }
+
+        return "\(entryText)\n\(composer)"
     }
 
     private func makeCategoryBreakdown(
