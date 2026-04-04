@@ -298,28 +298,6 @@ final class EditableJournalTextView: UITextView {
         return rect
     }
 
-    override func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
-        let targetHeight = font?.lineHeight ?? UIFont.notelyBody.lineHeight
-
-        return super.selectionRects(for: range).map { selectionRect in
-            guard selectionRect.rect.height > targetHeight * 1.2 else {
-                return selectionRect
-            }
-
-            let clampedRect = CGRect(
-                x: selectionRect.rect.minX,
-                y: selectionRect.rect.minY,
-                width: selectionRect.rect.width,
-                height: targetHeight
-            )
-
-            return JournalSelectionRect(
-                sourceRect: selectionRect,
-                rect: clampedRect
-            )
-        }
-    }
-
     private static func dispatchBridgedBackspace() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
             guard shouldBridgeBackspace else {
@@ -346,37 +324,6 @@ final class EditableJournalTextView: UITextView {
             pendingBridgeAttempts = 0
             activeEditor.deleteBackward()
         }
-    }
-}
-
-private final class JournalSelectionRect: UITextSelectionRect {
-    private let sourceRect: UITextSelectionRect
-    private let adjustedRect: CGRect
-
-    init(sourceRect: UITextSelectionRect, rect: CGRect) {
-        self.sourceRect = sourceRect
-        self.adjustedRect = rect
-        super.init()
-    }
-
-    override var rect: CGRect {
-        adjustedRect
-    }
-
-    override var writingDirection: UITextWritingDirection {
-        sourceRect.writingDirection
-    }
-
-    override var containsStart: Bool {
-        sourceRect.containsStart
-    }
-
-    override var containsEnd: Bool {
-        sourceRect.containsEnd
-    }
-
-    override var isVertical: Bool {
-        sourceRect.isVertical
     }
 }
 
