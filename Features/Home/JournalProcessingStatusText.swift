@@ -1,8 +1,10 @@
 import SwiftUI
 
 struct JournalProcessingStatusText: View {
+    let activityText: String
+
     private let statuses = ["Checking", "Reading", "Finding", "Thinking"]
-    private let loadingDotsDuration: TimeInterval = 0.8
+    private let typingIdleDelay: TimeInterval = 0.7
     private let statusDuration: TimeInterval = 2.4
     private let shimmerDuration: TimeInterval = 1.8
 
@@ -10,13 +12,17 @@ struct JournalProcessingStatusText: View {
     @State private var shimmerCycleStart = Date()
     @State private var isShowingLoadingDots = true
 
+    init(activityText: String = "") {
+        self.activityText = activityText
+    }
+
     var body: some View {
-        ZStack(alignment: .trailing) {
-            if isShowingLoadingDots {
-                JournalProcessingLoadingDots()
-                    .transition(.opacity.combined(with: .scale(scale: 0.94)))
-            } else {
-                TimelineView(.animation) { context in
+        TimelineView(.animation) { context in
+            ZStack(alignment: .trailing) {
+                if isShowingLoadingDots {
+                    shimmeredLoadingDots(timestamp: context.date)
+                        .transition(.opacity.combined(with: .scale(scale: 0.94)))
+                } else {
                     ZStack(alignment: .leading) {
                         shimmeredStatusText(
                             statuses[statusIndex],
@@ -31,31 +37,22 @@ struct JournalProcessingStatusText: View {
                         )
                     }
                     .clipped()
-                }
-                .transition(
-                    .asymmetric(
-                        insertion: .move(edge: .bottom).combined(with: .opacity),
-                        removal: .opacity
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .bottom).combined(with: .opacity),
+                            removal: .opacity
+                        )
                     )
-                )
+                }
             }
         }
         .task {
             shimmerCycleStart = Date()
             statusIndex = 0
-            isShowingLoadingDots = true
-
-            try? await Task.sleep(for: .seconds(loadingDotsDuration))
-
-            guard !Task.isCancelled else {
-                return
-            }
-
-            withAnimation(.spring(response: 0.38, dampingFraction: 0.92)) {
-                isShowingLoadingDots = false
-            }
-
             await rotateStatuses()
+        }
+        .task(id: activityText) {
+            await showLoadingDotsUntilTypingSettles()
         }
     }
 
@@ -88,6 +85,35 @@ struct JournalProcessingStatusText: View {
             }
     }
 
+    private func shimmeredLoadingDots(timestamp: Date) -> some View {
+        JournalProcessingLoadingDots(timestamp: timestamp)
+            .foregroundStyle(NotelyTheme.secondaryText.opacity(0.45))
+            .overlay {
+                GeometryReader { proxy in
+                    let elapsed = timestamp.timeIntervalSince(shimmerCycleStart)
+                    let phase = elapsed.truncatingRemainder(dividingBy: shimmerDuration) / shimmerDuration
+                    let shimmerProgress = -1.4 + (phase * 2.8)
+
+                    LinearGradient(
+                        colors: [
+                            .white.opacity(0),
+                            .white.opacity(0.95),
+                            .white.opacity(0)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(width: max(proxy.size.width * 0.7, 24))
+                    .offset(x: shimmerProgress * proxy.size.width)
+                    .mask(alignment: .trailing) {
+                        JournalProcessingLoadingDots(timestamp: timestamp)
+                            .frame(width: proxy.size.width, alignment: .trailing)
+                    }
+                }
+                .allowsHitTesting(false)
+            }
+    }
+
     @MainActor
     private func rotateStatuses() async {
         while !Task.isCancelled {
@@ -102,23 +128,40 @@ struct JournalProcessingStatusText: View {
             }
         }
     }
+
+    @MainActor
+    private func showLoadingDotsUntilTypingSettles() async {
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.94)) {
+            isShowingLoadingDots = true
+        }
+
+        try? await Task.sleep(for: .seconds(typingIdleDelay))
+
+        guard !Task.isCancelled else {
+            return
+        }
+
+        withAnimation(.spring(response: 0.38, dampingFraction: 0.92)) {
+            isShowingLoadingDots = false
+        }
+    }
 }
 
 private struct JournalProcessingLoadingDots: View {
-    private let dotSize: CGFloat = 4
-    private let dotSpacing: CGFloat = 4
+    let timestamp: Date
+
+    private let dotSize: CGFloat = 5.5
+    private let dotSpacing: CGFloat = 5
     private let animationDuration: TimeInterval = 0.9
 
     var body: some View {
-        TimelineView(.animation) { context in
-            HStack(spacing: dotSpacing) {
-                ForEach(0..<3, id: \.self) { index in
-                    Circle()
-                        .fill(NotelyTheme.secondaryText.opacity(0.8))
-                        .frame(width: dotSize, height: dotSize)
-                        .scaleEffect(dotScale(index: index, timestamp: context.date))
-                        .offset(y: dotOffset(index: index, timestamp: context.date))
-                }
+        HStack(spacing: dotSpacing) {
+            ForEach(0..<3, id: \.self) { index in
+                Circle()
+                    .fill(.foreground)
+                    .frame(width: dotSize, height: dotSize)
+                    .scaleEffect(dotScale(index: index, timestamp: timestamp))
+                    .offset(y: dotOffset(index: index, timestamp: timestamp))
             }
         }
         .frame(height: 16, alignment: .center)

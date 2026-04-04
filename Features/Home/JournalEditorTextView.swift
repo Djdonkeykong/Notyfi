@@ -159,10 +159,23 @@ struct JournalEditorTextView: UIViewRepresentable {
         }
 
         func textViewDidBeginEditing(_ textView: UITextView) {
+            if let editableTextView = textView as? EditableJournalTextView {
+                EditableJournalTextView.activate(editableTextView)
+            }
+
+            if let focusRequest = parent.focusRequest,
+               focusRequest.target != parent.editorTarget {
+                parent.focusRequest = nil
+            }
+
             parent.focusedEditor = parent.editorTarget
         }
 
         func textViewDidEndEditing(_ textView: UITextView) {
+            if let editableTextView = textView as? EditableJournalTextView {
+                EditableJournalTextView.deactivate(editableTextView)
+            }
+
             if parent.focusedEditor == parent.editorTarget {
                 parent.focusedEditor = nil
             }
@@ -206,14 +219,61 @@ struct JournalEditorTextView: UIViewRepresentable {
 }
 
 final class EditableJournalTextView: UITextView {
+    private static weak var activeEditor: EditableJournalTextView?
+    private static var lastDeleteTimestamp = Date.distantPast
+    private static var shouldBridgeBackspace = false
+
     var onBackspaceAtLeadingEdge: (() -> Void)?
 
-    override func deleteBackward() {
-        if selectedRange.location == 0, selectedRange.length == 0 {
-            onBackspaceAtLeadingEdge?()
+    static func activate(_ editor: EditableJournalTextView) {
+        activeEditor = editor
+    }
+
+    static func deactivate(_ editor: EditableJournalTextView) {
+        guard activeEditor === editor else {
             return
         }
 
+        activeEditor = nil
+        shouldBridgeBackspace = false
+    }
+
+    static func resignActiveEditor() {
+        shouldBridgeBackspace = false
+        activeEditor?.resignFirstResponder()
+    }
+
+    override func deleteBackward() {
+        let now = Date()
+        let isLikelyKeyRepeat = now.timeIntervalSince(Self.lastDeleteTimestamp) < 0.18
+        Self.lastDeleteTimestamp = now
+
+        if selectedRange.location == 0, selectedRange.length == 0 {
+            Self.shouldBridgeBackspace = isLikelyKeyRepeat
+            onBackspaceAtLeadingEdge?()
+
+            guard Self.shouldBridgeBackspace else {
+                return
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) {
+                guard
+                    Self.shouldBridgeBackspace,
+                    let activeEditor = Self.activeEditor,
+                    activeEditor.isFirstResponder
+                else {
+                    Self.shouldBridgeBackspace = false
+                    return
+                }
+
+                Self.shouldBridgeBackspace = false
+                activeEditor.deleteBackward()
+            }
+
+            return
+        }
+
+        Self.shouldBridgeBackspace = false
         super.deleteBackward()
     }
 }

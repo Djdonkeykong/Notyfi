@@ -66,7 +66,7 @@ struct ExpensePreviewRow: View {
 
         if entry.confidence.needsReview {
             if entry.amount == 0 {
-                return "Add price"
+                return nil
             }
 
             if entry.category != .uncategorized {
@@ -151,7 +151,7 @@ struct ExpensePreviewRow: View {
             Button(action: onAccessoryTap) {
                 VStack(alignment: .trailing, spacing: 5) {
                     if isProcessingStatus {
-                        JournalProcessingStatusText()
+                        JournalProcessingStatusText(activityText: draftText)
                             .font(.notely(.body, weight: .semibold))
                             .foregroundStyle(trailingPrimaryColor)
                             .multilineTextAlignment(.trailing)
@@ -177,7 +177,7 @@ struct ExpensePreviewRow: View {
                 .padding(.top, 1)
             }
             .buttonStyle(.plain)
-            .disabled(isDraftEmpty || !isAccessoryTapEnabled)
+            .allowsHitTesting(!isDraftEmpty && isAccessoryTapEnabled)
             .opacity(isDraftEmpty ? 0 : 1)
         }
         .padding(.vertical, 4)

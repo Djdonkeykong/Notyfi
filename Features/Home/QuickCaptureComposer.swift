@@ -62,7 +62,7 @@ struct QuickCaptureComposer: View {
             VStack(alignment: .trailing, spacing: 5) {
                 if let feedback {
                     if isProcessingFeedback {
-                        JournalProcessingStatusText()
+                        JournalProcessingStatusText(activityText: text)
                             .font(.notely(.body, weight: .semibold))
                             .foregroundStyle(primaryFeedbackColor)
                             .multilineTextAlignment(.trailing)

@@ -106,7 +106,6 @@ struct HomeView: View {
             .safeAreaInset(edge: .bottom) {
                 if focusedEditor != nil {
                     KeyboardAccessoryBar(
-                        totalText: viewModel.insight.dayExpenseTotal.formattedCurrency(code: viewModel.currencyCode),
                         onDismissKeyboard: { clearEditorFocus() }
                     )
                     .padding(.horizontal, 8)
@@ -277,6 +276,8 @@ private extension HomeView {
     }
 
     func forceResignKeyboard() {
+        EditableJournalTextView.resignActiveEditor()
+
         UIApplication.shared.sendAction(
             #selector(UIResponder.resignFirstResponder),
             to: nil,
@@ -285,6 +286,8 @@ private extension HomeView {
         )
 
         DispatchQueue.main.async {
+            EditableJournalTextView.resignActiveEditor()
+
             UIApplication.shared.sendAction(
                 #selector(UIResponder.resignFirstResponder),
                 to: nil,
@@ -626,12 +629,10 @@ private enum PagerDragAxisLock {
 }
 
 private struct KeyboardAccessoryBar: View {
-    let totalText: String
     let onDismissKeyboard: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
-            KeyboardTotalPill(totalText: totalText)
             KeyboardCircleButton(systemImage: "mic.fill", tint: Color(red: 0.03, green: 0.51, blue: 0.98))
             KeyboardCircleButton(systemImage: "camera.fill", tint: Color(red: 0.76, green: 0.17, blue: 0.87))
             KeyboardCircleButton(systemImage: "plus", tint: Color(red: 0.98, green: 0.54, blue: 0.13))
@@ -642,40 +643,6 @@ private struct KeyboardAccessoryBar: View {
             )
         }
         .frame(maxWidth: .infinity, alignment: .center)
-    }
-}
-
-private struct KeyboardTotalPill: View {
-    let totalText: String
-
-    var body: some View {
-        Button(action: {
-            Haptics.mediumImpact()
-        }) {
-            HStack(spacing: 10) {
-                Text("\u{1F525}")
-                    .font(.system(size: 17))
-
-                Text(totalText)
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary.opacity(0.96))
-                    .monospacedDigit()
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            }
-            .padding(.horizontal, 20)
-            .frame(minHeight: 46)
-            .background {
-                Capsule()
-                    .fill(NotelyTheme.surface)
-                    .overlay {
-                        Capsule()
-                            .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
-                    }
-                    .shadow(color: NotelyTheme.shadow, radius: 18, x: 0, y: 10)
-            }
-        }
-        .buttonStyle(.plain)
     }
 }
 
