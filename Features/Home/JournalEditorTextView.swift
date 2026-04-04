@@ -285,9 +285,25 @@ final class EditableJournalTextView: UITextView {
     override func caretRect(for position: UITextPosition) -> CGRect {
         var rect = super.caretRect(for: position)
         let targetHeight = font?.lineHeight ?? UIFont.notelyBody.lineHeight
+        let characterOffset = max(
+            0,
+            offset(from: beginningOfDocument, to: position)
+        )
+        let glyphIndex = layoutManager.glyphIndexForCharacter(
+            at: min(characterOffset, max(textStorage.length - 1, 0))
+        )
+        let lineFragmentRect = layoutManager.lineFragmentRect(
+            forGlyphAt: glyphIndex,
+            effectiveRange: nil,
+            withoutAdditionalLayout: true
+        )
 
         if rect.height > targetHeight * 1.2 {
             rect.size.height = targetHeight
+        }
+
+        if lineFragmentRect.height > 0 {
+            rect.origin.y = lineFragmentRect.minY + max((lineFragmentRect.height - rect.height) * 0.5, 0)
         }
 
         return rect

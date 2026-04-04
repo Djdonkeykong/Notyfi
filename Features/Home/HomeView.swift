@@ -9,6 +9,7 @@ struct HomeView: View {
     @State private var focusedEditor: JournalEditorTarget?
     @State private var editorFocusRequest: JournalEditorFocusRequest?
     @State private var journalCursorLineIndex = 0
+    @State private var journalLineFramesByDate: [Date: [JournalTextLineFrame]] = [:]
     @State private var focusRequestGeneration = 0
     @State private var presentationRequestGeneration = 0
 
@@ -45,6 +46,7 @@ struct HomeView: View {
                         focusedEditor: $focusedEditor,
                         editorFocusRequest: $editorFocusRequest,
                         journalCursorLineIndex: $journalCursorLineIndex,
+                        lineFramesByDate: $journalLineFramesByDate,
                         feedback: viewModel.draftFeedback,
                         onJournalTextChange: { rawText in
                             var transaction = Transaction()
@@ -284,6 +286,7 @@ private struct DayJournalPager: View {
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var editorFocusRequest: JournalEditorFocusRequest?
     @Binding var journalCursorLineIndex: Int
+    @Binding var lineFramesByDate: [Date: [JournalTextLineFrame]]
     let feedback: DraftComposerFeedback?
     let onJournalTextChange: (String) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
@@ -346,6 +349,7 @@ private struct DayJournalPager: View {
             focusedEditor: $focusedEditor,
             editorFocusRequest: $editorFocusRequest,
             journalCursorLineIndex: $journalCursorLineIndex,
+            lineFramesByDate: $lineFramesByDate,
             feedback: feedback,
             onJournalTextChange: onJournalTextChange,
             onEntryTap: onEntryTap,
@@ -369,6 +373,7 @@ private struct DayJournalPager: View {
             focusedEditor: .constant(nil),
             editorFocusRequest: .constant(nil),
             journalCursorLineIndex: .constant(0),
+            lineFramesByDate: $lineFramesByDate,
             feedback: nil,
             onJournalTextChange: { _ in },
             onEntryTap: onEntryTap,
@@ -501,6 +506,7 @@ private struct DayJournalPage: View {
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var editorFocusRequest: JournalEditorFocusRequest?
     @Binding var journalCursorLineIndex: Int
+    @Binding var lineFramesByDate: [Date: [JournalTextLineFrame]]
     let feedback: DraftComposerFeedback?
     let onJournalTextChange: (String) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
@@ -510,8 +516,8 @@ private struct DayJournalPage: View {
     @State private var contentHeight: CGFloat
     @State private var lineFrames: [JournalTextLineFrame]
 
-    private let trailingColumnWidth: CGFloat = 96
-    private let trailingGap: CGFloat = 18
+    private let trailingColumnWidth: CGFloat = 114
+    private let trailingGap: CGFloat = 14
 
     init(
         date: Date,
@@ -521,6 +527,7 @@ private struct DayJournalPage: View {
         focusedEditor: Binding<JournalEditorTarget?>,
         editorFocusRequest: Binding<JournalEditorFocusRequest?>,
         journalCursorLineIndex: Binding<Int>,
+        lineFramesByDate: Binding<[Date: [JournalTextLineFrame]]>,
         feedback: DraftComposerFeedback?,
         onJournalTextChange: @escaping (String) -> Void,
         onEntryTap: @escaping (ExpenseEntry) -> Void,
@@ -534,16 +541,19 @@ private struct DayJournalPage: View {
         _focusedEditor = focusedEditor
         _editorFocusRequest = editorFocusRequest
         _journalCursorLineIndex = journalCursorLineIndex
+        _lineFramesByDate = lineFramesByDate
         self.feedback = feedback
         self.onJournalTextChange = onJournalTextChange
         self.onEntryTap = onEntryTap
         self.onBlankSpaceTap = onBlankSpaceTap
         self.scrollDisabled = scrollDisabled
 
-        let estimatedFrames = Self.estimatedLineFrames(for: journalText.wrappedValue)
-        _lineFrames = State(initialValue: estimatedFrames)
+        let dayKey = Calendar.autoupdatingCurrent.startOfDay(for: date)
+        let resolvedFrames = lineFramesByDate.wrappedValue[dayKey]
+            ?? Self.estimatedLineFrames(for: journalText.wrappedValue)
+        _lineFrames = State(initialValue: resolvedFrames)
         _contentHeight = State(
-            initialValue: estimatedFrames.last.map { $0.minY + $0.height } ?? 34
+            initialValue: resolvedFrames.last.map { $0.minY + $0.height } ?? 34
         )
     }
 
@@ -563,6 +573,7 @@ private struct DayJournalPage: View {
                         onTextChange: onJournalTextChange,
                         onLineFramesChange: { frames in
                             lineFrames = frames
+                            lineFramesByDate[dayKey] = frames
                             contentHeight = max(
                                 frames.last.map { $0.minY + $0.height } ?? 0,
                                 max(geometry.size.height - 140, 240)
@@ -641,6 +652,10 @@ private struct DayJournalPage: View {
                 feedback: isComposerLine ? feedback : nil
             )
         }
+    }
+
+    private var dayKey: Date {
+        Calendar.autoupdatingCurrent.startOfDay(for: date)
     }
 
     private static func estimatedLineFrames(for text: String) -> [JournalTextLineFrame] {
