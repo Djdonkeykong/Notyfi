@@ -614,7 +614,7 @@ private struct DayJournalPage: View {
         ZStack(alignment: .topTrailing) {
             ForEach(accessoryRows) { row in
                 Button {
-                    guard let entry = row.entry else {
+                    guard isAccessoryTapEnabled, let entry = row.entry else {
                         return
                     }
 

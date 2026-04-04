@@ -146,8 +146,9 @@ final class HomeViewModel: ObservableObject {
         }
 
         let lines = normalized.components(separatedBy: "\n")
-        let entryLineCount = max(lines.count - 1, 0)
         let currentEntries = displayedEntries
+        let hasComposerLine = normalized.hasSuffix("\n") || lines.count > currentEntries.count
+        let entryLineCount = hasComposerLine ? max(lines.count - 1, 0) : lines.count
         let preservedEntryCount = min(currentEntries.count, entryLineCount)
 
         if preservedEntryCount > 0 {
@@ -167,7 +168,7 @@ final class HomeViewModel: ObservableObject {
             )
         }
 
-        let nextComposerText = lines.last ?? ""
+        let nextComposerText = hasComposerLine ? lines.last ?? "" : ""
         if composerText != nextComposerText {
             composerText = nextComposerText
         }
