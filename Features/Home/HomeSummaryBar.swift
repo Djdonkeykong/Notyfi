@@ -55,6 +55,20 @@ struct HomeSummaryBar: View {
     private static func shareText(_ share: Double) -> String {
         "\(Int((share * 100).rounded()))%"
     }
+
+    private static func signedCurrency(_ amount: Double, currencyCode: String) -> String {
+        let formattedAmount = abs(amount).formattedCurrency(code: currencyCode)
+
+        if amount > 0 {
+            return "+\(formattedAmount)"
+        }
+
+        if amount < 0 {
+            return "-\(formattedAmount)"
+        }
+
+        return formattedAmount
+    }
 }
 
 struct HomeSnapshotCard: View {
