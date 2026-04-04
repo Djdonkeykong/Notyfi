@@ -7,6 +7,7 @@ struct JournalProcessingStatusText: View {
     private let typingIdleDelay: TimeInterval = 0.7
     private let statusDuration: TimeInterval = 2.4
     private let shimmerDuration: TimeInterval = 1.8
+    private let statusTransitionOffset: CGFloat = 6
 
     @State private var statusIndex = 0
     @State private var shimmerCycleStart = Date()
@@ -20,7 +21,8 @@ struct JournalProcessingStatusText: View {
         TimelineView(.animation) { context in
             ZStack(alignment: .trailing) {
                 if isShowingLoadingDots {
-                    shimmeredLoadingDots(timestamp: context.date)
+                    JournalProcessingLoadingDots(timestamp: context.date)
+                        .foregroundStyle(NotelyTheme.secondaryText.opacity(0.45))
                         .transition(.opacity.combined(with: .scale(scale: 0.94)))
                 } else {
                     ZStack(alignment: .leading) {
@@ -31,15 +33,18 @@ struct JournalProcessingStatusText: View {
                         .id(statusIndex)
                         .transition(
                             .asymmetric(
-                                insertion: .move(edge: .bottom).combined(with: .opacity),
-                                removal: .move(edge: .top).combined(with: .opacity)
+                                insertion: .offset(y: statusTransitionOffset)
+                                    .combined(with: .opacity),
+                                removal: .offset(y: -statusTransitionOffset)
+                                    .combined(with: .opacity)
                             )
                         )
                     }
                     .clipped()
                     .transition(
                         .asymmetric(
-                            insertion: .move(edge: .bottom).combined(with: .opacity),
+                            insertion: .offset(y: statusTransitionOffset)
+                                .combined(with: .opacity),
                             removal: .opacity
                         )
                     )
@@ -79,35 +84,6 @@ struct JournalProcessingStatusText: View {
                     .mask(alignment: .leading) {
                         Text(status)
                             .frame(width: proxy.size.width, alignment: .leading)
-                    }
-                }
-                .allowsHitTesting(false)
-            }
-    }
-
-    private func shimmeredLoadingDots(timestamp: Date) -> some View {
-        JournalProcessingLoadingDots(timestamp: timestamp)
-            .foregroundStyle(NotelyTheme.secondaryText.opacity(0.45))
-            .overlay {
-                GeometryReader { proxy in
-                    let elapsed = timestamp.timeIntervalSince(shimmerCycleStart)
-                    let phase = elapsed.truncatingRemainder(dividingBy: shimmerDuration) / shimmerDuration
-                    let shimmerProgress = -1.4 + (phase * 2.8)
-
-                    LinearGradient(
-                        colors: [
-                            .white.opacity(0),
-                            .white.opacity(0.95),
-                            .white.opacity(0)
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                    .frame(width: max(proxy.size.width * 0.7, 24))
-                    .offset(x: shimmerProgress * proxy.size.width)
-                    .mask(alignment: .trailing) {
-                        JournalProcessingLoadingDots(timestamp: timestamp)
-                            .frame(width: proxy.size.width, alignment: .trailing)
                     }
                 }
                 .allowsHitTesting(false)

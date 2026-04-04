@@ -342,6 +342,7 @@ private struct DayJournalPager: View {
             onBlankSpaceTap: onBlankSpaceTap,
             scrollDisabled: scrollDisabled
         )
+        .id(date)
     }
 
     private func sidePage(
@@ -363,6 +364,7 @@ private struct DayJournalPager: View {
             onBlankSpaceTap: {},
             scrollDisabled: scrollDisabled
         )
+        .id(date)
     }
 
     private func dragGesture(pageWidth: CGFloat) -> some Gesture {
@@ -493,13 +495,43 @@ private struct DayJournalPage: View {
     let onBlankSpaceTap: () -> Void
     let scrollDisabled: Bool
 
-    @State private var contentHeight: CGFloat = 0
-    @State private var lineFrames: [JournalTextLineFrame] = [
-        JournalTextLineFrame(lineIndex: 0, minY: 0, height: 34)
-    ]
+    @State private var contentHeight: CGFloat
+    @State private var lineFrames: [JournalTextLineFrame]
 
     private let trailingColumnWidth: CGFloat = 96
     private let trailingGap: CGFloat = 18
+
+    init(
+        date: Date,
+        entries: [ExpenseEntry],
+        isEditable: Bool,
+        journalText: Binding<String>,
+        focusedEditor: Binding<JournalEditorTarget?>,
+        editorFocusRequest: Binding<JournalEditorFocusRequest?>,
+        feedback: DraftComposerFeedback?,
+        onJournalTextChange: @escaping (String) -> Void,
+        onEntryTap: @escaping (ExpenseEntry) -> Void,
+        onBlankSpaceTap: @escaping () -> Void,
+        scrollDisabled: Bool
+    ) {
+        self.date = date
+        self.entries = entries
+        self.isEditable = isEditable
+        _journalText = journalText
+        _focusedEditor = focusedEditor
+        _editorFocusRequest = editorFocusRequest
+        self.feedback = feedback
+        self.onJournalTextChange = onJournalTextChange
+        self.onEntryTap = onEntryTap
+        self.onBlankSpaceTap = onBlankSpaceTap
+        self.scrollDisabled = scrollDisabled
+
+        let estimatedFrames = Self.estimatedLineFrames(for: journalText.wrappedValue)
+        _lineFrames = State(initialValue: estimatedFrames)
+        _contentHeight = State(
+            initialValue: estimatedFrames.last.map { $0.minY + $0.height } ?? 34
+        )
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -594,6 +626,30 @@ private struct DayJournalPage: View {
                 feedback: isComposerLine ? feedback : nil
             )
         }
+    }
+
+    private static func estimatedLineFrames(for text: String) -> [JournalTextLineFrame] {
+        let lines = text.components(separatedBy: "\n")
+        let lineHeight: CGFloat = 22
+        let rowHeight: CGFloat = 32
+
+        var frames: [JournalTextLineFrame] = []
+        var currentY: CGFloat = 0
+
+        for lineIndex in lines.indices {
+            frames.append(
+                JournalTextLineFrame(
+                    lineIndex: lineIndex,
+                    minY: currentY,
+                    height: lineHeight
+                )
+            )
+            currentY += rowHeight
+        }
+
+        return frames.isEmpty
+            ? [JournalTextLineFrame(lineIndex: 0, minY: 0, height: lineHeight)]
+            : frames
     }
 }
 

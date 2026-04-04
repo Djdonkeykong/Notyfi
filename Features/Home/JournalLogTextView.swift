@@ -23,6 +23,19 @@ struct JournalLogTextView: UIViewRepresentable {
     let onTextChange: (String) -> Void
     let onLineFramesChange: ([JournalTextLineFrame]) -> Void
 
+    private static var textAttributes: [NSAttributedString.Key: Any] {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 1
+        paragraphStyle.paragraphSpacing = 10
+        paragraphStyle.lineBreakMode = .byWordWrapping
+
+        return [
+            .font: UIFont.notelyBody,
+            .foregroundColor: UIColor.label.withAlphaComponent(0.86),
+            .paragraphStyle: paragraphStyle
+        ]
+    }
+
     func makeUIView(context: Context) -> EditableJournalTextView {
         let textView = EditableJournalTextView()
         textView.backgroundColor = .clear
@@ -32,6 +45,7 @@ struct JournalLogTextView: UIViewRepresentable {
         textView.font = .notelyBody
         textView.textColor = UIColor.label.withAlphaComponent(0.86)
         textView.tintColor = .label
+        textView.typingAttributes = Self.textAttributes
         textView.isScrollEnabled = false
         textView.isEditable = isEditable
         textView.isSelectable = isEditable
@@ -45,11 +59,15 @@ struct JournalLogTextView: UIViewRepresentable {
         context.coordinator.parent = self
         uiView.isEditable = isEditable
         uiView.isSelectable = isEditable
+        uiView.typingAttributes = Self.textAttributes
         uiView.textContainerInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: trailingInset)
 
         if uiView.text != text {
             let cursorLocation = min(uiView.selectedRange.location, text.utf16.count)
-            uiView.text = text
+            uiView.attributedText = NSAttributedString(
+                string: text,
+                attributes: Self.textAttributes
+            )
 
             if uiView.isFirstResponder {
                 uiView.selectedRange = NSRange(location: cursorLocation, length: 0)
