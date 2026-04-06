@@ -102,21 +102,22 @@ struct HomeView: View {
                                 insight: viewModel.insight,
                                 currencyCode: viewModel.currencyCode
                             )
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                            .transition(.opacity)
                         }
 
                         HomeSummaryBar(
                             insight: viewModel.insight,
                             entryCount: viewModel.displayedEntries.count,
                             currencyCode: viewModel.currencyCode,
+                            isExpanded: isSummaryExpanded,
                             onTap: {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.9)) {
+                                withAnimation(.easeInOut(duration: 0.22)) {
                                     isSummaryExpanded.toggle()
                                 }
                             }
                         )
                     }
-                    .animation(.spring(response: 0.3, dampingFraction: 0.9), value: isSummaryExpanded)
+                    .animation(.easeInOut(duration: 0.22), value: isSummaryExpanded)
                 }
             }
             .sheet(isPresented: $viewModel.isDatePickerPresented) {

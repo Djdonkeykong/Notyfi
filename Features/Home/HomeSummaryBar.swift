@@ -4,6 +4,7 @@ struct HomeSummaryBar: View {
     let insight: JournalInsight
     let entryCount: Int
     let currencyCode: String
+    let isExpanded: Bool
     let onTap: () -> Void
 
     var body: some View {
@@ -11,7 +12,10 @@ struct HomeSummaryBar: View {
             Haptics.mediumImpact()
             onTap()
         }) {
-            SoftCapsule(horizontalPadding: 22, verticalPadding: 16) {
+            SoftCapsule(
+                horizontalPadding: 22,
+                verticalPadding: isExpanded ? 18 : 16
+            ) {
                 HStack(spacing: 18) {
                     SummaryItem(
                         symbol: "sun.max.fill",
@@ -43,11 +47,12 @@ struct HomeSummaryBar: View {
                         )
                     }
                 }
-                .frame(minHeight: 28)
+                .frame(minHeight: isExpanded ? 30 : 28)
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 12)
+            .scaleEffect(y: isExpanded ? 1.02 : 1, anchor: .center)
         }
         .buttonStyle(.plain)
     }
@@ -382,6 +387,7 @@ private struct EmptyCategoryBreakdownRow: View {
                 ),
                 entryCount: 4,
                 currencyCode: "NOK",
+                isExpanded: false,
                 onTap: {}
             )
         }
