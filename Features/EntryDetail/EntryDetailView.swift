@@ -10,7 +10,7 @@ struct EntryDetailView: View {
 
     var body: some View {
         ZStack {
-            NotyfiTheme.background.ignoresSafeArea()
+            NotyfiBackgroundView()
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 22) {
@@ -227,15 +227,7 @@ struct EntryDetailView: View {
 
     private func detailCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content()
-            .background {
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(NotyfiTheme.surface)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 28, style: .continuous)
-                            .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
-                    }
-                    .shadow(color: NotyfiTheme.shadow, radius: 18, x: 0, y: 8)
-            }
+            .glassPanel(cornerRadius: 28, tintOpacity: 1)
     }
 }
 
@@ -254,11 +246,8 @@ private struct CircleActionButton: View {
                 .frame(width: 40, height: 40)
                 .background {
                     Circle()
-                        .fill(NotyfiTheme.elevatedSurface)
-                        .overlay {
-                            Circle()
-                                .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
-                        }
+                        .fill(.clear)
+                        .glassCircle(diameter: 40)
                 }
         }
         .buttonStyle(.plain)

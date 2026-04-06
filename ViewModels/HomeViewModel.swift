@@ -116,12 +116,8 @@ final class HomeViewModel: ObservableObject {
             return
         }
 
+        setComposerDraft("")
         store.addEntry(from: trimmed, on: selectedDate, currencyCode: currencyCode)
-        composerText = ""
-        composerDraftsByDay[dayKey(for: selectedDate)] = ""
-        composerPreviewTask?.cancel()
-        composerPreviewTask = nil
-        composerPreviewDraft = nil
     }
 
     func focusComposer() -> JournalEditorFocusRequest {
@@ -219,14 +215,12 @@ final class HomeViewModel: ObservableObject {
         let normalizedTrailingText = trailingText.replacingOccurrences(of: "\r\n", with: "\n")
         let nextEntryLines = displayedEntries.map(\.rawText) + [normalizedLeadingText]
 
+        setComposerDraft(normalizedTrailingText)
         store.addEntry(
             from: normalizedLeadingText,
             on: selectedDate,
             currencyCode: currencyCode
         )
-
-        composerText = normalizedTrailingText
-        composerDraftsByDay[dayKey(for: selectedDate)] = composerText
 
         return journalFocusRequest(
             absoluteOffset: absoluteOffsetForLineStart(
@@ -243,12 +237,11 @@ final class HomeViewModel: ObservableObject {
 
         let insertionOffset = previousEntry.rawText.utf16.count
         let mergedText = previousEntry.rawText + composerText
+        setComposerDraft("")
         store.updateEntry(
             pendingTextEntry(previousEntry, rawText: mergedText),
             shouldReparseRawText: true
         )
-        composerText = ""
-        composerDraftsByDay[dayKey(for: selectedDate)] = ""
 
         return journalFocusRequest(
             absoluteOffset: absoluteOffset(
@@ -551,6 +544,24 @@ final class HomeViewModel: ObservableObject {
 
     private func dayKey(for date: Date) -> Date {
         calendar.startOfDay(for: date)
+    }
+
+    private func setComposerDraft(_ rawText: String) {
+        let normalized = rawText.replacingOccurrences(of: "\r\n", with: "\n")
+
+        if composerText != normalized {
+            composerText = normalized
+        }
+
+        composerDraftsByDay[dayKey(for: selectedDate)] = normalized
+
+        composerPreviewTask?.cancel()
+        composerPreviewTask = nil
+        composerPreviewDraft = nil
+
+        if !normalized.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            scheduleComposerPreviewParse()
+        }
     }
 
     private func scheduleComposerPreviewParse() {

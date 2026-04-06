@@ -232,11 +232,8 @@ private struct SnapshotMetricTile: View {
         .padding(.vertical, 14)
         .background {
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(NotyfiTheme.elevatedSurface)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
-                }
+                .fill(.clear)
+                .glassPanel(cornerRadius: 22, material: .thinMaterial, tintOpacity: 0.72, shadowRadius: 14, shadowY: 6)
         }
     }
 }
@@ -286,7 +283,8 @@ private struct CategoryBreakdownRow: View {
         .padding(12)
         .background {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(NotyfiTheme.elevatedSurface.opacity(0.75))
+                .fill(.clear)
+                .glassPanel(cornerRadius: 20, material: .thinMaterial, tintOpacity: 0.62, shadowRadius: 10, shadowY: 5)
         }
     }
 }
@@ -312,14 +310,15 @@ private struct EmptyCategoryBreakdownRow: View {
         .padding(12)
         .background {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(NotyfiTheme.elevatedSurface.opacity(0.75))
+                .fill(.clear)
+                .glassPanel(cornerRadius: 20, material: .thinMaterial, tintOpacity: 0.58, shadowRadius: 10, shadowY: 5)
         }
     }
 }
 
 #Preview {
     ZStack {
-        NotyfiTheme.background.ignoresSafeArea()
+        NotyfiBackgroundView()
         VStack {
             Spacer()
             HomeSnapshotCard(

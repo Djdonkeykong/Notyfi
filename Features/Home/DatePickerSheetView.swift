@@ -60,17 +60,22 @@ struct DatePickerSheetView: View {
 
     var body: some View {
         ZStack {
-            Rectangle()
-                .fill(.ultraThinMaterial)
+            NotyfiBackgroundView()
                 .overlay {
                     Rectangle()
-                        .fill(Color.white.opacity(0.18))
+                        .fill(.ultraThinMaterial)
+                        .overlay {
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.24),
+                                    Color.white.opacity(0.04)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        }
+                        .ignoresSafeArea()
                 }
-                .overlay {
-                    Rectangle()
-                        .stroke(Color.white.opacity(0.35), lineWidth: 1)
-                }
-                .ignoresSafeArea()
 
             VStack(spacing: 20) {
                 HStack {
@@ -194,11 +199,8 @@ private struct CalendarPillButton: View {
                 .frame(width: width, height: height)
                 .background {
                     Capsule(style: .continuous)
-                        .fill(Color.white.opacity(0.72))
-                        .overlay {
-                            Capsule(style: .continuous)
-                                .stroke(Color.white.opacity(0.52), lineWidth: 1)
-                        }
+                        .fill(.clear)
+                        .glassCapsule(material: .regularMaterial)
                 }
         }
         .buttonStyle(.plain)

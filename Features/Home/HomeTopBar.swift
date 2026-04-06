@@ -65,7 +65,7 @@ private struct NotyfiMark: View {
 
 #Preview {
     ZStack {
-        NotyfiTheme.background.ignoresSafeArea()
+        NotyfiBackgroundView()
         VStack {
             HomeTopBar(
                 selectedDate: Date(),
