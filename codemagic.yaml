@@ -86,3 +86,91 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
+
+  ios-testflight-m4:
+    name: Notyfi TestFlight M4
+    max_build_duration: 60
+    instance_type: mac_mini_m4
+    integrations:
+      app_store_connect: Snaplook Codemagic
+
+    environment:
+      groups:
+        - dev-test
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.djdonkeykong.notely
+      vars:
+        BUNDLE_ID: "com.djdonkeykong.notely"
+        XCODE_PROJECT: "Notyfi.xcodeproj"
+        XCODE_SCHEME: "Notyfi"
+      xcode: latest
+
+    scripts:
+      - name: Write secrets xcconfig
+        script: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "OPENAI_API_KEY is empty or unavailable in Codemagic."
+            exit 1
+          fi
+
+          mkdir -p "$CM_BUILD_DIR/Config"
+          printf 'OPENAI_API_KEY = %s\n' "$OPENAI_API_KEY" > "$CM_BUILD_DIR/Config/Secrets.xcconfig"
+
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          key = os.environ["OPENAI_API_KEY"].replace("\\", "\\\\").replace('"', '\\"')
+          Path("Services/OpenAISecrets.swift").write_text(
+              'enum OpenAISecrets {\n'
+              f'    static let apiKey = "{key}"\n'
+              '}\n'
+          )
+          PY
+
+      - name: Install XcodeGen
+        script: |
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        script: |
+          xcodegen generate
+
+      - name: Verify OpenAI key build setting
+        script: |
+          cd "$CM_BUILD_DIR"
+          value=$(xcodebuild -project "$XCODE_PROJECT" -scheme "$XCODE_SCHEME" -showBuildSettings | awk -F' = ' '/OPENAI_API_KEY/ {print $2; exit}')
+          if [ -z "$value" ]; then
+            echo "OPENAI_API_KEY did not resolve in Xcode build settings."
+            exit 1
+          fi
+
+          echo "OPENAI_API_KEY resolved in Xcode build settings."
+
+      - name: Apply App Store signing profiles
+        script: |
+          xcode-project use-profiles \
+            --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
+            --custom-export-options='{"testFlightInternalTestingOnly": true}'
+
+      - name: Set build number
+        script: |
+          cd "$CM_BUILD_DIR"
+          agvtool new-version -all "$PROJECT_BUILD_NUMBER"
+
+      - name: Build signed IPA
+        script: |
+          xcode-project build-ipa \
+            --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+
+    publishing:
+      app_store_connect:
+        auth: integration
