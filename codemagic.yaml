@@ -13,6 +13,7 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.djdonkeykong.notely
       vars:
+        APP_STORE_BUILD_NUMBER_OFFSET: "50"
         BUNDLE_ID: "com.djdonkeykong.notely"
         XCODE_PROJECT: "Notyfi.xcodeproj"
         XCODE_SCHEME: "Notyfi"
@@ -69,7 +70,9 @@ workflows:
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR"
-          agvtool new-version -all "$PROJECT_BUILD_NUMBER"
+          NEXT_BUILD_NUMBER=$(($PROJECT_BUILD_NUMBER + $APP_STORE_BUILD_NUMBER_OFFSET))
+          echo "Setting build number to $NEXT_BUILD_NUMBER"
+          agvtool new-version -all "$NEXT_BUILD_NUMBER"
 
       - name: Build signed IPA
         script: |
@@ -101,6 +104,7 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.djdonkeykong.notely
       vars:
+        APP_STORE_BUILD_NUMBER_OFFSET: "50"
         BUNDLE_ID: "com.djdonkeykong.notely"
         XCODE_PROJECT: "Notyfi.xcodeproj"
         XCODE_SCHEME: "Notyfi"
@@ -157,7 +161,9 @@ workflows:
       - name: Set build number
         script: |
           cd "$CM_BUILD_DIR"
-          agvtool new-version -all "$PROJECT_BUILD_NUMBER"
+          NEXT_BUILD_NUMBER=$(($PROJECT_BUILD_NUMBER + $APP_STORE_BUILD_NUMBER_OFFSET))
+          echo "Setting build number to $NEXT_BUILD_NUMBER"
+          agvtool new-version -all "$NEXT_BUILD_NUMBER"
 
       - name: Build signed IPA
         script: |
