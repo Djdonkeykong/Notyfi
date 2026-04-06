@@ -2,7 +2,7 @@
 "Yesterday" = "Yesterday";
 "Start typing your money notes..." = "Start typing your money notes...";
 "Start with a note" = "Start with a note";
-"Nothing logged format" = "Nothing is logged for %@ yet. Type naturally and Notely will organize it quietly in the background.";
+"Nothing logged format" = "Nothing is logged for %@ yet. Type naturally and Notyfi will organize it quietly in the background.";
 "Coffee 49 kr" = "Coffee 49 kr";
 "Groceries 423 at Rema" = "Groceries 423 at Rema";
 "Train ticket 299" = "Train ticket 299";
@@ -86,7 +86,7 @@
 "Version 1.0" = "Version 1.0";
 "Clear your entire log?" = "Clear your entire log?";
 "Cancel" = "Cancel";
-"This removes every saved entry from Notely." = "This removes every saved entry from Notely.";
+"This removes every saved entry from Notely." = "This removes every saved entry from Notyfi.";
 
 "Original Note" = "Original Note";
 "Entry Details" = "Entry Details";

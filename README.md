@@ -1,6 +1,6 @@
-# Notely
+# Notyfi
 
-Notely is a personal finance journal that feels like Apple Notes, styled with Amy's calm native SwiftUI aesthetic.
+Notyfi is a personal finance journal that feels like Apple Notes, styled with Amy's calm native SwiftUI aesthetic.
 
 ## Setup
 
@@ -8,7 +8,7 @@ This workspace uses `XcodeGen` to keep the project file lightweight.
 
 1. Install XcodeGen on your Mac.
 2. Run `xcodegen generate` from the repo root.
-3. Open `Notely.xcodeproj` in Xcode.
+3. Open `Notyfi.xcodeproj` in Xcode.
 4. Add `OPENAI_API_KEY` to your Xcode scheme environment variables to enable AI parsing during development.
 
 ## Codemagic

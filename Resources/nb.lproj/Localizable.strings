@@ -2,7 +2,7 @@
 "Yesterday" = "I går";
 "Start typing your money notes..." = "Skriv utgifter og inntekter her...";
 "Start with a note" = "Start med et notat";
-"Nothing logged format" = "Det er ikke logget noe for %@ ennå. Skriv naturlig, så organiserer Notely det stille i bakgrunnen.";
+"Nothing logged format" = "Det er ikke logget noe for %@ ennå. Skriv naturlig, så organiserer Notyfi det stille i bakgrunnen.";
 "Coffee 49 kr" = "Kaffe 49 kr";
 "Groceries 423 at Rema" = "Dagligvarer 423 på Rema";
 "Train ticket 299" = "Togbillett 299";
@@ -86,7 +86,7 @@
 "Version 1.0" = "Versjon 1.0";
 "Clear your entire log?" = "Tømme hele loggen?";
 "Cancel" = "Avbryt";
-"This removes every saved entry from Notely." = "Dette fjerner alle lagrede poster fra Notely.";
+"This removes every saved entry from Notely." = "Dette fjerner alle lagrede poster fra Notyfi.";
 
 "Original Note" = "Opprinnelig notat";
 "Entry Details" = "Postdetaljer";

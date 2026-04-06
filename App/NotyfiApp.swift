@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct NotelyApp: App {
+struct NotyfiApp: App {
     @StateObject private var store = ExpenseJournalStore()
 
     var body: some Scene {
@@ -10,4 +10,3 @@ struct NotelyApp: App {
         }
     }
 }
-

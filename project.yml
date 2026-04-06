@@ -1,4 +1,4 @@
-name: Notely
+name: Notyfi
 options:
   createIntermediateGroups: true
 settings:
@@ -12,11 +12,11 @@ settings:
     INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
     INFOPLIST_KEY_UILaunchScreen_Generation: NO
     INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen
-    INFOPLIST_KEY_CFBundleDisplayName: Notely
+    INFOPLIST_KEY_CFBundleDisplayName: Notyfi
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
 targets:
-  Notely:
+  Notyfi:
     type: application
     platform: iOS
     deploymentTarget: "17.0"

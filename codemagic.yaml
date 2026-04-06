@@ -1,6 +1,6 @@
 workflows:
   ios-testflight:
-    name: Notely TestFlight
+    name: Notyfi TestFlight
     max_build_duration: 60
     instance_type: mac_mini_m2
     integrations:
@@ -14,8 +14,8 @@ workflows:
         bundle_identifier: com.djdonkeykong.notely
       vars:
         BUNDLE_ID: "com.djdonkeykong.notely"
-        XCODE_PROJECT: "Notely.xcodeproj"
-        XCODE_SCHEME: "Notely"
+        XCODE_PROJECT: "Notyfi.xcodeproj"
+        XCODE_SCHEME: "Notyfi"
       xcode: latest
 
     scripts:
