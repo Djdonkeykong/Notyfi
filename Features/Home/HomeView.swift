@@ -111,13 +111,13 @@ struct HomeView: View {
                             currencyCode: viewModel.currencyCode,
                             isExpanded: isSummaryExpanded,
                             onTap: {
-                                withAnimation(.easeInOut(duration: 0.22)) {
+                                withAnimation(.spring(response: 0.28, dampingFraction: 0.72, blendDuration: 0.12)) {
                                     isSummaryExpanded.toggle()
                                 }
                             }
                         )
                     }
-                    .animation(.easeInOut(duration: 0.22), value: isSummaryExpanded)
+                    .animation(.spring(response: 0.28, dampingFraction: 0.72, blendDuration: 0.12), value: isSummaryExpanded)
                 }
             }
             .sheet(isPresented: $viewModel.isDatePickerPresented) {

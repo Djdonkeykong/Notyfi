@@ -52,7 +52,7 @@ struct HomeSummaryBar: View {
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 12)
-            .scaleEffect(y: isExpanded ? 1.02 : 1, anchor: .center)
+            .scaleEffect(y: isExpanded ? 1.024 : 1, anchor: .center)
         }
         .buttonStyle(.plain)
     }
