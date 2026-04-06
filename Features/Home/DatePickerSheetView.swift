@@ -188,7 +188,7 @@ private struct CalendarPillButton: View {
 
     var body: some View {
         Button(action: action) {
-            Text(title.notelyLocalized)
+            Text(title.notyfiLocalized)
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(foregroundStyle)
                 .frame(width: width, height: height)

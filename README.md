@@ -36,14 +36,6 @@ The workflow uses `testFlightInternalTestingOnly`, so the uploaded build is mean
 - `Features/EntryDetail`: note-like expense detail editing
 - `Features/Settings`: Amy-inspired settings sheet
 
-## Next Files To Edit
-
-- `Features/Home/HomeView.swift`
-- `Features/Home/ExpensePreviewRow.swift`
-- `Features/Home/QuickCaptureComposer.swift`
-- `Features/Settings/SettingsSheetView.swift`
-- `Services/ExpenseParsingService.swift`
-
 ## AI Parsing
 
 `OpenAIExpenseParsingService` reads `OPENAI_API_KEY` from the app process environment first, then falls back to `Info.plist` so Codemagic builds can temporarily receive the key from an environment variable.

@@ -4,44 +4,44 @@ struct EmptyJournalStateView: View {
     let selectedDate: Date
 
     private let examples = [
-        "Coffee 49 kr".notelyLocalized,
-        "Groceries 423 at Rema".notelyLocalized,
-        "Train ticket 299".notelyLocalized
+        "Coffee 49 kr".notyfiLocalized,
+        "Groceries 423 at Rema".notyfiLocalized,
+        "Train ticket 299".notyfiLocalized
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Start with a note".notelyLocalized)
-                    .font(.notely(.title3, weight: .semibold))
+                Text("Start with a note".notyfiLocalized)
+                    .font(.notyfi(.title3, weight: .semibold))
                     .foregroundStyle(.primary.opacity(0.84))
 
                 Text(
                     String(
-                        format: "Nothing logged format".notelyLocalized,
-                        selectedDate.notelySectionTitle().lowercased(
+                        format: "Nothing logged format".notyfiLocalized,
+                        selectedDate.notyfiSectionTitle().lowercased(
                             with: .autoupdatingCurrent
                         )
                     )
                 )
-                    .font(.notely(.body))
-                    .foregroundStyle(NotelyTheme.secondaryText)
+                    .font(.notyfi(.body))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(examples, id: \.self) { example in
                     Text(example)
-                        .font(.notely(.footnote, weight: .medium))
-                        .foregroundStyle(NotelyTheme.secondaryText)
+                        .font(.notyfi(.footnote, weight: .medium))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                         .background {
                             Capsule()
-                                .fill(NotelyTheme.elevatedSurface)
+                                .fill(NotyfiTheme.elevatedSurface)
                                 .overlay {
                                     Capsule()
-                                        .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
+                                        .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
                                 }
                         }
                 }
@@ -57,5 +57,5 @@ struct EmptyJournalStateView: View {
 #Preview {
     EmptyJournalStateView(selectedDate: Date())
         .padding()
-        .background(NotelyTheme.background)
+        .background(NotyfiTheme.background)
 }

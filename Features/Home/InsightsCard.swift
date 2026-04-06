@@ -6,9 +6,9 @@ struct InsightsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Quiet snapshot".notelyLocalized)
-                .font(.notely(.caption, weight: .medium))
-                .foregroundStyle(NotelyTheme.secondaryText)
+            Text("Quiet snapshot".notyfiLocalized)
+                .font(.notyfi(.caption, weight: .medium))
+                .foregroundStyle(NotyfiTheme.secondaryText)
 
             VStack(spacing: 10) {
                 InsightRow(
@@ -23,21 +23,21 @@ struct InsightsCard: View {
 
                 InsightRow(
                     title: insight.reviewCount > 0
-                        ? "Needs review".notelyLocalized
-                        : "Top category".notelyLocalized,
+                        ? "Needs review".notyfiLocalized
+                        : "Top category".notyfiLocalized,
                     value: insight.reviewCount > 0
-                        ? String.notelyNotesCount(insight.reviewCount)
-                        : (insight.topCategory?.title ?? "Quiet week".notelyLocalized)
+                        ? String.notyfiNotesCount(insight.reviewCount)
+                        : (insight.topCategory?.title ?? "Quiet week".notyfiLocalized)
                 )
             }
         }
         .padding(16)
         .background {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(NotelyTheme.elevatedSurface)
+                .fill(NotyfiTheme.elevatedSurface)
                 .overlay {
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
+                        .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
                 }
         }
     }
@@ -63,14 +63,14 @@ private struct InsightRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Text(title.notelyLocalized)
-                .font(.notely(.footnote))
-                .foregroundStyle(NotelyTheme.secondaryText)
+            Text(title.notyfiLocalized)
+                .font(.notyfi(.footnote))
+                .foregroundStyle(NotyfiTheme.secondaryText)
 
             Spacer()
 
             Text(value)
-                .font(.notely(.footnote, weight: .semibold))
+                .font(.notyfi(.footnote, weight: .semibold))
                 .foregroundStyle(.primary.opacity(0.84))
                 .multilineTextAlignment(.trailing)
                 .minimumScaleFactor(0.75)
@@ -94,5 +94,5 @@ private struct InsightRow: View {
         currencyCode: "NOK"
     )
     .padding()
-    .background(NotelyTheme.background)
+    .background(NotyfiTheme.background)
 }

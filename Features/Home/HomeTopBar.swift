@@ -9,7 +9,7 @@ struct HomeTopBar: View {
     var body: some View {
         ZStack {
             HStack {
-                NotelyMark()
+                NotyfiMark()
 
                 Spacer()
 
@@ -17,13 +17,13 @@ struct HomeTopBar: View {
                     HStack(spacing: 10) {
                         Label {
                             Text("\(entryCount)")
-                                .font(.notely(.footnote, weight: .semibold))
+                                .font(.notyfi(.footnote, weight: .semibold))
                                 .foregroundStyle(.primary.opacity(0.82))
                                 .monospacedDigit()
                         } icon: {
                             Image(systemName: "circle.fill")
                                 .font(.system(size: 7, weight: .bold))
-                                .foregroundStyle(NotelyTheme.reviewTint)
+                                .foregroundStyle(NotyfiTheme.reviewTint)
                         }
 
                         Button(action: {
@@ -44,7 +44,7 @@ struct HomeTopBar: View {
                 onDateTap()
             }) {
                 SoftCapsule(horizontalPadding: 20, verticalPadding: 12) {
-                    Text(selectedDate.notelyDayTitle())
+                    Text(selectedDate.notyfiDayTitle())
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
                         .foregroundStyle(.primary.opacity(0.84))
                 }
@@ -54,7 +54,7 @@ struct HomeTopBar: View {
     }
 }
 
-private struct NotelyMark: View {
+private struct NotyfiMark: View {
     var body: some View {
         Image("HomeBrandMark")
             .resizable()
@@ -65,7 +65,7 @@ private struct NotelyMark: View {
 
 #Preview {
     ZStack {
-        NotelyTheme.background.ignoresSafeArea()
+        NotyfiTheme.background.ignoresSafeArea()
         VStack {
             HomeTopBar(
                 selectedDate: Date(),

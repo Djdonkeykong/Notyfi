@@ -59,7 +59,29 @@ final class ExpenseJournalStore: ObservableObject {
         on date: Date,
         currencyCode: String = "NOK"
     ) -> UUID {
-        let createdAt = createdAtForInsertion(after: referenceEntry, on: date)
+        let nextEntry = nextEntry(after: referenceEntry, on: date)
+
+        return insertEntry(
+            between: referenceEntry,
+            and: nextEntry,
+            rawText: rawText,
+            on: date,
+            currencyCode: currencyCode
+        )
+    }
+
+    func insertEntry(
+        between previousEntry: ExpenseEntry?,
+        and nextEntry: ExpenseEntry?,
+        rawText: String,
+        on date: Date,
+        currencyCode: String = "NOK"
+    ) -> UUID {
+        let createdAt = createdAtForInsertion(
+            between: previousEntry,
+            and: nextEntry,
+            on: date
+        )
         let entry = makePendingEntry(
             rawText: rawText,
             date: date,
@@ -229,7 +251,7 @@ final class ExpenseJournalStore: ObservableObject {
 
         return ExpenseEntry(
             rawText: rawText,
-            title: trimmedText.isEmpty ? "Untitled entry".notelyLocalized : trimmedText,
+            title: trimmedText.isEmpty ? "Untitled entry".notyfiLocalized : trimmedText,
             amount: 0,
             currencyCode: currencyCode,
             transactionKind: .expense,
@@ -535,35 +557,51 @@ final class ExpenseJournalStore: ObservableObject {
         defaults.set(data, forKey: parseCacheStorageKey)
     }
 
-    private func createdAtForInsertion(after referenceEntry: ExpenseEntry, on date: Date) -> Date {
-        let dayEntries = entries
-            .filter { calendar.isDate($0.date, inSameDayAs: date) }
-            .sorted { lhs, rhs in
-                if calendar.isDate(lhs.date, equalTo: rhs.date, toGranularity: .minute) {
-                    return lhs.createdAt < rhs.createdAt
-                }
+    private func createdAtForInsertion(
+        between previousEntry: ExpenseEntry?,
+        and nextEntry: ExpenseEntry?,
+        on date: Date
+    ) -> Date {
+        switch (previousEntry, nextEntry) {
+        case let (previous?, next?):
+            let delta = next.createdAt.timeIntervalSince(previous.createdAt)
 
-                return lhs.date < rhs.date
+            if delta > 0 {
+                return previous.createdAt.addingTimeInterval(delta / 2)
             }
 
-        guard
-            let referenceIndex = dayEntries.firstIndex(where: { $0.id == referenceEntry.id })
-        else {
-            return max(Date(), referenceEntry.createdAt.addingTimeInterval(0.001))
+            return previous.createdAt.addingTimeInterval(0.001)
+        case let (previous?, nil):
+            return previous.createdAt.addingTimeInterval(0.001)
+        case let (nil, next?):
+            return next.createdAt.addingTimeInterval(-0.001)
+        case (nil, nil):
+            let dayEntries = entries(on: date).sorted { lhs, rhs in
+                lhs.createdAt < rhs.createdAt
+            }
+
+            if let firstEntry = dayEntries.first {
+                return firstEntry.createdAt.addingTimeInterval(-0.001)
+            }
+
+            return Date()
+        }
+    }
+
+    private func nextEntry(after referenceEntry: ExpenseEntry, on date: Date) -> ExpenseEntry? {
+        let dayEntries = entries(on: date).sorted { lhs, rhs in
+            lhs.createdAt < rhs.createdAt
+        }
+
+        guard let referenceIndex = dayEntries.firstIndex(where: { $0.id == referenceEntry.id }) else {
+            return nil
         }
 
         guard referenceIndex + 1 < dayEntries.count else {
-            return max(Date(), referenceEntry.createdAt.addingTimeInterval(0.001))
+            return nil
         }
 
-        let nextCreatedAt = dayEntries[referenceIndex + 1].createdAt
-        let delta = nextCreatedAt.timeIntervalSince(referenceEntry.createdAt)
-
-        if delta > 0 {
-            return referenceEntry.createdAt.addingTimeInterval(delta / 2)
-        }
-
-        return referenceEntry.createdAt.addingTimeInterval(0.001)
+        return dayEntries[referenceIndex + 1]
     }
 }
 

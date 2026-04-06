@@ -10,12 +10,12 @@ struct SoftSurface<Content: View>: View {
             .padding(padding)
             .background {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(NotelyTheme.surface)
+                    .fill(NotyfiTheme.surface)
                     .overlay {
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
+                            .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
                     }
-                    .shadow(color: NotelyTheme.shadow, radius: 18, x: 0, y: 10)
+                    .shadow(color: NotyfiTheme.shadow, radius: 18, x: 0, y: 10)
             }
     }
 }
@@ -31,12 +31,12 @@ struct SoftCapsule<Content: View>: View {
             .padding(.vertical, verticalPadding)
             .background {
                 Capsule()
-                    .fill(NotelyTheme.surface)
+                    .fill(NotyfiTheme.surface)
                     .overlay {
                         Capsule()
-                            .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
+                            .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
                     }
-                    .shadow(color: NotelyTheme.shadow, radius: 16, x: 0, y: 8)
+                    .shadow(color: NotyfiTheme.shadow, radius: 16, x: 0, y: 8)
             }
     }
 }

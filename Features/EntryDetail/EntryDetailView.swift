@@ -10,7 +10,7 @@ struct EntryDetailView: View {
 
     var body: some View {
         ZStack {
-            NotelyTheme.background.ignoresSafeArea()
+            NotyfiTheme.background.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 22) {
@@ -19,9 +19,9 @@ struct EntryDetailView: View {
                     SectionHeader(title: "Original Note")
                     detailCard {
                         VStack(alignment: .leading, spacing: 14) {
-                            TextField("Coffee 49 kr".notelyLocalized, text: $viewModel.rawText, axis: .vertical)
+                            TextField("Coffee 49 kr".notyfiLocalized, text: $viewModel.rawText, axis: .vertical)
                                 .lineLimit(3...6)
-                                .font(.notely(.title3, weight: .medium))
+                                .font(.notyfi(.title3, weight: .medium))
                                 .foregroundStyle(.primary.opacity(0.86))
                         }
                         .padding(.horizontal, 20)
@@ -48,7 +48,7 @@ struct EntryDetailView: View {
                             Divider()
 
                             DetailPickerRow(title: "Type") {
-                                Picker("Type".notelyLocalized, selection: $viewModel.transactionKind) {
+                                Picker("Type".notyfiLocalized, selection: $viewModel.transactionKind) {
                                     ForEach(TransactionKind.allCases) { kind in
                                         Text(kind.title).tag(kind)
                                     }
@@ -61,7 +61,7 @@ struct EntryDetailView: View {
                             Divider()
 
                             DetailPickerRow(title: "Category") {
-                                Picker("Category".notelyLocalized, selection: $viewModel.category) {
+                                Picker("Category".notyfiLocalized, selection: $viewModel.category) {
                                     ForEach(ExpenseCategory.allCases) { category in
                                         Text(category.title).tag(category)
                                     }
@@ -88,22 +88,22 @@ struct EntryDetailView: View {
                     SectionHeader(title: "Notes & Review")
                     detailCard {
                         VStack(alignment: .leading, spacing: 0) {
-                            Toggle("Needs review".notelyLocalized, isOn: $viewModel.needsReview)
-                                .tint(NotelyTheme.reviewTint)
-                                .font(.notely(.body, weight: .medium))
+                            Toggle("Needs review".notyfiLocalized, isOn: $viewModel.needsReview)
+                                .tint(NotyfiTheme.reviewTint)
+                                .font(.notyfi(.body, weight: .medium))
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 18)
 
                             Divider()
 
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Note".notelyLocalized)
-                                    .font(.notely(.footnote, weight: .medium))
-                                    .foregroundStyle(NotelyTheme.secondaryText)
+                                Text("Note".notyfiLocalized)
+                                    .font(.notyfi(.footnote, weight: .medium))
+                                    .foregroundStyle(NotyfiTheme.secondaryText)
 
-                                TextField("Optional context".notelyLocalized, text: $viewModel.note, axis: .vertical)
+                                TextField("Optional context".notyfiLocalized, text: $viewModel.note, axis: .vertical)
                                     .lineLimit(3...6)
-                                    .font(.notely(.body))
+                                    .font(.notyfi(.body))
                                     .foregroundStyle(.primary.opacity(0.84))
                             }
                             .padding(.horizontal, 20)
@@ -122,12 +122,12 @@ struct EntryDetailView: View {
                                     }
 
                                 VStack(alignment: .leading, spacing: 3) {
-                                    Text("Confidence".notelyLocalized)
-                                        .font(.notely(.footnote, weight: .medium))
-                                        .foregroundStyle(NotelyTheme.secondaryText)
+                                    Text("Confidence".notyfiLocalized)
+                                        .font(.notyfi(.footnote, weight: .medium))
+                                        .foregroundStyle(NotyfiTheme.secondaryText)
 
                                     Text(viewModel.confidenceTitle)
-                                        .font(.notely(.body, weight: .semibold))
+                                        .font(.notyfi(.body, weight: .semibold))
                                         .foregroundStyle(viewModel.confidenceColor)
                                 }
 
@@ -151,9 +151,9 @@ struct EntryDetailView: View {
     private var header: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Entry Details".notelyLocalized)
-                    .font(.notely(.footnote, weight: .semibold))
-                    .foregroundStyle(NotelyTheme.secondaryText)
+                Text("Entry Details".notyfiLocalized)
+                    .font(.notyfi(.footnote, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
 
                 Text(viewModel.displayTitle)
                     .font(.system(size: 34, weight: .bold, design: .rounded))
@@ -191,8 +191,8 @@ struct EntryDetailView: View {
                         .monospacedDigit()
 
                     Text(viewModel.summaryCaption)
-                        .font(.notely(.body))
-                        .foregroundStyle(NotelyTheme.secondaryText)
+                        .font(.notyfi(.body))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
 
                     Spacer()
                 }
@@ -229,12 +229,12 @@ struct EntryDetailView: View {
         content()
             .background {
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(NotelyTheme.surface)
+                    .fill(NotyfiTheme.surface)
                     .overlay {
                         RoundedRectangle(cornerRadius: 28, style: .continuous)
-                            .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
+                            .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
                     }
-                    .shadow(color: NotelyTheme.shadow, radius: 18, x: 0, y: 8)
+                    .shadow(color: NotyfiTheme.shadow, radius: 18, x: 0, y: 8)
             }
     }
 }
@@ -250,14 +250,14 @@ private struct CircleActionButton: View {
         }) {
             Image(systemName: systemImage)
                 .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(NotelyTheme.secondaryText)
+                .foregroundStyle(NotyfiTheme.secondaryText)
                 .frame(width: 40, height: 40)
                 .background {
                     Circle()
-                        .fill(NotelyTheme.elevatedSurface)
+                        .fill(NotyfiTheme.elevatedSurface)
                         .overlay {
                             Circle()
-                                .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
+                                .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
                         }
                 }
         }
@@ -274,7 +274,7 @@ private struct SummaryMetricChip: View {
     var body: some View {
         VStack(spacing: 8) {
             Text(value)
-                .font(.notely(.body, weight: .semibold))
+                .font(.notyfi(.body, weight: .semibold))
                 .foregroundStyle(.primary.opacity(0.88))
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
@@ -286,9 +286,9 @@ private struct SummaryMetricChip: View {
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(tint)
 
-                Text(label.notelyLocalized)
-                    .font(.notely(.caption))
-                    .foregroundStyle(NotelyTheme.secondaryText)
+                Text(label.notyfiLocalized)
+                    .font(.notyfi(.caption))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
             }
         }
         .frame(maxWidth: .infinity)
@@ -302,12 +302,12 @@ private struct DetailTextField: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title.notelyLocalized)
-                .font(.notely(.footnote, weight: .medium))
-                .foregroundStyle(NotelyTheme.secondaryText)
+            Text(title.notyfiLocalized)
+                .font(.notyfi(.footnote, weight: .medium))
+                .foregroundStyle(NotyfiTheme.secondaryText)
 
-            TextField(placeholder.notelyLocalized, text: $text)
-                .font(.notely(.body))
+            TextField(placeholder.notyfiLocalized, text: $text)
+                .font(.notyfi(.body))
                 .foregroundStyle(.primary.opacity(0.84))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -323,9 +323,9 @@ private struct DetailPickerRow<Content: View>: View {
     var body: some View {
         HStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(title.notelyLocalized)
-                    .font(.notely(.footnote, weight: .medium))
-                    .foregroundStyle(NotelyTheme.secondaryText)
+                Text(title.notyfiLocalized)
+                    .font(.notyfi(.footnote, weight: .medium))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
 
                 content()
             }
@@ -342,12 +342,12 @@ private struct DetailDateRow: View {
 
     var body: some View {
         DatePicker(
-            "Date".notelyLocalized,
+            "Date".notyfiLocalized,
             selection: $date,
             displayedComponents: [.date, .hourAndMinute]
         )
-        .font(.notely(.body))
-        .tint(NotelyTheme.reviewTint)
+        .font(.notyfi(.body))
+        .tint(NotyfiTheme.reviewTint)
         .padding(.horizontal, 20)
         .padding(.vertical, 18)
     }
@@ -356,7 +356,7 @@ private struct DetailDateRow: View {
 private extension EntryDetailViewModel {
     var displayTitle: String {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Untitled entry".notelyLocalized : trimmed
+        return trimmed.isEmpty ? "Untitled entry".notyfiLocalized : trimmed
     }
 
     var formattedAmount: String {
@@ -373,19 +373,19 @@ private extension EntryDetailViewModel {
 
     var merchantDisplay: String {
         let trimmed = merchant.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Personal".notelyLocalized : trimmed
+        return trimmed.isEmpty ? "Personal".notyfiLocalized : trimmed
     }
 
     var confidenceTitle: String {
         if isAmountEstimated, needsReview {
-            return "Estimated price".notelyLocalized
+            return "Estimated price".notyfiLocalized
         }
 
-        return needsReview ? "Needs review".notelyLocalized : "Ready".notelyLocalized
+        return needsReview ? "Needs review".notyfiLocalized : "Ready".notyfiLocalized
     }
 
     var confidenceColor: Color {
-        needsReview ? NotelyTheme.reviewTint : Color(red: 0.28, green: 0.71, blue: 0.45)
+        needsReview ? NotyfiTheme.reviewTint : Color(red: 0.28, green: 0.71, blue: 0.45)
     }
 
     var confidenceIcon: String {
@@ -398,12 +398,12 @@ private extension EntryDetailViewModel {
 
     var summaryCaption: String {
         if isAmountEstimated, needsReview {
-            return "estimated total".notelyLocalized
+            return "estimated total".notyfiLocalized
         }
 
         return amountText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            ? "amount pending".notelyLocalized
-            : "captured total".notelyLocalized
+            ? "amount pending".notyfiLocalized
+            : "captured total".notyfiLocalized
     }
 }
 

@@ -7,13 +7,13 @@ struct SettingsSheetView: View {
 
     var body: some View {
         ZStack {
-            NotelyTheme.background.ignoresSafeArea()
+            NotyfiTheme.background.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
                     HStack(alignment: .top) {
-                        Text("Settings".notelyLocalized)
-                            .font(.notely(.title3, weight: .semibold))
+                        Text("Settings".notyfiLocalized)
+                            .font(.notyfi(.title3, weight: .semibold))
                             .foregroundStyle(.primary.opacity(0.84))
 
                         Spacer()
@@ -21,11 +21,11 @@ struct SettingsSheetView: View {
                         Button(action: { dismiss() }) {
                             Image(systemName: "xmark")
                                 .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(NotelyTheme.secondaryText)
+                                .foregroundStyle(NotyfiTheme.secondaryText)
                                 .frame(width: 38, height: 38)
                                 .background {
                                     Circle()
-                                        .fill(NotelyTheme.elevatedSurface)
+                                        .fill(NotyfiTheme.elevatedSurface)
                                 }
                         }
                         .buttonStyle(.plain)
@@ -37,7 +37,7 @@ struct SettingsSheetView: View {
                         VStack(spacing: 0) {
                             SettingsValueRow(icon: "person.crop.circle", title: "Name", value: "Ole Christian Michelsen")
                             Divider()
-                            SettingsValueRow(icon: "envelope", title: "Email", value: "notely@icloud.com")
+                            SettingsValueRow(icon: "envelope", title: "Email", value: "notyfi@icloud.com")
                         }
                     }
 
@@ -48,7 +48,7 @@ struct SettingsSheetView: View {
                                 icon: "banknote",
                                 title: "Currency",
                                 value: viewModel.automaticCurrency
-                                    ? String(format: "Auto currency format".notelyLocalized, viewModel.currencyCode)
+                                    ? String(format: "Auto currency format".notyfiLocalized, viewModel.currencyCode)
                                     : viewModel.currencyCode
                             )
                             Divider()
@@ -73,7 +73,7 @@ struct SettingsSheetView: View {
                             SettingsValueRow(
                                 icon: "wand.and.stars",
                                 title: "AI Parsing",
-                                value: "Always on".notelyLocalized
+                                value: "Always on".notyfiLocalized
                             )
                             Divider()
                             SettingsToggleRow(
@@ -99,8 +99,8 @@ struct SettingsSheetView: View {
                                 icon: "server.rack",
                                 title: "Connection",
                                 value: viewModel.syncEnabled
-                                    ? "Supabase placeholder".notelyLocalized
-                                    : "Local only".notelyLocalized
+                                    ? "Supabase placeholder".notyfiLocalized
+                                    : "Local only".notyfiLocalized
                             )
                         }
                     }
@@ -128,9 +128,9 @@ struct SettingsSheetView: View {
                         }
                     }
 
-                    Text("Version 1.0".notelyLocalized)
-                        .font(.notely(.footnote))
-                        .foregroundStyle(NotelyTheme.tertiaryText)
+                    Text("Version 1.0".notyfiLocalized)
+                        .font(.notyfi(.footnote))
+                        .foregroundStyle(NotyfiTheme.tertiaryText)
                         .padding(.bottom, 8)
                 }
                 .padding(.horizontal, 20)
@@ -139,18 +139,18 @@ struct SettingsSheetView: View {
             }
         }
         .confirmationDialog(
-            "Clear your entire log?".notelyLocalized,
+            "Clear your entire log?".notyfiLocalized,
             isPresented: $isClearLogConfirmationPresented,
             titleVisibility: .visible
         ) {
-            Button("Clear Log".notelyLocalized, role: .destructive) {
+            Button("Clear Log".notyfiLocalized, role: .destructive) {
                 viewModel.clearLog()
                 dismiss()
             }
 
-            Button("Cancel".notelyLocalized, role: .cancel) {}
+            Button("Cancel".notyfiLocalized, role: .cancel) {}
         } message: {
-            Text("This removes every saved entry from Notely.".notelyLocalized)
+            Text("This removes every saved entry from Notyfi.".notyfiLocalized)
         }
     }
 }
@@ -162,12 +162,12 @@ private struct SettingsCard<Content: View>: View {
         content()
             .background {
                 RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    .fill(NotelyTheme.surface)
+                    .fill(NotyfiTheme.surface)
                     .overlay {
                         RoundedRectangle(cornerRadius: 26, style: .continuous)
-                            .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
+                            .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
                     }
-                    .shadow(color: NotelyTheme.shadow, radius: 16, x: 0, y: 8)
+                    .shadow(color: NotyfiTheme.shadow, radius: 16, x: 0, y: 8)
             }
     }
 }
@@ -180,18 +180,18 @@ private struct SettingsValueRow: View {
     var body: some View {
         HStack(spacing: 14) {
             Image(systemName: icon)
-                .foregroundStyle(NotelyTheme.secondaryText)
+                .foregroundStyle(NotyfiTheme.secondaryText)
                 .frame(width: 18)
 
-            Text(title.notelyLocalized)
-                .font(.notely(.body))
+            Text(title.notyfiLocalized)
+                .font(.notyfi(.body))
                 .foregroundStyle(.primary.opacity(0.82))
 
             Spacer()
 
             Text(value)
-                .font(.notely(.subheadline))
-                .foregroundStyle(NotelyTheme.secondaryText)
+                .font(.notyfi(.subheadline))
+                .foregroundStyle(NotyfiTheme.secondaryText)
                 .multilineTextAlignment(.trailing)
         }
         .padding(.horizontal, 18)
@@ -208,24 +208,24 @@ private struct SettingsToggleRow: View {
     var body: some View {
         HStack(alignment: .center, spacing: 14) {
             Image(systemName: icon)
-                .foregroundStyle(NotelyTheme.secondaryText)
+                .foregroundStyle(NotyfiTheme.secondaryText)
                 .frame(width: 18)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(title.notelyLocalized)
-                    .font(.notely(.body))
+                Text(title.notyfiLocalized)
+                    .font(.notyfi(.body))
                     .foregroundStyle(.primary.opacity(0.82))
 
-                Text(subtitle.notelyLocalized)
-                    .font(.notely(.caption))
-                    .foregroundStyle(NotelyTheme.secondaryText)
+                Text(subtitle.notyfiLocalized)
+                    .font(.notyfi(.caption))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
             }
 
             Spacer()
 
             Toggle("", isOn: $isOn)
                 .labelsHidden()
-                .tint(NotelyTheme.brandBlue)
+                .tint(NotyfiTheme.brandBlue)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
@@ -240,23 +240,23 @@ private struct SettingsPickerRow: View {
     var body: some View {
         HStack(spacing: 14) {
             Image(systemName: icon)
-                .foregroundStyle(NotelyTheme.secondaryText)
+                .foregroundStyle(NotyfiTheme.secondaryText)
                 .frame(width: 18)
 
-            Text(title.notelyLocalized)
-                .font(.notely(.body))
+            Text(title.notyfiLocalized)
+                .font(.notyfi(.body))
                 .foregroundStyle(.primary.opacity(0.82))
 
             Spacer()
 
-            Picker(title.notelyLocalized, selection: $selection) {
+            Picker(title.notyfiLocalized, selection: $selection) {
                 ForEach(SettingsViewModel.AppearanceMode.allCases) { mode in
                     Text(mode.title).tag(mode)
                 }
             }
             .pickerStyle(.menu)
             .labelsHidden()
-            .tint(NotelyTheme.brandBlue)
+            .tint(NotyfiTheme.brandBlue)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
@@ -274,11 +274,11 @@ private struct SettingsActionRow: View {
         Button(action: action) {
             HStack(spacing: 14) {
                 Image(systemName: icon)
-                    .foregroundStyle(isDestructive ? .red.opacity(0.75) : NotelyTheme.brandBlue.opacity(0.9))
+                    .foregroundStyle(isDestructive ? .red.opacity(0.75) : NotyfiTheme.brandBlue.opacity(0.9))
                     .frame(width: 18)
 
-                Text(title.notelyLocalized)
-                    .font(.notely(.body))
+                Text(title.notyfiLocalized)
+                    .font(.notyfi(.body))
                     .foregroundStyle(isDestructive ? .red.opacity(0.78) : .primary.opacity(0.82))
 
                 Spacer()
@@ -286,7 +286,7 @@ private struct SettingsActionRow: View {
                 if showsChevron {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(NotelyTheme.tertiaryText)
+                        .foregroundStyle(NotyfiTheme.tertiaryText)
                 }
             }
             .padding(.horizontal, 18)

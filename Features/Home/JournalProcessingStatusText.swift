@@ -5,10 +5,10 @@ struct JournalProcessingStatusText: View {
     let showsTypingDots: Bool
 
     private let statuses = [
-        "Checking".notelyLocalized,
-        "Reading".notelyLocalized,
-        "Finding".notelyLocalized,
-        "Thinking".notelyLocalized
+        "Checking".notyfiLocalized,
+        "Reading".notyfiLocalized,
+        "Finding".notyfiLocalized,
+        "Thinking".notyfiLocalized
     ]
     private let typingIdleDelay: TimeInterval = 0.7
     private let statusDuration: TimeInterval = 2.4
@@ -33,7 +33,7 @@ struct JournalProcessingStatusText: View {
             ZStack(alignment: .trailing) {
                 if isShowingLoadingDots {
                     JournalProcessingLoadingDots(timestamp: context.date)
-                        .foregroundStyle(NotelyTheme.secondaryText.opacity(0.45))
+                        .foregroundStyle(NotyfiTheme.secondaryText.opacity(0.45))
                         .transition(.opacity.combined(with: .scale(scale: 0.94)))
                 } else {
                     ZStack(alignment: .leading) {
@@ -74,7 +74,7 @@ struct JournalProcessingStatusText: View {
 
     private func shimmeredStatusText(_ status: String, timestamp: Date) -> some View {
         Text(status)
-            .foregroundStyle(NotelyTheme.secondaryText.opacity(0.45))
+            .foregroundStyle(NotyfiTheme.secondaryText.opacity(0.45))
             .overlay {
                 GeometryReader { proxy in
                     let elapsed = timestamp.timeIntervalSince(shimmerCycleStart)

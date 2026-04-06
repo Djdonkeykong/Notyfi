@@ -12,11 +12,11 @@ final class SettingsViewModel: ObservableObject {
         var title: String {
             switch self {
             case .system:
-                return "System".notelyLocalized
+                return "System".notyfiLocalized
             case .light:
-                return "Light".notelyLocalized
+                return "Light".notyfiLocalized
             case .dark:
-                return "Dark".notelyLocalized
+                return "Dark".notyfiLocalized
             }
         }
     }

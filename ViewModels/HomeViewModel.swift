@@ -50,7 +50,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     var entryCountText: String {
-        String.notelyNotesCount(displayedEntries.count)
+        String.notyfiNotesCount(displayedEntries.count)
     }
 
     var hasEntries: Bool {
@@ -78,9 +78,9 @@ final class HomeViewModel: ObservableObject {
             if composerPreviewDraft.amount > 0 {
                 primaryText = Self.signedAmountText(for: composerPreviewDraft)
             } else if composerPreviewDraft.confidence == .review {
-                primaryText = "Review".notelyLocalized
+                primaryText = "Review".notyfiLocalized
             } else {
-                primaryText = "Checking".notelyLocalized
+                primaryText = "Checking".notyfiLocalized
             }
 
             let primaryColorName: DraftComposerFeedback.PrimaryColorName
@@ -100,14 +100,14 @@ final class HomeViewModel: ObservableObject {
         }
 
         return DraftComposerFeedback(
-            primaryText: "Checking".notelyLocalized,
+            primaryText: "Checking".notyfiLocalized,
             secondaryText: nil,
             primaryColorName: .neutral
         )
     }
 
-    var hasFocusedJournalText: Bool {
-        !displayedEntries.isEmpty || !composerText.isEmpty
+    var hasPendingComposerDraft: Bool {
+        !composerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     func addEntry() {
@@ -149,24 +149,13 @@ final class HomeViewModel: ObservableObject {
         let currentEntries = displayedEntries
         let hasComposerLine = normalized.hasSuffix("\n") || lines.count > currentEntries.count
         let entryLineCount = hasComposerLine ? max(lines.count - 1, 0) : lines.count
-        let preservedEntryCount = min(currentEntries.count, entryLineCount)
+        let entryLines = Array(lines.prefix(entryLineCount))
 
-        if preservedEntryCount > 0 {
-            for index in 0..<preservedEntryCount where currentEntries[index].rawText != lines[index] {
-                updateEntryText(currentEntries[index], rawText: lines[index])
-            }
-        }
-
-        if currentEntries.count > entryLineCount {
-            currentEntries[entryLineCount...].forEach { entry in
-                store.removeEntry(id: entry.id)
-            }
-        } else if entryLineCount > currentEntries.count {
-            appendJournalLines(
-                Array(lines[currentEntries.count..<entryLineCount]),
-                after: currentEntries.last
-            )
-        }
+        reconcileEntries(
+            currentEntries: currentEntries,
+            with: entryLines,
+            on: selectedDate
+        )
 
         let nextComposerText = hasComposerLine ? lines.last ?? "" : ""
         if composerText != nextComposerText {
@@ -182,15 +171,34 @@ final class HomeViewModel: ObservableObject {
         scheduleComposerPreviewParse()
     }
 
-    func updateComposerText(_ rawText: String) {
-        let normalized = rawText.replacingOccurrences(of: "\r\n", with: "\n")
-
-        if composerText != normalized {
-            composerText = normalized
+    func handleReturn(
+        at lineIndex: Int,
+        leadingText: String,
+        trailingText: String
+    ) -> JournalEditorFocusRequest? {
+        if lineIndex < displayedEntries.count {
+            return splitEntryText(
+                displayedEntries[lineIndex],
+                lineIndex: lineIndex,
+                leadingText: leadingText,
+                trailingText: trailingText
+            )
         }
 
-        composerDraftsByDay[dayKey(for: selectedDate)] = composerText
-        scheduleComposerPreviewParse()
+        return splitComposerText(
+            leadingText: leadingText,
+            trailingText: trailingText
+        )
+    }
+
+    func handleBackspaceAtLineStart(
+        at lineIndex: Int
+    ) -> JournalEditorFocusRequest? {
+        if lineIndex < displayedEntries.count {
+            return mergeEntryBackward(displayedEntries[lineIndex])
+        }
+
+        return mergeComposerBackward()
     }
 
     func composerDraft(for date: Date) -> String {
@@ -209,6 +217,7 @@ final class HomeViewModel: ObservableObject {
     ) -> JournalEditorFocusRequest? {
         let normalizedLeadingText = leadingText.replacingOccurrences(of: "\r\n", with: "\n")
         let normalizedTrailingText = trailingText.replacingOccurrences(of: "\r\n", with: "\n")
+        let nextEntryLines = displayedEntries.map(\.rawText) + [normalizedLeadingText]
 
         store.addEntry(
             from: normalizedLeadingText,
@@ -219,9 +228,11 @@ final class HomeViewModel: ObservableObject {
         composerText = normalizedTrailingText
         composerDraftsByDay[dayKey(for: selectedDate)] = composerText
 
-        return JournalEditorFocusRequest(
-            target: .composer(dayKey(for: selectedDate)),
-            cursorPlacement: .start
+        return journalFocusRequest(
+            absoluteOffset: absoluteOffsetForLineStart(
+                nextEntryLines.count,
+                entryLines: nextEntryLines
+            )
         )
     }
 
@@ -239,9 +250,12 @@ final class HomeViewModel: ObservableObject {
         composerText = ""
         composerDraftsByDay[dayKey(for: selectedDate)] = ""
 
-        return JournalEditorFocusRequest(
-            target: .entry(previousEntry.id),
-            cursorPlacement: .offset(insertionOffset)
+        return journalFocusRequest(
+            absoluteOffset: absoluteOffset(
+                lineIndex: displayedEntries.count - 1,
+                column: insertionOffset,
+                entryLines: displayedEntries.dropLast().map(\.rawText) + [mergedText]
+            )
         )
     }
 
@@ -255,27 +269,33 @@ final class HomeViewModel: ObservableObject {
 
     func splitEntryText(
         _ entry: ExpenseEntry,
+        lineIndex: Int,
         leadingText: String,
         trailingText: String
     ) -> JournalEditorFocusRequest? {
         let normalizedLeadingText = leadingText.replacingOccurrences(of: "\r\n", with: "\n")
         let normalizedTrailingText = trailingText.replacingOccurrences(of: "\r\n", with: "\n")
+        let nextEntryLines = Array(displayedEntries.prefix(lineIndex).map(\.rawText))
+            + [normalizedLeadingText, normalizedTrailingText]
+            + Array(displayedEntries.dropFirst(lineIndex + 1).map(\.rawText))
 
         store.updateEntry(
             pendingTextEntry(entry, rawText: normalizedLeadingText),
             shouldReparseRawText: true
         )
 
-        let insertedEntryID = store.insertEntry(
+        store.insertEntry(
             after: entry,
             rawText: normalizedTrailingText,
             on: entry.date,
             currencyCode: entry.currencyCode
         )
 
-        return JournalEditorFocusRequest(
-            target: .entry(insertedEntryID),
-            cursorPlacement: .start
+        return journalFocusRequest(
+            absoluteOffset: absoluteOffsetForLineStart(
+                lineIndex + 1,
+                entryLines: nextEntryLines
+            )
         )
     }
 
@@ -286,34 +306,29 @@ final class HomeViewModel: ObservableObject {
 
         guard currentIndex > 0 else {
             guard entry.rawText.isEmpty else {
-                return JournalEditorFocusRequest(
-                    target: .entry(entry.id),
-                    cursorPlacement: .start
-                )
+                return nil
             }
 
-            let nextEntry = displayedEntries.dropFirst().first
             store.removeEntry(id: entry.id)
 
-            if let nextEntry {
-                return JournalEditorFocusRequest(
-                    target: .entry(nextEntry.id),
-                    cursorPlacement: .start
+            if displayedEntries.dropFirst().first != nil {
+                return journalFocusRequest(
+                    absoluteOffset: 0
                 )
             }
 
             composerText = ""
             composerDraftsByDay[dayKey(for: entry.date)] = ""
 
-            return JournalEditorFocusRequest(
-                target: .composer(dayKey(for: entry.date)),
-                cursorPlacement: .start
-            )
+            return journalFocusRequest(absoluteOffset: 0)
         }
 
         let previousEntry = displayedEntries[currentIndex - 1]
         let insertionOffset = previousEntry.rawText.utf16.count
         let mergedText = previousEntry.rawText + entry.rawText
+        let nextEntryLines = Array(displayedEntries.prefix(currentIndex - 1).map(\.rawText))
+            + [mergedText]
+            + Array(displayedEntries.dropFirst(currentIndex + 1).map(\.rawText))
 
         store.updateEntry(
             pendingTextEntry(previousEntry, rawText: mergedText),
@@ -321,9 +336,12 @@ final class HomeViewModel: ObservableObject {
         )
         store.removeEntry(id: entry.id)
 
-        return JournalEditorFocusRequest(
-            target: .entry(previousEntry.id),
-            cursorPlacement: .offset(insertionOffset)
+        return journalFocusRequest(
+            absoluteOffset: absoluteOffset(
+                lineIndex: currentIndex - 1,
+                column: insertionOffset,
+                entryLines: nextEntryLines
+            )
         )
     }
 
@@ -420,46 +438,45 @@ final class HomeViewModel: ObservableObject {
         )
     }
 
-    private func appendJournalLines(
-        _ lines: [String],
-        after trailingEntry: ExpenseEntry?
-    ) {
-        var currentTrailingEntry = trailingEntry
-
-        for line in lines {
-            if let trailingEntry = currentTrailingEntry,
-               let insertedEntry = insertEntryAfterReference(
-                   trailingEntry,
-                   rawText: line,
-                   on: selectedDate
-               ) {
-                currentTrailingEntry = insertedEntry
-            } else {
-                store.addEntry(
-                    from: line,
-                    on: selectedDate,
-                    currencyCode: currencyCode
-                )
-                currentTrailingEntry = store.entries(on: selectedDate).max {
-                    $0.createdAt < $1.createdAt
-                }
-            }
-        }
-    }
-
-    private func insertEntryAfterReference(
-        _ referenceEntry: ExpenseEntry,
-        rawText: String,
+    private func reconcileEntries(
+        currentEntries: [ExpenseEntry],
+        with nextLines: [String],
         on date: Date
-    ) -> ExpenseEntry? {
-        let insertedEntryID = store.insertEntry(
-            after: referenceEntry,
-            rawText: rawText,
-            on: date,
-            currencyCode: currencyCode
+    ) {
+        let operations = reconciliationOperations(
+            currentEntries: currentEntries,
+            nextLines: nextLines
         )
 
-        return store.entries.first { $0.id == insertedEntryID }
+        var previousResolvedEntry: ExpenseEntry?
+
+        for index in operations.indices {
+            switch operations[index] {
+            case .keep(let entry):
+                previousResolvedEntry = store.entries.first { $0.id == entry.id } ?? entry
+            case .update(let entry, let rawText):
+                let updatedEntry = pendingTextEntry(entry, rawText: rawText)
+                store.updateEntry(updatedEntry, shouldReparseRawText: true)
+                previousResolvedEntry = updatedEntry
+            case .delete(let entry):
+                store.removeEntry(id: entry.id)
+            case .insert(let rawText):
+                let nextResolvedEntry = nextSurvivingEntry(
+                    after: index,
+                    operations: operations
+                )
+
+                let insertedEntryID = store.insertEntry(
+                    between: previousResolvedEntry,
+                    and: nextResolvedEntry,
+                    rawText: rawText,
+                    on: date,
+                    currencyCode: currencyCode
+                )
+
+                previousResolvedEntry = store.entries.first { $0.id == insertedEntryID }
+            }
+        }
     }
 
     private func composeJournalText(
@@ -515,21 +532,19 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func pendingTextEntry(_ entry: ExpenseEntry, rawText: String) -> ExpenseEntry {
-        let trimmedText = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
-
         return ExpenseEntry(
             id: entry.id,
             rawText: rawText,
-            title: trimmedText.isEmpty ? entry.title : trimmedText,
-            amount: 0,
+            title: entry.title,
+            amount: entry.amount,
             currencyCode: entry.currencyCode,
             transactionKind: entry.transactionKind,
-            category: .uncategorized,
-            merchant: nil,
+            category: entry.category,
+            merchant: entry.merchant,
             date: entry.date,
             note: entry.note,
-            confidence: .uncertain,
-            isAmountEstimated: false,
+            confidence: entry.confidence,
+            isAmountEstimated: entry.isAmountEstimated,
             createdAt: entry.createdAt
         )
     }
@@ -584,5 +599,191 @@ final class HomeViewModel: ObservableObject {
             ? "+\(formattedAmount)"
             : "-\(formattedAmount)"
         return draft.isAmountEstimated ? "\(signedAmount)*" : signedAmount
+    }
+
+    private func journalFocusRequest(
+        absoluteOffset: Int
+    ) -> JournalEditorFocusRequest {
+        JournalEditorFocusRequest(
+            target: .composer(dayKey(for: selectedDate)),
+            cursorPlacement: .offset(absoluteOffset)
+        )
+    }
+
+    private func absoluteOffsetForLineStart(
+        _ lineIndex: Int,
+        entryLines: [String]
+    ) -> Int {
+        absoluteOffset(
+            lineIndex: lineIndex,
+            column: 0,
+            entryLines: entryLines
+        )
+    }
+
+    private func absoluteOffset(
+        lineIndex: Int,
+        column: Int,
+        entryLines: [String]
+    ) -> Int {
+        let safeLineIndex = max(lineIndex, 0)
+        let prefixLineCount = min(safeLineIndex, entryLines.count)
+        let prefixLength = entryLines.prefix(prefixLineCount).reduce(into: 0) { total, line in
+            total += line.utf16.count
+        }
+
+        return prefixLength + prefixLineCount + max(column, 0)
+    }
+}
+
+private extension HomeViewModel {
+    struct MatchedJournalLine {
+        let currentIndex: Int
+        let nextIndex: Int
+    }
+
+    enum JournalReconciliationOperation {
+        case keep(ExpenseEntry)
+        case update(ExpenseEntry, rawText: String)
+        case delete(ExpenseEntry)
+        case insert(rawText: String)
+    }
+
+    private func reconciliationOperations(
+        currentEntries: [ExpenseEntry],
+        nextLines: [String]
+    ) -> [JournalReconciliationOperation] {
+        let currentLines = currentEntries.map(\.rawText)
+        var operations: [JournalReconciliationOperation] = []
+        let matches = longestCommonSubsequenceMatches(
+            currentLines: currentLines,
+            nextLines: nextLines
+        )
+        var currentBlockStart = 0
+        var nextBlockStart = 0
+
+        for match in matches {
+            operations.append(
+                contentsOf: reconciliationOperationsForBlock(
+                    currentEntries: currentEntries,
+                    nextLines: nextLines,
+                    currentRange: currentBlockStart..<match.currentIndex,
+                    nextRange: nextBlockStart..<match.nextIndex
+                )
+            )
+            operations.append(.keep(currentEntries[match.currentIndex]))
+            currentBlockStart = match.currentIndex + 1
+            nextBlockStart = match.nextIndex + 1
+        }
+
+        operations.append(
+            contentsOf: reconciliationOperationsForBlock(
+                currentEntries: currentEntries,
+                nextLines: nextLines,
+                currentRange: currentBlockStart..<currentEntries.count,
+                nextRange: nextBlockStart..<nextLines.count
+            )
+        )
+
+        return operations
+    }
+
+    private func nextSurvivingEntry(
+        after index: Int,
+        operations: [JournalReconciliationOperation]
+    ) -> ExpenseEntry? {
+        guard index + 1 < operations.count else {
+            return nil
+        }
+
+        for candidate in operations[(index + 1)...] {
+            switch candidate {
+            case .keep(let entry), .update(let entry, _):
+                return store.entries.first { $0.id == entry.id } ?? entry
+            case .delete, .insert:
+                continue
+            }
+        }
+
+        return nil
+    }
+
+    private func longestCommonSubsequenceMatches(
+        currentLines: [String],
+        nextLines: [String]
+    ) -> [MatchedJournalLine] {
+        let rowCount = currentLines.count
+        let columnCount = nextLines.count
+        var lengths = Array(
+            repeating: Array(repeating: 0, count: columnCount + 1),
+            count: rowCount + 1
+        )
+
+        guard rowCount > 0, columnCount > 0 else {
+            return []
+        }
+
+        for row in 1...rowCount {
+            for column in 1...columnCount {
+                if currentLines[row - 1] == nextLines[column - 1] {
+                    lengths[row][column] = lengths[row - 1][column - 1] + 1
+                } else {
+                    lengths[row][column] = max(lengths[row - 1][column], lengths[row][column - 1])
+                }
+            }
+        }
+
+        var matches: [MatchedJournalLine] = []
+        var row = rowCount
+        var column = columnCount
+
+        while row > 0, column > 0 {
+            if currentLines[row - 1] == nextLines[column - 1] {
+                matches.append(
+                    MatchedJournalLine(
+                        currentIndex: row - 1,
+                        nextIndex: column - 1
+                    )
+                )
+                row -= 1
+                column -= 1
+            } else if lengths[row - 1][column] >= lengths[row][column - 1] {
+                row -= 1
+            } else {
+                column -= 1
+            }
+        }
+
+        return matches.reversed()
+    }
+
+    private func reconciliationOperationsForBlock(
+        currentEntries: [ExpenseEntry],
+        nextLines: [String],
+        currentRange: Range<Int>,
+        nextRange: Range<Int>
+    ) -> [JournalReconciliationOperation] {
+        var operations: [JournalReconciliationOperation] = []
+        let overlap = min(currentRange.count, nextRange.count)
+
+        for offset in 0..<overlap {
+            let currentEntry = currentEntries[currentRange.lowerBound + offset]
+            let nextRawText = nextLines[nextRange.lowerBound + offset]
+            operations.append(.update(currentEntry, rawText: nextRawText))
+        }
+
+        if currentRange.count > overlap {
+            for index in (currentRange.lowerBound + overlap)..<currentRange.upperBound {
+                operations.append(.delete(currentEntries[index]))
+            }
+        }
+
+        if nextRange.count > overlap {
+            for index in (nextRange.lowerBound + overlap)..<nextRange.upperBound {
+                operations.append(.insert(rawText: nextLines[index]))
+            }
+        }
+
+        return operations
     }
 }

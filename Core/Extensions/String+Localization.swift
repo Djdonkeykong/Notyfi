@@ -1,12 +1,12 @@
 import Foundation
 
 extension String {
-    var notelyLocalized: String {
+    var notyfiLocalized: String {
         NSLocalizedString(self, comment: "")
     }
 
-    static func notelyNotesCount(_ count: Int) -> String {
+    static func notyfiNotesCount(_ count: Int) -> String {
         let formatKey = count == 1 ? "Single note count format" : "Notes count format"
-        return String(format: formatKey.notelyLocalized, count)
+        return String(format: formatKey.notyfiLocalized, count)
     }
 }

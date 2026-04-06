@@ -11,6 +11,12 @@ struct JournalTextLineFrame: Equatable, Identifiable {
     }
 }
 
+struct JournalLogLineEdit {
+    let lineIndex: Int
+    let leadingText: String
+    let trailingText: String
+}
+
 struct JournalLogTextView: UIViewRepresentable {
     static let paragraphSpacing: CGFloat = 29
     static let estimatedLineHeight: CGFloat = 22
@@ -25,6 +31,8 @@ struct JournalLogTextView: UIViewRepresentable {
     let isEditable: Bool
     let trailingInset: CGFloat
     let onTextChange: (String) -> Void
+    let onReturnKey: (JournalLogLineEdit) -> Void
+    let onBackspaceAtLineStart: (Int) -> Void
     let onLineFramesChange: ([JournalTextLineFrame]) -> Void
 
     private static var textAttributes: [NSAttributedString.Key: Any] {
@@ -34,7 +42,7 @@ struct JournalLogTextView: UIViewRepresentable {
         paragraphStyle.lineBreakMode = .byWordWrapping
 
         return [
-            .font: UIFont.notelyBody,
+            .font: UIFont.notyfiBody,
             .foregroundColor: UIColor.label.withAlphaComponent(0.86),
             .paragraphStyle: paragraphStyle
         ]
@@ -46,7 +54,7 @@ struct JournalLogTextView: UIViewRepresentable {
         textView.delegate = context.coordinator
         textView.textContainerInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: trailingInset)
         textView.textContainer.lineFragmentPadding = 0
-        textView.font = .notelyBody
+        textView.font = .notyfiBody
         textView.textColor = UIColor.label.withAlphaComponent(0.86)
         textView.tintColor = UIColor(
             red: 0.26,
@@ -220,6 +228,40 @@ struct JournalLogTextView: UIViewRepresentable {
             publishLineFrames(from: textView)
         }
 
+        func textView(
+            _ textView: UITextView,
+            shouldChangeTextIn range: NSRange,
+            replacementText replacement: String
+        ) -> Bool {
+            let currentText = textView.text ?? ""
+
+            if replacement == "\n",
+               let edit = lineEdit(
+                   in: currentText,
+                   range: range
+               ) {
+                parent.onReturnKey(edit)
+                return false
+            }
+
+            if replacement.isEmpty,
+               range.length == 1,
+               range.location < (currentText as NSString).length,
+               isDeletingLineBreak(
+                   in: currentText,
+                   range: range
+               ) {
+                let lineIndex = lineIndexAfterDeletedLineBreak(
+                    in: currentText,
+                    range: range
+                )
+                parent.onBackspaceAtLineStart(lineIndex)
+                return false
+            }
+
+            return true
+        }
+
         private func publishCursorLineIndex(from textView: UITextView) {
             let nsText = (textView.text ?? "") as NSString
             let cursorLocation = min(
@@ -327,6 +369,63 @@ struct JournalLogTextView: UIViewRepresentable {
             }
 
             return frames
+        }
+
+        private func lineEdit(
+            in text: String,
+            range: NSRange
+        ) -> JournalLogLineEdit? {
+            guard let textRange = Range(range, in: text) else {
+                return nil
+            }
+
+            let nsText = text as NSString
+            let selectedText = nsText.substring(with: range)
+            guard !selectedText.contains("\n") else {
+                return nil
+            }
+
+            let lineIndex = text[..<textRange.lowerBound].reduce(into: 0) { count, character in
+                if character == "\n" {
+                    count += 1
+                }
+            }
+
+            let lineStart = text[..<textRange.lowerBound].lastIndex(of: "\n").map {
+                text.index(after: $0)
+            } ?? text.startIndex
+            let lineEnd = text[textRange.upperBound...].firstIndex(of: "\n") ?? text.endIndex
+            let leadingText = String(text[lineStart..<textRange.lowerBound])
+            let trailingText = String(text[textRange.upperBound..<lineEnd])
+
+            return JournalLogLineEdit(
+                lineIndex: lineIndex,
+                leadingText: leadingText,
+                trailingText: trailingText
+            )
+        }
+
+        private func isDeletingLineBreak(
+            in text: String,
+            range: NSRange
+        ) -> Bool {
+            let nsText = text as NSString
+            return nsText.substring(with: range) == "\n"
+        }
+
+        private func lineIndexAfterDeletedLineBreak(
+            in text: String,
+            range: NSRange
+        ) -> Int {
+            let nsText = text as NSString
+            let prefixLength = min(range.location + range.length, nsText.length)
+            let prefix = nsText.substring(to: prefixLength)
+
+            return prefix.reduce(into: 0) { count, character in
+                if character == "\n" {
+                    count += 1
+                }
+            }
         }
     }
 }

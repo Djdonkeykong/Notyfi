@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum NotelyTheme {
+enum NotyfiTheme {
     static let background = Color(red: 0.972, green: 0.966, blue: 0.962)
     static let surface = Color.white.opacity(0.84)
     static let elevatedSurface = Color(red: 0.992, green: 0.988, blue: 0.984)
@@ -14,7 +14,7 @@ enum NotelyTheme {
 }
 
 extension Font {
-    static func notely(_ style: TextStyle, weight: Weight = .regular) -> Font {
+    static func notyfi(_ style: TextStyle, weight: Weight = .regular) -> Font {
         .system(style, design: .rounded, weight: weight)
     }
 }

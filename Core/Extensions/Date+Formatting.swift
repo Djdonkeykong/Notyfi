@@ -1,13 +1,13 @@
 import Foundation
 
 extension Date {
-    func notelyDayTitle(calendar: Calendar = .autoupdatingCurrent) -> String {
+    func notyfiDayTitle(calendar: Calendar = .autoupdatingCurrent) -> String {
         if calendar.isDateInToday(self) {
-            return "Today".notelyLocalized
+            return "Today".notyfiLocalized
         }
 
         if calendar.isDateInYesterday(self) {
-            return "Yesterday".notelyLocalized
+            return "Yesterday".notyfiLocalized
         }
 
         let formatter = DateFormatter()
@@ -17,19 +17,19 @@ extension Date {
         return formatter.string(from: self).uppercased(with: .autoupdatingCurrent)
     }
 
-    func notelySectionTitle(calendar: Calendar = .autoupdatingCurrent) -> String {
+    func notyfiSectionTitle(calendar: Calendar = .autoupdatingCurrent) -> String {
         if calendar.isDateInToday(self) {
-            return "Today".notelyLocalized
+            return "Today".notyfiLocalized
         }
 
         return formatted(.dateTime.month(.wide).day())
     }
 
-    func notelyTimeLabel() -> String {
+    func notyfiTimeLabel() -> String {
         formatted(date: .omitted, time: .shortened)
     }
 
-    func notelyDetailLabel() -> String {
+    func notyfiDetailLabel() -> String {
         formatted(.dateTime.weekday(.wide).month(.wide).day().hour().minute())
     }
 }

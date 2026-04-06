@@ -15,7 +15,7 @@ struct HomeSummaryBar: View {
                 HStack(spacing: 18) {
                     SummaryItem(
                         symbol: "sun.max.fill",
-                        symbolColor: NotelyTheme.reviewTint,
+                        symbolColor: NotyfiTheme.reviewTint,
                         text: insight.dayExpenseTotal.formattedCurrency(code: currencyCode)
                     )
 
@@ -32,7 +32,7 @@ struct HomeSummaryBar: View {
                         symbolColor: insight.topCategory?.tint ?? Color(red: 0.79, green: 0.65, blue: 0.36),
                         text: insight.topCategory.map { category in
                             "\(category.title) \(Self.shareText(insight.topCategoryShare))"
-                        } ?? String.notelyNotesCount(entryCount)
+                        } ?? String.notyfiNotesCount(entryCount)
                     )
 
                     if insight.reviewCount > 0 {
@@ -80,20 +80,20 @@ struct HomeSnapshotCard: View {
             VStack(alignment: .leading, spacing: 18) {
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Monthly insight".notelyLocalized)
-                            .font(.notely(.headline, weight: .semibold))
+                        Text("Monthly insight".notyfiLocalized)
+                            .font(.notyfi(.headline, weight: .semibold))
                             .foregroundStyle(.primary.opacity(0.9))
 
                         Text(insightHeadline)
-                            .font(.notely(.footnote))
-                            .foregroundStyle(NotelyTheme.secondaryText)
+                            .font(.notyfi(.footnote))
+                            .foregroundStyle(NotyfiTheme.secondaryText)
                     }
 
                     Spacer()
 
                     if insight.reviewCount > 0 {
                         Label("\(insight.reviewCount)", systemImage: "wand.and.stars")
-                            .font(.notely(.footnote, weight: .semibold))
+                            .font(.notyfi(.footnote, weight: .semibold))
                             .foregroundStyle(Color(red: 0.74, green: 0.47, blue: 0.86))
                     }
                 }
@@ -110,7 +110,7 @@ struct HomeSnapshotCard: View {
                     SnapshotMetricTile(
                         title: "Income",
                         value: insight.monthIncomeTotal.formattedCurrency(code: currencyCode),
-                        caption: String.notelyNotesCount(insight.monthEntryCount),
+                        caption: String.notyfiNotesCount(insight.monthEntryCount),
                         symbol: "arrow.down.circle.fill",
                         tint: Color(red: 0.28, green: 0.71, blue: 0.45)
                     )
@@ -127,8 +127,8 @@ struct HomeSnapshotCard: View {
                 }
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Top categories".notelyLocalized)
-                        .font(.notely(.footnote, weight: .semibold))
+                    Text("Top categories".notyfiLocalized)
+                        .font(.notyfi(.footnote, weight: .semibold))
                         .foregroundStyle(.primary.opacity(0.88))
 
                     if insight.categoryBreakdown.isEmpty {
@@ -151,12 +151,12 @@ struct HomeSnapshotCard: View {
 
     private var insightHeadline: String {
         guard let topCategory = insight.topCategory else {
-            return "Start adding notes to see where your money goes.".notelyLocalized
+            return "Start adding notes to see where your money goes.".notyfiLocalized
         }
 
         let share = Int((insight.topCategoryShare * 100).rounded())
         return String(
-            format: "Top category insight format".notelyLocalized,
+            format: "Top category insight format".notyfiLocalized,
             topCategory.title,
             share
         )
@@ -189,7 +189,7 @@ private struct SummaryItem: View {
                 .foregroundStyle(symbolColor)
 
             Text(text)
-                .font(.notely(.footnote, weight: .medium))
+                .font(.notyfi(.footnote, weight: .medium))
                 .foregroundStyle(.primary.opacity(0.82))
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
@@ -211,31 +211,31 @@ private struct SnapshotMetricTile: View {
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(tint)
 
-                Text(title.notelyLocalized)
-                    .font(.notely(.caption, weight: .medium))
-                    .foregroundStyle(NotelyTheme.secondaryText)
+                Text(title.notyfiLocalized)
+                    .font(.notyfi(.caption, weight: .medium))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
             }
 
             Text(value)
-                .font(.notely(.subheadline, weight: .semibold))
+                .font(.notyfi(.subheadline, weight: .semibold))
                 .foregroundStyle(.primary.opacity(0.9))
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
 
-            Text(caption.notelyLocalized)
-                .font(.notely(.caption2, weight: .medium))
-                .foregroundStyle(NotelyTheme.secondaryText)
+            Text(caption.notyfiLocalized)
+                .font(.notyfi(.caption2, weight: .medium))
+                .foregroundStyle(NotyfiTheme.secondaryText)
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 14)
         .padding(.vertical, 14)
         .background {
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(NotelyTheme.elevatedSurface)
+                .fill(NotyfiTheme.elevatedSurface)
                 .overlay {
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
+                        .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
                 }
         }
     }
@@ -259,21 +259,21 @@ private struct CategoryBreakdownRow: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
                     Text(breakdown.category.title)
-                        .font(.notely(.footnote, weight: .semibold))
+                        .font(.notyfi(.footnote, weight: .semibold))
                         .foregroundStyle(.primary.opacity(0.88))
 
                     Text("\(breakdown.entryCount)")
-                        .font(.notely(.caption, weight: .medium))
-                        .foregroundStyle(NotelyTheme.secondaryText)
+                        .font(.notyfi(.caption, weight: .medium))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
 
                     Spacer()
 
                     Text("\(Int((breakdown.share * 100).rounded()))%")
-                        .font(.notely(.caption, weight: .semibold))
+                        .font(.notyfi(.caption, weight: .semibold))
                         .foregroundStyle(breakdown.category.tint)
 
                     Text(breakdown.total.formattedCurrency(code: currencyCode))
-                        .font(.notely(.footnote, weight: .semibold))
+                        .font(.notyfi(.footnote, weight: .semibold))
                         .foregroundStyle(.primary.opacity(0.86))
                         .monospacedDigit()
                 }
@@ -286,7 +286,7 @@ private struct CategoryBreakdownRow: View {
         .padding(12)
         .background {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(NotelyTheme.elevatedSurface.opacity(0.75))
+                .fill(NotyfiTheme.elevatedSurface.opacity(0.75))
         }
     }
 }
@@ -296,30 +296,30 @@ private struct EmptyCategoryBreakdownRow: View {
         HStack(spacing: 12) {
             Image(systemName: "sparkles")
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(NotelyTheme.reviewTint)
+                .foregroundStyle(NotyfiTheme.reviewTint)
                 .frame(width: 34, height: 34)
                 .background {
                     Circle()
-                        .fill(NotelyTheme.reviewTint.opacity(0.12))
+                        .fill(NotyfiTheme.reviewTint.opacity(0.12))
                 }
 
-            Text("No notes yet this month.".notelyLocalized)
-                .font(.notely(.footnote, weight: .medium))
-                .foregroundStyle(NotelyTheme.secondaryText)
+            Text("No notes yet this month.".notyfiLocalized)
+                .font(.notyfi(.footnote, weight: .medium))
+                .foregroundStyle(NotyfiTheme.secondaryText)
 
             Spacer()
         }
         .padding(12)
         .background {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(NotelyTheme.elevatedSurface.opacity(0.75))
+                .fill(NotyfiTheme.elevatedSurface.opacity(0.75))
         }
     }
 }
 
 #Preview {
     ZStack {
-        NotelyTheme.background.ignoresSafeArea()
+        NotyfiTheme.background.ignoresSafeArea()
         VStack {
             Spacer()
             HomeSnapshotCard(

@@ -10,11 +10,11 @@ enum ParsingConfidence: String, Codable, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .certain:
-            return "Clear".notelyLocalized
+            return "Clear".notyfiLocalized
         case .review:
-            return "Review".notelyLocalized
+            return "Review".notyfiLocalized
         case .uncertain:
-            return "Low".notelyLocalized
+            return "Low".notyfiLocalized
         }
     }
 
@@ -32,9 +32,9 @@ enum TransactionKind: String, Codable, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .expense:
-            return "Expense".notelyLocalized
+            return "Expense".notyfiLocalized
         case .income:
-            return "Income".notelyLocalized
+            return "Income".notyfiLocalized
         }
     }
 

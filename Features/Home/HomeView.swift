@@ -21,7 +21,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                NotelyTheme.background.ignoresSafeArea()
+                NotyfiTheme.background.ignoresSafeArea()
 
                 VStack(alignment: .leading, spacing: 22) {
                     HomeTopBar(
@@ -54,6 +54,20 @@ struct HomeView: View {
 
                             withTransaction(transaction) {
                                 viewModel.updateJournalText(rawText)
+                            }
+                        },
+                        onReturnKey: { lineEdit in
+                            applyFocusRequest {
+                                viewModel.handleReturn(
+                                    at: lineEdit.lineIndex,
+                                    leadingText: lineEdit.leadingText,
+                                    trailingText: lineEdit.trailingText
+                                )
+                            }
+                        },
+                        onBackspaceAtLineStart: { lineIndex in
+                            applyFocusRequest {
+                                viewModel.handleBackspaceAtLineStart(at: lineIndex)
                             }
                         },
                         onEntryTap: { entry in
@@ -120,14 +134,14 @@ struct HomeView: View {
                 SettingsSheetView(viewModel: SettingsViewModel(store: store))
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
-                    .presentationBackground(NotelyTheme.background.opacity(0.98))
+                    .presentationBackground(NotyfiTheme.background.opacity(0.98))
                     .presentationCornerRadius(34)
             }
             .sheet(item: $selectedEntry) { entry in
                 EntryDetailView(entry: entry, store: store)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
-                    .presentationBackground(NotelyTheme.background.opacity(0.98))
+                    .presentationBackground(NotyfiTheme.background.opacity(0.98))
                     .presentationCornerRadius(34)
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -225,11 +239,11 @@ private extension HomeView {
                journalCursorLineIndex >= 0 {
                 let editedEntry = viewModel.displayedEntries[journalCursorLineIndex]
                 store.reparseEntryImmediately(id: editedEntry.id)
-            } else {
+            }
+
+            if viewModel.hasPendingComposerDraft {
                 viewModel.addEntry()
             }
-        } else if case .entry(let entryID) = activeEditor {
-            store.reparseEntryImmediately(id: entryID)
         }
 
         if cancelsPendingPresentation {
@@ -289,6 +303,8 @@ private struct DayJournalPager: View {
     @Binding var lineFramesByDate: [Date: [JournalTextLineFrame]]
     let feedback: DraftComposerFeedback?
     let onJournalTextChange: (String) -> Void
+    let onReturnKey: (JournalLogLineEdit) -> Void
+    let onBackspaceAtLineStart: (Int) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
     let onBlankSpaceTap: () -> Void
     let onMoveSelection: (Int) -> Void
@@ -352,6 +368,8 @@ private struct DayJournalPager: View {
             lineFramesByDate: $lineFramesByDate,
             feedback: feedback,
             onJournalTextChange: onJournalTextChange,
+            onReturnKey: onReturnKey,
+            onBackspaceAtLineStart: onBackspaceAtLineStart,
             onEntryTap: onEntryTap,
             onBlankSpaceTap: onBlankSpaceTap,
             scrollDisabled: scrollDisabled
@@ -376,6 +394,8 @@ private struct DayJournalPager: View {
             lineFramesByDate: $lineFramesByDate,
             feedback: nil,
             onJournalTextChange: { _ in },
+            onReturnKey: { _ in },
+            onBackspaceAtLineStart: { _ in },
             onEntryTap: onEntryTap,
             onBlankSpaceTap: {},
             scrollDisabled: scrollDisabled
@@ -509,6 +529,8 @@ private struct DayJournalPage: View {
     @Binding var lineFramesByDate: [Date: [JournalTextLineFrame]]
     let feedback: DraftComposerFeedback?
     let onJournalTextChange: (String) -> Void
+    let onReturnKey: (JournalLogLineEdit) -> Void
+    let onBackspaceAtLineStart: (Int) -> Void
     let onEntryTap: (ExpenseEntry) -> Void
     let onBlankSpaceTap: () -> Void
     let scrollDisabled: Bool
@@ -530,6 +552,8 @@ private struct DayJournalPage: View {
         lineFramesByDate: Binding<[Date: [JournalTextLineFrame]]>,
         feedback: DraftComposerFeedback?,
         onJournalTextChange: @escaping (String) -> Void,
+        onReturnKey: @escaping (JournalLogLineEdit) -> Void,
+        onBackspaceAtLineStart: @escaping (Int) -> Void,
         onEntryTap: @escaping (ExpenseEntry) -> Void,
         onBlankSpaceTap: @escaping () -> Void,
         scrollDisabled: Bool
@@ -544,6 +568,8 @@ private struct DayJournalPage: View {
         _lineFramesByDate = lineFramesByDate
         self.feedback = feedback
         self.onJournalTextChange = onJournalTextChange
+        self.onReturnKey = onReturnKey
+        self.onBackspaceAtLineStart = onBackspaceAtLineStart
         self.onEntryTap = onEntryTap
         self.onBlankSpaceTap = onBlankSpaceTap
         self.scrollDisabled = scrollDisabled
@@ -571,6 +597,8 @@ private struct DayJournalPage: View {
                         isEditable: isEditable,
                         trailingInset: trailingColumnWidth + trailingGap,
                         onTextChange: onJournalTextChange,
+                        onReturnKey: onReturnKey,
+                        onBackspaceAtLineStart: onBackspaceAtLineStart,
                         onLineFramesChange: { frames in
                             lineFrames = frames
                             lineFramesByDate[dayKey] = frames
@@ -584,9 +612,9 @@ private struct DayJournalPage: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     if journalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Text("Start typing your money notes...".notelyLocalized)
-                            .font(.notely(.body))
-                            .foregroundStyle(NotelyTheme.tertiaryText)
+                        Text("Start typing your money notes...".notyfiLocalized)
+                            .font(.notyfi(.body))
+                            .foregroundStyle(NotyfiTheme.tertiaryText)
                             .padding(.leading, 1)
                             .allowsHitTesting(false)
                     }
@@ -711,7 +739,7 @@ private struct JournalLineAccessoryView: View {
         case .expense:
             return Color(red: 0.90, green: 0.36, blue: 0.34)
         case .neutral, .none:
-            return NotelyTheme.secondaryText
+            return NotyfiTheme.secondaryText
         }
     }
 
@@ -726,8 +754,8 @@ private struct JournalLineAccessoryView: View {
 
         if entry.amount == 0 {
             return entry.confidence == .review
-                ? "Review".notelyLocalized
-                : "Thinking".notelyLocalized
+                ? "Review".notyfiLocalized
+                : "Thinking".notyfiLocalized
         }
 
         if entry.isAmountEstimated {
@@ -735,7 +763,7 @@ private struct JournalLineAccessoryView: View {
         }
 
         if entry.confidence.needsReview {
-            return "Review".notelyLocalized
+            return "Review".notyfiLocalized
         }
 
         return signedAmountText(for: entry)
@@ -767,11 +795,11 @@ private struct JournalLineAccessoryView: View {
         }
 
         if entry.amount == 0 {
-            return NotelyTheme.secondaryText
+            return NotyfiTheme.secondaryText
         }
 
         if entry.confidence.needsReview, !entry.isAmountEstimated {
-            return NotelyTheme.secondaryText
+            return NotyfiTheme.secondaryText
         }
 
         return entry.transactionKind == .income
@@ -796,20 +824,20 @@ private struct JournalLineAccessoryView: View {
                     activityText: entry.rawText,
                     showsTypingDots: false
                 )
-                    .font(.notely(.body, weight: .semibold))
+                    .font(.notyfi(.body, weight: .semibold))
                     .foregroundStyle(trailingPrimaryColor)
                     .multilineTextAlignment(.trailing)
                     .lineLimit(1)
             } else if let entry {
                 Text(trailingPrimary)
-                    .font(.notely(.body, weight: .semibold))
+                    .font(.notyfi(.body, weight: .semibold))
                     .foregroundStyle(trailingPrimaryColor)
                     .multilineTextAlignment(.trailing)
                     .lineLimit(1)
 
                 Text(trailingSecondary ?? " ")
                     .font(.system(size: 10.5, weight: .regular, design: .rounded))
-                    .foregroundStyle(NotelyTheme.tertiaryText)
+                    .foregroundStyle(NotyfiTheme.tertiaryText)
                     .multilineTextAlignment(.trailing)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -818,13 +846,13 @@ private struct JournalLineAccessoryView: View {
             } else if let feedback, !composerTrimmedText.isEmpty {
                 if feedback.primaryColorName == .neutral {
                     JournalProcessingStatusText(activityText: composerTrimmedText)
-                        .font(.notely(.body, weight: .semibold))
+                        .font(.notyfi(.body, weight: .semibold))
                         .foregroundStyle(primaryFeedbackColor)
                         .multilineTextAlignment(.trailing)
                         .lineLimit(1)
                 } else {
                     Text(feedback.primaryText)
-                        .font(.notely(.body, weight: .semibold))
+                        .font(.notyfi(.body, weight: .semibold))
                         .foregroundStyle(primaryFeedbackColor)
                         .multilineTextAlignment(.trailing)
                         .lineLimit(1)
@@ -832,7 +860,7 @@ private struct JournalLineAccessoryView: View {
 
                 Text(feedback.secondaryText ?? " ")
                     .font(.system(size: 10.5, weight: .regular, design: .rounded))
-                    .foregroundStyle(NotelyTheme.tertiaryText)
+                    .foregroundStyle(NotyfiTheme.tertiaryText)
                     .multilineTextAlignment(.trailing)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -893,12 +921,12 @@ private struct KeyboardCircleButton: View {
                 .frame(width: 46, height: 46)
                 .background {
                     Circle()
-                        .fill(NotelyTheme.surface)
+                        .fill(NotyfiTheme.surface)
                         .overlay {
                             Circle()
-                                .stroke(NotelyTheme.surfaceBorder, lineWidth: 1)
+                                .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
                         }
-                        .shadow(color: NotelyTheme.shadow, radius: 18, x: 0, y: 10)
+                        .shadow(color: NotyfiTheme.shadow, radius: 18, x: 0, y: 10)
                 }
         }
         .buttonStyle(.plain)
