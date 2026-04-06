@@ -32,7 +32,14 @@ struct InsightsCard: View {
             }
         }
         .padding(16)
-        .glassPanel(cornerRadius: 24, material: .thinMaterial, tintOpacity: 0.72, shadowRadius: 14, shadowY: 6)
+        .background {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(NotyfiTheme.elevatedSurface)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
+                }
+        }
     }
 
     private func signedCurrency(_ amount: Double) -> String {
@@ -87,5 +94,5 @@ private struct InsightRow: View {
         currencyCode: "NOK"
     )
     .padding()
-    .background(NotyfiBackgroundView())
+    .background(NotyfiTheme.background)
 }

@@ -7,7 +7,7 @@ struct SettingsSheetView: View {
 
     var body: some View {
         ZStack {
-            NotyfiBackgroundView()
+            NotyfiTheme.background.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
@@ -25,8 +25,7 @@ struct SettingsSheetView: View {
                                 .frame(width: 38, height: 38)
                                 .background {
                                     Circle()
-                                        .fill(.clear)
-                                        .glassCircle(diameter: 38)
+                                        .fill(NotyfiTheme.elevatedSurface)
                                 }
                         }
                         .buttonStyle(.plain)
@@ -161,7 +160,15 @@ private struct SettingsCard<Content: View>: View {
 
     var body: some View {
         content()
-            .glassPanel(cornerRadius: 26, tintOpacity: 1)
+            .background {
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    .fill(NotyfiTheme.surface)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 26, style: .continuous)
+                            .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
+                    }
+                    .shadow(color: NotyfiTheme.shadow, radius: 16, x: 0, y: 8)
+            }
     }
 }
 

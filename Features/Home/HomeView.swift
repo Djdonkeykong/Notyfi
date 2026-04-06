@@ -21,7 +21,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                NotyfiBackgroundView()
+                NotyfiTheme.background.ignoresSafeArea()
 
                 VStack(alignment: .leading, spacing: 22) {
                     HomeTopBar(
@@ -134,14 +134,14 @@ struct HomeView: View {
                 SettingsSheetView(viewModel: SettingsViewModel(store: store))
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
-                    .presentationBackground(.clear)
+                    .presentationBackground(NotyfiTheme.background.opacity(0.98))
                     .presentationCornerRadius(34)
             }
             .sheet(item: $selectedEntry) { entry in
                 EntryDetailView(entry: entry, store: store)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
-                    .presentationBackground(.clear)
+                    .presentationBackground(NotyfiTheme.background.opacity(0.98))
                     .presentationCornerRadius(34)
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -921,8 +921,12 @@ private struct KeyboardCircleButton: View {
                 .frame(width: 46, height: 46)
                 .background {
                     Circle()
-                        .fill(.clear)
-                        .glassCircle(diameter: 46)
+                        .fill(NotyfiTheme.surface)
+                        .overlay {
+                            Circle()
+                                .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
+                        }
+                        .shadow(color: NotyfiTheme.shadow, radius: 18, x: 0, y: 10)
                 }
         }
         .buttonStyle(.plain)

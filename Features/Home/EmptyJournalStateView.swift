@@ -36,7 +36,14 @@ struct EmptyJournalStateView: View {
                         .foregroundStyle(NotyfiTheme.secondaryText)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
-                        .glassCapsule(material: .thinMaterial)
+                        .background {
+                            Capsule()
+                                .fill(NotyfiTheme.elevatedSurface)
+                                .overlay {
+                                    Capsule()
+                                        .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
+                                }
+                        }
                 }
             }
 
@@ -50,5 +57,5 @@ struct EmptyJournalStateView: View {
 #Preview {
     EmptyJournalStateView(selectedDate: Date())
         .padding()
-        .background(NotyfiBackgroundView())
+        .background(NotyfiTheme.background)
 }
