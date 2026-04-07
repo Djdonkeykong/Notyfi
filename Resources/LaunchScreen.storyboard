@@ -15,7 +15,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="LaunchLogo" translatesAutoresizingMaskIntoConstraints="NO" id="launch-logo-view">
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="LaunchLogoV2" translatesAutoresizingMaskIntoConstraints="NO" id="launch-logo-view">
                                 <rect key="frame" x="66.5" y="286" width="260" height="260"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="260" id="launch-logo-width"/>
@@ -37,7 +37,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="LaunchLogo" width="180" height="180"/>
+        <image name="LaunchLogoV2" width="180" height="180"/>
         <namedColor name="LaunchBackground">
             <color red="0.0" green="0.0" blue="0.99607843137254903" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
