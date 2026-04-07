@@ -22,13 +22,16 @@ struct HomeSummaryBar: View {
                             Text(headlineText)
                                 .font(.notyfi(.title3, weight: .semibold))
                                 .foregroundStyle(.primary.opacity(0.88))
-                                .lineLimit(2)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.78)
 
                             Text(subtitleText)
                                 .font(.notyfi(.caption, weight: .medium))
                                 .foregroundStyle(NotyfiTheme.secondaryText)
-                                .lineLimit(2)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.82)
                         }
+                        .frame(minHeight: 62, alignment: .topLeading)
 
                         Spacer(minLength: 12)
 
@@ -58,14 +61,18 @@ struct HomeSummaryBar: View {
                                 )
                                 .font(.notyfi(.caption, weight: .medium))
                                 .foregroundStyle(NotyfiTheme.secondaryText)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.78)
 
                                 Spacer(minLength: 12)
 
                                 Text(statusText)
                                     .font(.notyfi(.caption, weight: .semibold))
                                     .foregroundStyle(accentColor)
+                                    .lineLimit(1)
                             }
                         }
+                        .frame(minHeight: 36, alignment: .topLeading)
                     }
 
                     HStack(spacing: 10) {
@@ -141,13 +148,6 @@ struct HomeSummaryBar: View {
             return "Tap to add a simple monthly cap and category guides.".notyfiLocalized
         }
 
-        if budgetInsight.status == .caution {
-            return String(
-                format: "At this pace you may land near %@.".notyfiLocalized,
-                budgetInsight.projectedExpenseTotal.formattedCurrency(code: currencyCode)
-            )
-        }
-
         if budgetInsight.status == .overBudget {
             return "Open the sheet to tighten category caps or adjust the plan.".notyfiLocalized
         }
@@ -204,7 +204,7 @@ private struct FooterMetricPill: View {
                 .minimumScaleFactor(0.76)
                 .monospacedDigit()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
         .padding(.horizontal, 12)
         .padding(.vertical, 11)
         .background {

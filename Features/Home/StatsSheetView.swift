@@ -158,15 +158,6 @@ struct StatsSheetView: View {
                                 value: "\(viewModel.insight.reviewCount)"
                             )
 
-                            Divider()
-
-                            HighlightRow(
-                                icon: "waveform.path.ecg",
-                                tint: statusTint,
-                                title: "Budget pace",
-                                value: paceLabel
-                            )
-
                             if viewModel.budgetPlan.hasSavingsTarget {
                                 Divider()
 
@@ -326,25 +317,6 @@ struct StatsSheetView: View {
         }
 
         return "over".notyfiLocalized
-    }
-
-    private var paceLabel: String {
-        switch viewModel.budgetInsight.status {
-        case .needsBudget:
-            return "No cap yet".notyfiLocalized
-        case .balanced:
-            return "On pace".notyfiLocalized
-        case .caution:
-            return String(
-                format: "Projected %@".notyfiLocalized,
-                viewModel.budgetInsight.projectedExpenseTotal.formattedCurrency(code: viewModel.currencyCode)
-            )
-        case .overBudget:
-            return String(
-                format: "%@ over".notyfiLocalized,
-                abs(viewModel.budgetInsight.remainingBudget).formattedCurrency(code: viewModel.currencyCode)
-            )
-        }
     }
 
     private var savingsLabel: String {
