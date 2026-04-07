@@ -226,7 +226,7 @@ final class ExpenseJournalStore: ObservableObject {
 
     private func load() {
         guard let data = defaults.data(forKey: storageKey) else {
-            entries = Self.mockEntries(calendar: calendar)
+            entries = []
             persist()
             return
         }

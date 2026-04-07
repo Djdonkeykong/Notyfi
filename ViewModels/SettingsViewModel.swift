@@ -2,10 +2,8 @@ import Foundation
 
 @MainActor
 final class SettingsViewModel: ObservableObject {
-    enum AppearanceMode: String, CaseIterable, Identifiable {
+    enum AppearanceMode: String, Identifiable {
         case system
-        case light
-        case dark
 
         var id: String { rawValue }
 
@@ -13,18 +11,10 @@ final class SettingsViewModel: ObservableObject {
             switch self {
             case .system:
                 return "System".notyfiLocalized
-            case .light:
-                return "Light".notyfiLocalized
-            case .dark:
-                return "Dark".notyfiLocalized
             }
         }
     }
 
-    @Published var automaticCurrency = true
-    @Published var notificationsEnabled = false
-    @Published var gentleReviewMode = true
-    @Published var syncEnabled = false
     @Published var appearanceMode: AppearanceMode = .system
     @Published var currencyCode = "NOK"
 
@@ -32,6 +22,35 @@ final class SettingsViewModel: ObservableObject {
 
     init(store: ExpenseJournalStore) {
         self.store = store
+    }
+
+    var currencyDisplayName: String {
+        switch currencyCode.uppercased() {
+        case "NOK":
+            return "Norwegian Krone (NOK)".notyfiLocalized
+        case "USD":
+            return "US Dollar (USD)".notyfiLocalized
+        case "EUR":
+            return "Euro (EUR)".notyfiLocalized
+        default:
+            return currencyCode
+        }
+    }
+
+    var versionText: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+
+        switch (version, build) {
+        case let (version?, build?) where version != build:
+            return "\(version) (\(build))"
+        case let (version?, _):
+            return version
+        case let (_, build?):
+            return build
+        default:
+            return "1.0"
+        }
     }
 
     func clearLog() {

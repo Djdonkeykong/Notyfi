@@ -11,105 +11,54 @@ struct SettingsSheetView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
-                    HStack(alignment: .top) {
-                        Text("Settings".notyfiLocalized)
-                            .font(.notyfi(.title3, weight: .semibold))
-                            .foregroundStyle(.primary.opacity(0.84))
-
-                        Spacer()
-
-                        Button(action: { dismiss() }) {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(NotyfiTheme.secondaryText)
-                                .frame(width: 38, height: 38)
-                                .background {
-                                    Circle()
-                                        .fill(NotyfiTheme.elevatedSurface)
-                                }
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(.top, 22)
-
-                    SectionHeader(title: "Profile")
-                    SettingsCard {
-                        VStack(spacing: 0) {
-                            SettingsValueRow(icon: "person.crop.circle", title: "Name", value: "Ole Christian Michelsen")
-                            Divider()
-                            SettingsValueRow(icon: "envelope", title: "Email", value: "notyfi@icloud.com")
-                        }
-                    }
+                    header
 
                     SectionHeader(title: "Preferences")
                     SettingsCard {
                         VStack(spacing: 0) {
                             SettingsValueRow(
+                                icon: "globe",
+                                title: "Language",
+                                value: "Follow system".notyfiLocalized
+                            )
+
+                            Divider()
+
+                            SettingsValueRow(
                                 icon: "banknote",
                                 title: "Currency",
-                                value: viewModel.automaticCurrency
-                                    ? String(format: "Auto currency format".notyfiLocalized, viewModel.currencyCode)
-                                    : viewModel.currencyCode
+                                value: viewModel.currencyDisplayName
                             )
+
                             Divider()
-                            SettingsToggleRow(
-                                icon: "bell.badge",
-                                title: "Notifications",
-                                subtitle: "Quiet reminders when you want them",
-                                isOn: $viewModel.notificationsEnabled
-                            )
-                            Divider()
-                            SettingsPickerRow(
+
+                            SettingsValueRow(
                                 icon: "circle.lefthalf.filled",
                                 title: "Appearance",
-                                selection: $viewModel.appearanceMode
+                                value: viewModel.appearanceMode.title
                             )
                         }
                     }
 
-                    SectionHeader(title: "AI Parsing")
+                    SectionHeader(title: "Data")
                     SettingsCard {
                         VStack(spacing: 0) {
                             SettingsValueRow(
                                 icon: "wand.and.stars",
-                                title: "AI Parsing",
-                                value: "Always on".notyfiLocalized
+                                title: "AI parsing",
+                                value: "Enabled".notyfiLocalized
                             )
-                            Divider()
-                            SettingsToggleRow(
-                                icon: "checklist",
-                                title: "Gentle Review Mode",
-                                subtitle: "Keep uncertain entries easy to confirm later",
-                                isOn: $viewModel.gentleReviewMode
-                            )
-                        }
-                    }
 
-                    SectionHeader(title: "Sync / Supabase")
-                    SettingsCard {
-                        VStack(spacing: 0) {
-                            SettingsToggleRow(
-                                icon: "arrow.triangle.2.circlepath",
-                                title: "Sync",
-                                subtitle: "Stay local for now, with cloud sync ready later",
-                                isOn: $viewModel.syncEnabled
-                            )
                             Divider()
+
                             SettingsValueRow(
-                                icon: "server.rack",
-                                title: "Connection",
-                                value: viewModel.syncEnabled
-                                    ? "Supabase placeholder".notyfiLocalized
-                                    : "Local only".notyfiLocalized
+                                icon: "iphone.and.arrow.forward",
+                                title: "Storage",
+                                value: "This device".notyfiLocalized
                             )
-                        }
-                    }
 
-                    SectionHeader(title: "Support & Data")
-                    SettingsCard {
-                        VStack(spacing: 0) {
-                            SettingsActionRow(icon: "square.and.arrow.up", title: "Export Data")
                             Divider()
+
                             SettingsActionRow(
                                 icon: "trash",
                                 title: "Clear Log",
@@ -119,19 +68,62 @@ struct SettingsSheetView: View {
                                     isClearLogConfirmationPresented = true
                                 }
                             )
-                            Divider()
-                            SettingsActionRow(icon: "lock.shield", title: "Privacy")
-                            Divider()
-                            SettingsActionRow(icon: "bubble.left.and.text.bubble.right", title: "Contact Support")
-                            Divider()
-                            SettingsActionRow(icon: "rectangle.portrait.and.arrow.right", title: "Sign Out", isDestructive: true)
                         }
                     }
 
-                    Text("Version 1.0".notyfiLocalized)
-                        .font(.notyfi(.footnote))
-                        .foregroundStyle(NotyfiTheme.tertiaryText)
-                        .padding(.bottom, 8)
+                    SectionHeader(title: "Coming later")
+                    SettingsCard {
+                        VStack(spacing: 0) {
+                            ComingSoonRow(
+                                icon: "arrow.triangle.2.circlepath",
+                                title: "Cloud sync",
+                                detail: "Planned".notyfiLocalized
+                            )
+
+                            Divider()
+
+                            ComingSoonRow(
+                                icon: "bell.badge",
+                                title: "Reminders",
+                                detail: "Planned".notyfiLocalized
+                            )
+
+                            Divider()
+
+                            ComingSoonRow(
+                                icon: "lock.shield",
+                                title: "Privacy lock",
+                                detail: "Planned".notyfiLocalized
+                            )
+
+                            Divider()
+
+                            ComingSoonRow(
+                                icon: "square.and.arrow.up",
+                                title: "Export data",
+                                detail: "Planned".notyfiLocalized
+                            )
+                        }
+                    }
+
+                    SectionHeader(title: "About")
+                    SettingsCard {
+                        VStack(spacing: 0) {
+                            SettingsValueRow(
+                                icon: "shippingbox",
+                                title: "Version",
+                                value: viewModel.versionText
+                            )
+
+                            Divider()
+
+                            SettingsValueRow(
+                                icon: "checkmark.shield",
+                                title: "Build",
+                                value: "Journal-first".notyfiLocalized
+                            )
+                        }
+                    }
                 }
                 .padding(.horizontal, 20)
                 .safeAreaPadding(.top, 14)
@@ -152,6 +144,35 @@ struct SettingsSheetView: View {
         } message: {
             Text("This removes every saved entry from Notyfi.".notyfiLocalized)
         }
+    }
+
+    private var header: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Settings".notyfiLocalized)
+                    .font(.notyfi(.title3, weight: .semibold))
+                    .foregroundStyle(.primary.opacity(0.84))
+
+                Text("Keep things simple for now. More controls will arrive as the app grows.".notyfiLocalized)
+                    .font(.notyfi(.footnote))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+            }
+
+            Spacer()
+
+            Button(action: { dismiss() }) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .frame(width: 38, height: 38)
+                    .background {
+                        Circle()
+                            .fill(NotyfiTheme.elevatedSurface)
+                    }
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.top, 22)
     }
 }
 
@@ -199,48 +220,15 @@ private struct SettingsValueRow: View {
     }
 }
 
-private struct SettingsToggleRow: View {
+private struct ComingSoonRow: View {
     let icon: String
     let title: String
-    let subtitle: String
-    @Binding var isOn: Bool
-
-    var body: some View {
-        HStack(alignment: .center, spacing: 14) {
-            Image(systemName: icon)
-                .foregroundStyle(NotyfiTheme.secondaryText)
-                .frame(width: 18)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title.notyfiLocalized)
-                    .font(.notyfi(.body))
-                    .foregroundStyle(.primary.opacity(0.82))
-
-                Text(subtitle.notyfiLocalized)
-                    .font(.notyfi(.caption))
-                    .foregroundStyle(NotyfiTheme.secondaryText)
-            }
-
-            Spacer()
-
-            Toggle("", isOn: $isOn)
-                .labelsHidden()
-                .tint(NotyfiTheme.brandBlue)
-        }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 16)
-    }
-}
-
-private struct SettingsPickerRow: View {
-    let icon: String
-    let title: String
-    @Binding var selection: SettingsViewModel.AppearanceMode
+    let detail: String
 
     var body: some View {
         HStack(spacing: 14) {
             Image(systemName: icon)
-                .foregroundStyle(NotyfiTheme.secondaryText)
+                .foregroundStyle(NotyfiTheme.brandBlue.opacity(0.9))
                 .frame(width: 18)
 
             Text(title.notyfiLocalized)
@@ -249,14 +237,15 @@ private struct SettingsPickerRow: View {
 
             Spacer()
 
-            Picker(title.notyfiLocalized, selection: $selection) {
-                ForEach(SettingsViewModel.AppearanceMode.allCases) { mode in
-                    Text(mode.title).tag(mode)
+            Text(detail)
+                .font(.notyfi(.caption, weight: .semibold))
+                .foregroundStyle(NotyfiTheme.tertiaryText)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background {
+                    Capsule()
+                        .fill(NotyfiTheme.elevatedSurface)
                 }
-            }
-            .pickerStyle(.menu)
-            .labelsHidden()
-            .tint(NotyfiTheme.brandBlue)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
