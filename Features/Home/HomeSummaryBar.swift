@@ -24,14 +24,8 @@ struct HomeSummaryBar: View {
                                 .foregroundStyle(.primary.opacity(0.88))
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.78)
-
-                            Text(subtitleText)
-                                .font(.notyfi(.caption, weight: .medium))
-                                .foregroundStyle(NotyfiTheme.secondaryText)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.82)
                         }
-                        .frame(minHeight: 62, alignment: .topLeading)
+                        .frame(minHeight: 40, alignment: .topLeading)
 
                         Spacer(minLength: 12)
 
@@ -136,28 +130,6 @@ struct HomeSummaryBar: View {
         )
     }
 
-    private var subtitleText: String {
-        guard budgetInsight.plan.hasSpendingLimit else {
-            if let suggestion = budgetInsight.suggestedMonthlyBudget {
-                return String(
-                    format: "Tap to start with %@ and adjust later.".notyfiLocalized,
-                    suggestion.formattedCurrency(code: currencyCode)
-                )
-            }
-
-            return "Tap to add a simple monthly cap and category guides.".notyfiLocalized
-        }
-
-        if budgetInsight.status == .overBudget {
-            return "Open the sheet to tighten category caps or adjust the plan.".notyfiLocalized
-        }
-
-        return String(
-            format: "Avg %@ per day so far.".notyfiLocalized,
-            budgetInsight.averageDailySpend.formattedCurrency(code: currencyCode)
-        )
-    }
-
     private var statusText: String {
         switch budgetInsight.status {
         case .needsBudget:
@@ -187,6 +159,10 @@ struct HomeSummaryBar: View {
 }
 
 private struct FooterMetricPill: View {
+    private let pillHeight: CGFloat = 58
+    private let titleHeight: CGFloat = 14
+    private let valueHeight: CGFloat = 18
+
     let title: String
     let value: String
     let tint: Color
@@ -196,6 +172,7 @@ private struct FooterMetricPill: View {
             Text(title.notyfiLocalized)
                 .font(.notyfi(.caption2, weight: .semibold))
                 .foregroundStyle(NotyfiTheme.secondaryText)
+                .frame(height: titleHeight, alignment: .topLeading)
 
             Text(value)
                 .font(.notyfi(.footnote, weight: .semibold))
@@ -203,10 +180,12 @@ private struct FooterMetricPill: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.76)
                 .monospacedDigit()
+                .frame(height: valueHeight, alignment: .topLeading)
         }
-        .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.horizontal, 12)
         .padding(.vertical, 11)
+        .frame(maxWidth: .infinity, minHeight: pillHeight, maxHeight: pillHeight, alignment: .topLeading)
         .background {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(tint.opacity(0.08))
