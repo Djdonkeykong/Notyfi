@@ -65,7 +65,10 @@ struct StatsSheetView: View {
                         OverviewMetricTile(
                             title: "Avg / day",
                             value: viewModel.budgetInsight.averageDailySpend.formattedCurrency(code: viewModel.currencyCode),
-                            caption: "Based on \(viewModel.budgetInsight.daysElapsed) days".notyfiLocalized,
+                            caption: String(
+                                format: "Based on %d days".notyfiLocalized,
+                                viewModel.budgetInsight.daysElapsed
+                            ),
                             tint: NotyfiTheme.brandBlue,
                             symbol: "calendar"
                         )

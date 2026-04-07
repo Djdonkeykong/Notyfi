@@ -36,7 +36,9 @@
 
 "Monthly insight" = "Monthly insight";
 "Spend" = "Spend";
+"Spent" = "Spent";
 "This month" = "This month";
+"Month" = "Month";
 "Net" = "Net";
 "Balance" = "Balance";
 "Top categories" = "Top categories";
@@ -51,6 +53,44 @@
 "Net this month" = "Net this month";
 "Top category" = "Top category";
 "Quiet week" = "Quiet week";
+"Money pulse" = "Money pulse";
+"Set a gentle budget for this month" = "Set a gentle budget for this month";
+"No budget" = "No budget";
+"On pace" = "On pace";
+"Watch pace" = "Watch pace";
+"Over" = "Over";
+"%@ left this month" = "%@ left this month";
+"%@ over budget" = "%@ over budget";
+"Spent %@ of %@" = "Spent %@ of %@";
+
+"Overview" = "Overview";
+"Avg / day" = "Avg / day";
+"Based on %d days" = "Based on %d days";
+"Plan" = "Plan";
+"Money plan" = "Money plan";
+"Monthly spending cap" = "Monthly spending cap";
+"One gentle limit for the whole month" = "One gentle limit for the whole month";
+"Savings target" = "Savings target";
+"How much you want to keep after expenses" = "How much you want to keep after expenses";
+"Category guides" = "Category guides";
+"Attention" = "Attention";
+"Captured so far" = "Captured so far";
+"Income minus spend" = "Income minus spend";
+"Cap" = "Cap";
+"0" = "0";
+"Use suggested cap %@" = "Use suggested cap %@";
+"Start with one monthly cap, then add category guides only where they help." = "Start with one monthly cap, then add category guides only where they help.";
+"Spent %@ over %@ tracked days." = "Spent %@ over %@ tracked days.";
+"left" = "left";
+"over" = "over";
+"Reached" = "Reached";
+"%@ to go" = "%@ to go";
+"%@ left in %@" = "%@ left in %@";
+"%@ over in %@" = "%@ over in %@";
+"Set a monthly budget" = "Set a monthly budget";
+"On pace this month" = "On pace this month";
+"Running a little hot" = "Running a little hot";
+"Over budget" = "Over budget";
 
 "Done" = "Done";
 
@@ -109,10 +149,11 @@
 "Clear your entire log?" = "Clear your entire log?";
 "Cancel" = "Cancel";
 "This removes every saved entry from Notyfi." = "This removes every saved entry from Notyfi.";
-"Log today’s money notes" = "Log today’s money notes";
-"Open Notyfi and capture today’s spending while it is still fresh." = "Open Notyfi and capture today’s spending while it is still fresh.";
 "Log today's money notes" = "Log today's money notes";
 "Open Notyfi and capture today's spending while it is still fresh." = "Open Notyfi and capture today's spending while it is still fresh.";
+"Norwegian Krone (NOK)" = "Norwegian Krone (NOK)";
+"US Dollar (USD)" = "US Dollar (USD)";
+"Euro (EUR)" = "Euro (EUR)";
 
 "Original Note" = "Original Note";
 "Entry Details" = "Entry Details";

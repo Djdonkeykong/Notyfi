@@ -72,7 +72,7 @@ struct NotyfiWidgetEntryView: View {
 
             if entry.snapshot.hasBudget {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Left")
+                    Text("Left".notyfiLocalized)
                         .font(.system(size: 12, weight: .medium, design: .rounded))
                         .foregroundStyle(.secondary)
 
@@ -85,7 +85,7 @@ struct NotyfiWidgetEntryView: View {
                 }
             } else {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("This month")
+                    Text("This month".notyfiLocalized)
                         .font(.system(size: 12, weight: .medium, design: .rounded))
                         .foregroundStyle(.secondary)
 
@@ -153,7 +153,7 @@ struct NotyfiWidgetEntryView: View {
             }
 
             if !entry.snapshot.hasEntries {
-                Text("Start logging in Notyfi to fill this widget.")
+                Text("Start logging in Notyfi to fill this widget.".notyfiLocalized)
                     .font(.system(size: 12, weight: .medium, design: .rounded))
                     .foregroundStyle(.secondary)
             }
@@ -183,7 +183,7 @@ private struct WidgetMetricColumn: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title)
+            Text(title.notyfiLocalized)
                 .font(.system(size: 11, weight: .medium, design: .rounded))
                 .foregroundStyle(.secondary)
 
@@ -205,7 +205,7 @@ private struct WidgetStatCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title)
+            Text(title.notyfiLocalized)
                 .font(.system(size: 11, weight: .medium, design: .rounded))
                 .foregroundStyle(.secondary)
 
@@ -234,8 +234,8 @@ struct NotyfiWidget: Widget {
         StaticConfiguration(kind: kind, provider: NotyfiWidgetProvider()) { entry in
             NotyfiWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("Notyfi overview")
-        .description("See your monthly spend, net, and today at a glance.")
+        .configurationDisplayName("Notyfi overview".notyfiLocalized)
+        .description("See your monthly spend, net, and today at a glance.".notyfiLocalized)
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
