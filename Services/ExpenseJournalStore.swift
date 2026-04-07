@@ -1,5 +1,8 @@
 import Combine
 import Foundation
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 
 @MainActor
 final class ExpenseJournalStore: ObservableObject {
@@ -8,6 +11,7 @@ final class ExpenseJournalStore: ObservableObject {
 
     private let parser: ExpenseParsingServicing
     private let defaults: UserDefaults
+    private let sharedDefaults: UserDefaults
     private let calendar: Calendar
     private let storageKey = "notely.expense.entries"
     private let budgetPlanStorageKey = "notely.expense.budget-plan"
@@ -24,16 +28,19 @@ final class ExpenseJournalStore: ObservableObject {
     ) {
         self.parser = parser
         self.defaults = defaults
+        self.sharedDefaults = NotyfiSharedStorage.sharedDefaults()
         self.calendar = calendar
 
         if previewMode {
             entries = Self.mockEntries(calendar: calendar)
             budgetPlan = Self.mockBudgetPlan
+            updateSharedSurfaces()
         } else {
             load()
             loadBudgetPlan()
             loadParseCache()
             resumePendingParsesIfNeeded()
+            updateSharedSurfaces()
         }
     }
 
@@ -153,6 +160,7 @@ final class ExpenseJournalStore: ObservableObject {
         entries.removeAll()
         persist()
         persistParseCache()
+        updateSharedSurfaces()
     }
 
     func setMonthlySpendingLimit(_ amount: Double) {
@@ -258,6 +266,7 @@ final class ExpenseJournalStore: ObservableObject {
         }
 
         defaults.set(data, forKey: storageKey)
+        updateSharedSurfaces()
     }
 
     private func loadBudgetPlan() {
@@ -276,6 +285,55 @@ final class ExpenseJournalStore: ObservableObject {
         }
 
         defaults.set(data, forKey: budgetPlanStorageKey)
+        updateSharedSurfaces()
+    }
+
+    private func updateSharedSurfaces() {
+        let snapshot = makeFinanceSnapshot(referenceDate: Date())
+        guard let data = try? JSONEncoder().encode(snapshot) else {
+            return
+        }
+
+        sharedDefaults.set(data, forKey: NotyfiSharedStorage.financeSnapshotKey)
+
+        #if canImport(WidgetKit)
+        WidgetCenter.shared.reloadAllTimelines()
+        #endif
+    }
+
+    private func makeFinanceSnapshot(referenceDate: Date) -> NotyfiFinanceSnapshot {
+        let todayEntries = entries.filter {
+            calendar.isDate($0.date, inSameDayAs: referenceDate)
+        }
+        let monthEntries = entries.filter {
+            calendar.isDate($0.date, equalTo: referenceDate, toGranularity: .month)
+        }
+
+        let todaySpent = todayEntries
+            .filter { $0.transactionKind == .expense }
+            .reduce(0) { $0 + $1.amount }
+        let monthSpent = monthEntries
+            .filter { $0.transactionKind == .expense }
+            .reduce(0) { $0 + $1.amount }
+        let monthIncome = monthEntries
+            .filter { $0.transactionKind == .income }
+            .reduce(0) { $0 + $1.amount }
+        let monthNet = monthIncome - monthSpent
+        let hasBudget = budgetPlan.monthlySpendingLimit > 0
+        let budgetLeft = hasBudget ? budgetPlan.monthlySpendingLimit - monthSpent : 0
+
+        return NotyfiFinanceSnapshot(
+            generatedAt: referenceDate,
+            currencyCode: monthEntries.first?.currencyCode ?? "NOK",
+            todaySpent: todaySpent,
+            monthSpent: monthSpent,
+            monthIncome: monthIncome,
+            monthNet: monthNet,
+            monthlyBudgetLimit: budgetPlan.monthlySpendingLimit,
+            budgetLeft: budgetLeft,
+            hasBudget: hasBudget,
+            hasEntries: !entries.isEmpty
+        )
     }
 
     private func makePendingEntry(

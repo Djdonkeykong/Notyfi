@@ -37,6 +37,31 @@ struct SettingsSheetView: View {
                                 title: "Appearance",
                                 value: viewModel.appearanceMode.title
                             )
+
+                            Divider()
+
+                            SettingsToggleRow(
+                                icon: "bell.badge",
+                                title: "Daily reminder",
+                                subtitle: viewModel.reminderSubtitle,
+                                isOn: $viewModel.remindersEnabled,
+                                onChange: { isOn in
+                                    await viewModel.setRemindersEnabled(isOn)
+                                }
+                            )
+
+                            if viewModel.remindersEnabled {
+                                Divider()
+
+                                ReminderTimeRow(
+                                    icon: "clock",
+                                    title: "Reminder time",
+                                    selection: $viewModel.reminderTime,
+                                    onChange: { nextDate in
+                                        await viewModel.setReminderTime(nextDate)
+                                    }
+                                )
+                            }
                         }
                     }
 
@@ -55,6 +80,14 @@ struct SettingsSheetView: View {
                                 icon: "iphone.and.arrow.forward",
                                 title: "Storage",
                                 value: "This device".notyfiLocalized
+                            )
+
+                            Divider()
+
+                            SettingsValueRow(
+                                icon: "square.grid.2x2",
+                                title: "Home widgets",
+                                value: "Available".notyfiLocalized
                             )
 
                             Divider()
@@ -190,6 +223,90 @@ private struct SettingsCard<Content: View>: View {
                     }
                     .shadow(color: NotyfiTheme.shadow, radius: 16, x: 0, y: 8)
             }
+    }
+}
+
+private struct SettingsToggleRow: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    @Binding var isOn: Bool
+    var onChange: ((Bool) async -> Void)? = nil
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 14) {
+            Image(systemName: icon)
+                .foregroundStyle(NotyfiTheme.secondaryText)
+                .frame(width: 18)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title.notyfiLocalized)
+                    .font(.notyfi(.body))
+                    .foregroundStyle(.primary.opacity(0.82))
+
+                Text(subtitle.notyfiLocalized)
+                    .font(.notyfi(.caption))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer()
+
+            Toggle("", isOn: $isOn)
+                .labelsHidden()
+                .tint(NotyfiTheme.brandBlue)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 16)
+        .onChange(of: isOn) { _, newValue in
+            guard let onChange else {
+                return
+            }
+
+            Task {
+                await onChange(newValue)
+            }
+        }
+    }
+}
+
+private struct ReminderTimeRow: View {
+    let icon: String
+    let title: String
+    @Binding var selection: Date
+    var onChange: ((Date) async -> Void)? = nil
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .foregroundStyle(NotyfiTheme.secondaryText)
+                .frame(width: 18)
+
+            Text(title.notyfiLocalized)
+                .font(.notyfi(.body))
+                .foregroundStyle(.primary.opacity(0.82))
+
+            Spacer()
+
+            DatePicker(
+                title.notyfiLocalized,
+                selection: $selection,
+                displayedComponents: .hourAndMinute
+            )
+            .datePickerStyle(.compact)
+            .labelsHidden()
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 16)
+        .onChange(of: selection) { _, newValue in
+            guard let onChange else {
+                return
+            }
+
+            Task {
+                await onChange(newValue)
+            }
+        }
     }
 }
 

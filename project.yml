@@ -31,9 +31,30 @@ targets:
       - path: Features
       - path: Models
       - path: Resources
+      - path: Shared
       - path: Services
       - path: ViewModels
+    dependencies:
+      - target: NotyfiWidget
+        embed: true
+        link: false
     settings:
       base:
         INFOPLIST_KEY_OPENAI_API_KEY: $(OPENAI_API_KEY)
         TARGETED_DEVICE_FAMILY: 1
+        CODE_SIGN_ENTITLEMENTS: Config/Notyfi.entitlements
+  NotyfiWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: NotyfiWidget
+      - path: Shared
+      - path: Core/Extensions/Double+Currency.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.djdonkeykong.notely.widget
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: NotyfiWidget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Config/NotyfiWidget.entitlements
+        SKIP_INSTALL: YES

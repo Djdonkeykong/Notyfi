@@ -17,11 +17,35 @@ final class SettingsViewModel: ObservableObject {
 
     @Published var appearanceMode: AppearanceMode = .system
     @Published var currencyCode = "NOK"
+    @Published var remindersEnabled = false
+    @Published var reminderTime: Date
+    @Published private(set) var remindersPermissionDenied = false
 
     private let store: ExpenseJournalStore
+    private let reminderManager: NotyfiReminderManager
+    private let calendar: Calendar
 
-    init(store: ExpenseJournalStore) {
+    init(
+        store: ExpenseJournalStore,
+        reminderManager: NotyfiReminderManager = .shared,
+        calendar: Calendar = .current
+    ) {
         self.store = store
+        self.reminderManager = reminderManager
+        self.calendar = calendar
+
+        let reminderSettings = reminderManager.loadSettings()
+        self.remindersEnabled = reminderSettings.isEnabled
+        self.reminderTime = calendar.date(
+            from: DateComponents(
+                hour: reminderSettings.hour,
+                minute: reminderSettings.minute
+            )
+        ) ?? .now
+
+        Task {
+            await refreshReminderAuthorization()
+        }
     }
 
     var currencyDisplayName: String {
@@ -53,7 +77,42 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
+    var reminderSubtitle: String {
+        if remindersPermissionDenied {
+            return "Allow notifications in iPhone Settings to turn this on.".notyfiLocalized
+        }
+
+        return "A gentle nudge to log your day before you forget.".notyfiLocalized
+    }
+
+    func setRemindersEnabled(_ isEnabled: Bool) async {
+        if isEnabled {
+            let granted = await reminderManager.enableReminder(
+                at: reminderDateComponents
+            )
+            remindersEnabled = granted
+            await refreshReminderAuthorization()
+        } else {
+            await reminderManager.disableReminder()
+            remindersEnabled = false
+            await refreshReminderAuthorization()
+        }
+    }
+
+    func setReminderTime(_ date: Date) async {
+        reminderTime = date
+        await reminderManager.updateReminderTime(reminderDateComponents)
+    }
+
     func clearLog() {
         store.clearAllEntries()
+    }
+
+    private var reminderDateComponents: DateComponents {
+        calendar.dateComponents([.hour, .minute], from: reminderTime)
+    }
+
+    private func refreshReminderAuthorization() async {
+        remindersPermissionDenied = await reminderManager.authorizationStatus() == .denied
     }
 }
