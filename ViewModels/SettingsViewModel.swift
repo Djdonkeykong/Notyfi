@@ -27,14 +27,14 @@ final class SettingsViewModel: ObservableObject {
 
     init(
         store: ExpenseJournalStore,
-        reminderManager: NotyfiReminderManager = .shared,
+        reminderManager: NotyfiReminderManager? = nil,
         calendar: Calendar = .current
     ) {
         self.store = store
-        self.reminderManager = reminderManager
+        self.reminderManager = reminderManager ?? .shared
         self.calendar = calendar
 
-        let reminderSettings = reminderManager.loadSettings()
+        let reminderSettings = self.reminderManager.loadSettings()
         self.remindersEnabled = reminderSettings.isEnabled
         self.reminderTime = calendar.date(
             from: DateComponents(
