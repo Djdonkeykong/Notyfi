@@ -85,7 +85,7 @@ enum ExpenseCategory: String, CaseIterable, Codable, Identifiable {
         case .social:
             return Color(red: 0.87, green: 0.69, blue: 0.33)
         case .uncategorized:
-            return Color.black.opacity(0.35)
+            return NotyfiTheme.tertiaryText
         }
     }
 }

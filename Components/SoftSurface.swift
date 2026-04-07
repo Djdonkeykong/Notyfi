@@ -54,9 +54,13 @@ struct GlassSurface<Content: View>: View {
                     .fill(.ultraThinMaterial)
                     .overlay {
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .stroke(Color.white.opacity(0.5), lineWidth: 1)
+                            .fill(NotyfiTheme.glassOverlay)
                     }
-                    .shadow(color: Color.black.opacity(0.08), radius: 24, x: 0, y: 10)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .stroke(NotyfiTheme.glassStroke, lineWidth: 1)
+                    }
+                    .shadow(color: NotyfiTheme.shadow.opacity(0.9), radius: 24, x: 0, y: 10)
             }
     }
 }

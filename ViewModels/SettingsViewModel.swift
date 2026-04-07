@@ -2,20 +2,7 @@ import Foundation
 
 @MainActor
 final class SettingsViewModel: ObservableObject {
-    enum AppearanceMode: String, Identifiable {
-        case system
-
-        var id: String { rawValue }
-
-        var title: String {
-            switch self {
-            case .system:
-                return "System".notyfiLocalized
-            }
-        }
-    }
-
-    @Published var appearanceMode: AppearanceMode = .system
+    @Published var appearanceMode: NotyfiAppearanceMode
     @Published var currencyCode = "NOK"
     @Published var remindersEnabled = false
     @Published var reminderTime: Date
@@ -24,15 +11,21 @@ final class SettingsViewModel: ObservableObject {
     private let store: ExpenseJournalStore
     private let reminderManager: NotyfiReminderManager
     private let calendar: Calendar
+    private let defaults: UserDefaults
 
     init(
         store: ExpenseJournalStore,
         reminderManager: NotyfiReminderManager? = nil,
-        calendar: Calendar = .current
+        calendar: Calendar = .current,
+        defaults: UserDefaults = .standard
     ) {
         self.store = store
         self.reminderManager = reminderManager ?? .shared
         self.calendar = calendar
+        self.defaults = defaults
+        self.appearanceMode = NotyfiAppearanceMode(
+            rawValue: defaults.string(forKey: NotyfiAppearanceMode.storageKey) ?? ""
+        ) ?? .system
 
         let reminderSettings = self.reminderManager.loadSettings()
         self.remindersEnabled = reminderSettings.isEnabled
@@ -106,6 +99,11 @@ final class SettingsViewModel: ObservableObject {
 
     func clearLog() {
         store.clearAllEntries()
+    }
+
+    func setAppearanceMode(_ mode: NotyfiAppearanceMode) {
+        appearanceMode = mode
+        defaults.set(mode.rawValue, forKey: NotyfiAppearanceMode.storageKey)
     }
 
     private var reminderDateComponents: DateComponents {

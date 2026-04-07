@@ -83,9 +83,9 @@ struct JournalProcessingStatusText: View {
 
                     LinearGradient(
                         colors: [
-                            .white.opacity(0),
-                            .white.opacity(0.95),
-                            .white.opacity(0)
+                            NotyfiTheme.shimmerHighlight.opacity(0),
+                            NotyfiTheme.shimmerHighlight,
+                            NotyfiTheme.shimmerHighlight.opacity(0)
                         ],
                         startPoint: .leading,
                         endPoint: .trailing

@@ -64,11 +64,11 @@ struct DatePickerSheetView: View {
                 .fill(.ultraThinMaterial)
                 .overlay {
                     Rectangle()
-                        .fill(Color.white.opacity(0.18))
+                        .fill(NotyfiTheme.glassOverlay)
                 }
                 .overlay {
                     Rectangle()
-                        .stroke(Color.white.opacity(0.35), lineWidth: 1)
+                        .stroke(NotyfiTheme.glassStroke, lineWidth: 1)
                 }
                 .ignoresSafeArea()
 
@@ -110,7 +110,7 @@ struct DatePickerSheetView: View {
                         ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                             Text(symbol)
                                 .font(.system(size: 15, weight: .medium, design: .rounded))
-                                .foregroundStyle(Color.black.opacity(0.58))
+                                .foregroundStyle(NotyfiTheme.secondaryText)
                                 .frame(maxWidth: .infinity)
                         }
                     }
@@ -159,14 +159,14 @@ struct DatePickerSheetView: View {
 
     private func dayColor(for date: Date) -> Color {
         if calendar.compare(date, to: Date(), toGranularity: .day) == .orderedDescending {
-            return .black.opacity(0.26)
+            return NotyfiTheme.tertiaryText
         }
 
         if calendar.isDate(date, inSameDayAs: selection) {
             return .primary
         }
 
-        return .black.opacity(0.9)
+        return .primary.opacity(0.9)
     }
 
     private func hasEntry(on date: Date) -> Bool {
@@ -194,10 +194,10 @@ private struct CalendarPillButton: View {
                 .frame(width: width, height: height)
                 .background {
                     Capsule(style: .continuous)
-                        .fill(Color.white.opacity(0.72))
+                        .fill(NotyfiTheme.surface)
                         .overlay {
                             Capsule(style: .continuous)
-                                .stroke(Color.white.opacity(0.52), lineWidth: 1)
+                                .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
                         }
                 }
         }

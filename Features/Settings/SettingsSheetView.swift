@@ -32,10 +32,11 @@ struct SettingsSheetView: View {
 
                             Divider()
 
-                            SettingsValueRow(
+                            AppearanceMenuRow(
                                 icon: "circle.lefthalf.filled",
                                 title: "Appearance",
-                                value: viewModel.appearanceMode.title
+                                selection: $viewModel.appearanceMode,
+                                onSelect: viewModel.setAppearanceMode
                             )
 
                             Divider()
@@ -206,6 +207,53 @@ struct SettingsSheetView: View {
             .buttonStyle(.plain)
         }
         .padding(.top, 22)
+    }
+}
+
+private struct AppearanceMenuRow: View {
+    let icon: String
+    let title: String
+    @Binding var selection: NotyfiAppearanceMode
+    let onSelect: (NotyfiAppearanceMode) -> Void
+
+    var body: some View {
+        Menu {
+            ForEach(NotyfiAppearanceMode.allCases) { mode in
+                Button {
+                    onSelect(mode)
+                } label: {
+                    if mode == selection {
+                        Label(mode.title, systemImage: "checkmark")
+                    } else {
+                        Text(mode.title)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .frame(width: 18)
+
+                Text(title.notyfiLocalized)
+                    .font(.notyfi(.body))
+                    .foregroundStyle(.primary.opacity(0.82))
+
+                Spacer()
+
+                Text(selection.title)
+                    .font(.notyfi(.subheadline))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.tertiaryText)
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
