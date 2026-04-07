@@ -2,9 +2,8 @@ import SwiftUI
 
 struct HomeSummaryBar: View {
     let insight: JournalInsight
-    let entryCount: Int
+    let budgetInsight: BudgetInsight
     let currencyCode: String
-    let isExpanded: Bool
     let onTap: () -> Void
 
     var body: some View {
@@ -12,162 +11,195 @@ struct HomeSummaryBar: View {
             Haptics.mediumImpact()
             onTap()
         }) {
-            SoftCapsule(
-                horizontalPadding: 22,
-                verticalPadding: isExpanded ? 18 : 16
-            ) {
-                HStack(spacing: 18) {
-                    SummaryItem(
-                        symbol: "sun.max.fill",
-                        symbolColor: NotyfiTheme.reviewTint,
-                        text: insight.dayExpenseTotal.formattedCurrency(code: currencyCode)
-                    )
+            SoftSurface(cornerRadius: 30, padding: 18) {
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack(alignment: .top, spacing: 14) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Money pulse".notyfiLocalized)
+                                .font(.notyfi(.footnote, weight: .semibold))
+                                .foregroundStyle(NotyfiTheme.secondaryText)
 
-                    SummaryItem(
-                        symbol: "calendar",
-                        symbolColor: insight.monthNetTotal >= 0
-                            ? Color(red: 0.28, green: 0.71, blue: 0.45)
-                            : Color(red: 0.90, green: 0.36, blue: 0.34),
-                        text: Self.signedCurrency(insight.monthNetTotal, currencyCode: currencyCode)
-                    )
+                            Text(headlineText)
+                                .font(.notyfi(.title3, weight: .semibold))
+                                .foregroundStyle(.primary.opacity(0.88))
+                                .lineLimit(2)
 
-                    SummaryItem(
-                        symbol: insight.topCategory?.symbol ?? "chart.pie.fill",
-                        symbolColor: insight.topCategory?.tint ?? Color(red: 0.79, green: 0.65, blue: 0.36),
-                        text: insight.topCategory.map { category in
-                            "\(category.title) \(Self.shareText(insight.topCategoryShare))"
-                        } ?? String.notyfiNotesCount(entryCount)
-                    )
+                            Text(subtitleText)
+                                .font(.notyfi(.caption, weight: .medium))
+                                .foregroundStyle(NotyfiTheme.secondaryText)
+                                .lineLimit(2)
+                        }
 
-                    if insight.reviewCount > 0 {
-                        SummaryItem(
-                            symbol: "wand.and.stars",
-                            symbolColor: Color(red: 0.74, green: 0.47, blue: 0.86),
-                            text: "\(insight.reviewCount)"
+                        Spacer(minLength: 12)
+
+                        Image(systemName: "chevron.up.right")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(accentColor)
+                            .frame(width: 36, height: 36)
+                            .background {
+                                Circle()
+                                    .fill(accentColor.opacity(0.12))
+                            }
+                    }
+
+                    if budgetInsight.plan.hasSpendingLimit {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ProgressView(value: budgetInsight.spendingProgress)
+                                .tint(accentColor)
+                                .scaleEffect(x: 1, y: 1.35, anchor: .center)
+
+                            HStack(spacing: 8) {
+                                Text(
+                                    String(
+                                        format: "Spent %@ of %@".notyfiLocalized,
+                                        budgetInsight.spentThisMonth.formattedCurrency(code: currencyCode),
+                                        budgetInsight.plan.monthlySpendingLimit.formattedCurrency(code: currencyCode)
+                                    )
+                                )
+                                .font(.notyfi(.caption, weight: .medium))
+                                .foregroundStyle(NotyfiTheme.secondaryText)
+
+                                Spacer(minLength: 12)
+
+                                Text(statusText)
+                                    .font(.notyfi(.caption, weight: .semibold))
+                                    .foregroundStyle(accentColor)
+                            }
+                        }
+                    }
+
+                    HStack(spacing: 10) {
+                        FooterMetricPill(
+                            title: "Month",
+                            value: budgetInsight.spentThisMonth.formattedCurrency(code: currencyCode),
+                            tint: Color(red: 0.90, green: 0.36, blue: 0.34)
+                        )
+
+                        FooterMetricPill(
+                            title: "Net",
+                            value: signedCurrency(budgetInsight.netThisMonth),
+                            tint: budgetInsight.netThisMonth >= 0
+                                ? Color(red: 0.28, green: 0.71, blue: 0.45)
+                                : Color(red: 0.90, green: 0.36, blue: 0.34)
+                        )
+
+                        FooterMetricPill(
+                            title: trailingPillTitle,
+                            value: trailingPillValue,
+                            tint: trailingPillTint
                         )
                     }
                 }
-                .frame(minHeight: isExpanded ? 30 : 28)
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 12)
-            .scaleEffect(y: isExpanded ? 1.024 : 1, anchor: .center)
         }
         .buttonStyle(.plain)
     }
 
-    private static func shareText(_ share: Double) -> String {
-        "\(Int((share * 100).rounded()))%"
+    private var accentColor: Color {
+        switch budgetInsight.status {
+        case .needsBudget:
+            return NotyfiTheme.brandBlue
+        case .balanced:
+            return Color(red: 0.28, green: 0.71, blue: 0.45)
+        case .caution:
+            return Color(red: 0.90, green: 0.60, blue: 0.29)
+        case .overBudget:
+            return Color(red: 0.90, green: 0.36, blue: 0.34)
+        }
     }
 
-    private static func signedCurrency(_ amount: Double, currencyCode: String) -> String {
-        let formattedAmount = abs(amount).formattedCurrency(code: currencyCode)
-
-        if amount > 0 {
-            return "+\(formattedAmount)"
+    private var headlineText: String {
+        guard budgetInsight.plan.hasSpendingLimit else {
+            return "Set a gentle budget for this month".notyfiLocalized
         }
 
-        if amount < 0 {
-            return "-\(formattedAmount)"
+        if budgetInsight.remainingBudget >= 0 {
+            return String(
+                format: "%@ left this month".notyfiLocalized,
+                budgetInsight.remainingBudget.formattedCurrency(code: currencyCode)
+            )
         }
 
-        return formattedAmount
-    }
-}
-
-struct HomeSnapshotCard: View {
-    let insight: JournalInsight
-    let currencyCode: String
-
-    var body: some View {
-        SoftSurface(cornerRadius: 34, padding: 18) {
-            VStack(alignment: .leading, spacing: 18) {
-                HStack(alignment: .firstTextBaseline) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Monthly insight".notyfiLocalized)
-                            .font(.notyfi(.headline, weight: .semibold))
-                            .foregroundStyle(.primary.opacity(0.9))
-
-                        Text(insightHeadline)
-                            .font(.notyfi(.footnote))
-                            .foregroundStyle(NotyfiTheme.secondaryText)
-                    }
-
-                    Spacer()
-
-                    if insight.reviewCount > 0 {
-                        Label("\(insight.reviewCount)", systemImage: "wand.and.stars")
-                            .font(.notyfi(.footnote, weight: .semibold))
-                            .foregroundStyle(Color(red: 0.74, green: 0.47, blue: 0.86))
-                    }
-                }
-
-                HStack(spacing: 12) {
-                    SnapshotMetricTile(
-                        title: "Spend",
-                        value: insight.monthExpenseTotal.formattedCurrency(code: currencyCode),
-                        caption: "This month",
-                        symbol: "sun.max.fill",
-                        tint: Color(red: 0.90, green: 0.36, blue: 0.34)
-                    )
-
-                    SnapshotMetricTile(
-                        title: "Income",
-                        value: insight.monthIncomeTotal.formattedCurrency(code: currencyCode),
-                        caption: String.notyfiNotesCount(insight.monthEntryCount),
-                        symbol: "arrow.down.circle.fill",
-                        tint: Color(red: 0.28, green: 0.71, blue: 0.45)
-                    )
-
-                    SnapshotMetricTile(
-                        title: "Net",
-                        value: Self.signedCurrency(insight.monthNetTotal, currencyCode: currencyCode),
-                        caption: "Balance",
-                        symbol: "chart.bar.fill",
-                        tint: insight.monthNetTotal >= 0
-                            ? Color(red: 0.28, green: 0.71, blue: 0.45)
-                            : Color(red: 0.90, green: 0.36, blue: 0.34)
-                    )
-                }
-
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Top categories".notyfiLocalized)
-                        .font(.notyfi(.footnote, weight: .semibold))
-                        .foregroundStyle(.primary.opacity(0.88))
-
-                    if insight.categoryBreakdown.isEmpty {
-                        EmptyCategoryBreakdownRow()
-                    } else {
-                        VStack(spacing: 10) {
-                            ForEach(insight.categoryBreakdown.prefix(4)) { breakdown in
-                                CategoryBreakdownRow(
-                                    breakdown: breakdown,
-                                    currencyCode: currencyCode
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        .padding(.horizontal, 20)
-    }
-
-    private var insightHeadline: String {
-        guard let topCategory = insight.topCategory else {
-            return "Start adding notes to see where your money goes.".notyfiLocalized
-        }
-
-        let share = Int((insight.topCategoryShare * 100).rounded())
         return String(
-            format: "Top category insight format".notyfiLocalized,
-            topCategory.title,
-            share
+            format: "%@ over budget".notyfiLocalized,
+            abs(budgetInsight.remainingBudget).formattedCurrency(code: currencyCode)
         )
     }
 
-    private static func signedCurrency(_ amount: Double, currencyCode: String) -> String {
+    private var subtitleText: String {
+        guard budgetInsight.plan.hasSpendingLimit else {
+            if let suggestion = budgetInsight.suggestedMonthlyBudget {
+                return String(
+                    format: "Tap to start with %@ and adjust later.".notyfiLocalized,
+                    suggestion.formattedCurrency(code: currencyCode)
+                )
+            }
+
+            return "Tap to add a simple monthly cap and category guides.".notyfiLocalized
+        }
+
+        if budgetInsight.status == .caution {
+            return String(
+                format: "At this pace you may land near %@.".notyfiLocalized,
+                budgetInsight.projectedExpenseTotal.formattedCurrency(code: currencyCode)
+            )
+        }
+
+        if budgetInsight.status == .overBudget {
+            return "Open the sheet to tighten category caps or adjust the plan.".notyfiLocalized
+        }
+
+        return String(
+            format: "Avg %@ per day so far.".notyfiLocalized,
+            budgetInsight.averageDailySpend.formattedCurrency(code: currencyCode)
+        )
+    }
+
+    private var statusText: String {
+        switch budgetInsight.status {
+        case .needsBudget:
+            return "No budget".notyfiLocalized
+        case .balanced:
+            return "On pace".notyfiLocalized
+        case .caution:
+            return "Watch pace".notyfiLocalized
+        case .overBudget:
+            return "Over".notyfiLocalized
+        }
+    }
+
+    private var trailingPillTitle: String {
+        if insight.reviewCount > 0 {
+            return "Review".notyfiLocalized
+        }
+
+        return insight.topCategory?.title ?? "Today".notyfiLocalized
+    }
+
+    private var trailingPillValue: String {
+        if insight.reviewCount > 0 {
+            return "\(insight.reviewCount)"
+        }
+
+        if let topCategory = insight.topCategory {
+            return "\(Int((insight.topCategoryShare * 100).rounded()))%"
+        }
+
+        return insight.dayExpenseTotal.formattedCurrency(code: currencyCode)
+    }
+
+    private var trailingPillTint: Color {
+        if insight.reviewCount > 0 {
+            return NotyfiTheme.reviewTint
+        }
+
+        return insight.topCategory?.tint ?? NotyfiTheme.brandBlue
+    }
+
+    private func signedCurrency(_ amount: Double) -> String {
         let formattedAmount = abs(amount).formattedCurrency(code: currencyCode)
 
         if amount > 0 {
@@ -182,142 +214,34 @@ struct HomeSnapshotCard: View {
     }
 }
 
-private struct SummaryItem: View {
-    let symbol: String
-    let symbolColor: Color
-    let text: String
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: symbol)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(symbolColor)
-
-            Text(text)
-                .font(.notyfi(.footnote, weight: .medium))
-                .foregroundStyle(.primary.opacity(0.82))
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-        }
-    }
-}
-
-private struct SnapshotMetricTile: View {
+private struct FooterMetricPill: View {
     let title: String
     let value: String
-    let caption: String
-    let symbol: String
     let tint: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                Image(systemName: symbol)
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(tint)
-
-                Text(title.notyfiLocalized)
-                    .font(.notyfi(.caption, weight: .medium))
-                    .foregroundStyle(NotyfiTheme.secondaryText)
-            }
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title.notyfiLocalized)
+                .font(.notyfi(.caption2, weight: .semibold))
+                .foregroundStyle(NotyfiTheme.secondaryText)
 
             Text(value)
-                .font(.notyfi(.subheadline, weight: .semibold))
-                .foregroundStyle(.primary.opacity(0.9))
-                .monospacedDigit()
+                .font(.notyfi(.footnote, weight: .semibold))
+                .foregroundStyle(.primary.opacity(0.84))
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
-
-            Text(caption.notyfiLocalized)
-                .font(.notyfi(.caption2, weight: .medium))
-                .foregroundStyle(NotyfiTheme.secondaryText)
+                .minimumScaleFactor(0.76)
+                .monospacedDigit()
         }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 11)
         .background {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(NotyfiTheme.elevatedSurface)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(tint.opacity(0.08))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(tint.opacity(0.16), lineWidth: 1)
                 }
-        }
-    }
-}
-
-private struct CategoryBreakdownRow: View {
-    let breakdown: JournalCategoryBreakdown
-    let currencyCode: String
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: breakdown.category.symbol)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(breakdown.category.tint)
-                .frame(width: 34, height: 34)
-                .background {
-                    Circle()
-                        .fill(breakdown.category.tint.opacity(0.12))
-                }
-
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
-                    Text(breakdown.category.title)
-                        .font(.notyfi(.footnote, weight: .semibold))
-                        .foregroundStyle(.primary.opacity(0.88))
-
-                    Text("\(breakdown.entryCount)")
-                        .font(.notyfi(.caption, weight: .medium))
-                        .foregroundStyle(NotyfiTheme.secondaryText)
-
-                    Spacer()
-
-                    Text("\(Int((breakdown.share * 100).rounded()))%")
-                        .font(.notyfi(.caption, weight: .semibold))
-                        .foregroundStyle(breakdown.category.tint)
-
-                    Text(breakdown.total.formattedCurrency(code: currencyCode))
-                        .font(.notyfi(.footnote, weight: .semibold))
-                        .foregroundStyle(.primary.opacity(0.86))
-                        .monospacedDigit()
-                }
-
-                ProgressView(value: min(max(breakdown.share, 0), 1))
-                    .tint(breakdown.category.tint)
-                    .scaleEffect(x: 1, y: 1.4, anchor: .center)
-            }
-        }
-        .padding(12)
-        .background {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(NotyfiTheme.elevatedSurface.opacity(0.75))
-        }
-    }
-}
-
-private struct EmptyCategoryBreakdownRow: View {
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "sparkles")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(NotyfiTheme.reviewTint)
-                .frame(width: 34, height: 34)
-                .background {
-                    Circle()
-                        .fill(NotyfiTheme.reviewTint.opacity(0.12))
-                }
-
-            Text("No notes yet this month.".notyfiLocalized)
-                .font(.notyfi(.footnote, weight: .medium))
-                .foregroundStyle(NotyfiTheme.secondaryText)
-
-            Spacer()
-        }
-        .padding(12)
-        .background {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(NotyfiTheme.elevatedSurface.opacity(0.75))
         }
     }
 }
@@ -325,69 +249,47 @@ private struct EmptyCategoryBreakdownRow: View {
 #Preview {
     ZStack {
         NotyfiTheme.background.ignoresSafeArea()
+
         VStack {
             Spacer()
-            HomeSnapshotCard(
-                insight: JournalInsight(
-                    dayExpenseTotal: 810,
-                    dayIncomeTotal: 0,
-                    dayNetTotal: -810,
-                    monthExpenseTotal: 2166,
-                    monthIncomeTotal: 28000,
-                    monthNetTotal: 25834,
-                    topCategory: .food,
-                    reviewCount: 2,
-                    monthEntryCount: 8,
-                    monthAveragePerEntry: 270.75,
-                    topCategoryShare: 0.38,
-                    categoryBreakdown: [
-                        JournalCategoryBreakdown(
-                            category: .food,
-                            total: 822,
-                            share: 0.38,
-                            entryCount: 4
-                        ),
-                        JournalCategoryBreakdown(
-                            category: .transport,
-                            total: 650,
-                            share: 0.30,
-                            entryCount: 2
-                        ),
-                        JournalCategoryBreakdown(
-                            category: .shopping,
-                            total: 694,
-                            share: 0.32,
-                            entryCount: 2
-                        )
-                    ]
-                ),
-                currencyCode: "NOK"
-            )
+
             HomeSummaryBar(
                 insight: JournalInsight(
                     dayExpenseTotal: 810,
                     dayIncomeTotal: 0,
                     dayNetTotal: -810,
-                    monthExpenseTotal: 2166,
-                    monthIncomeTotal: 28000,
-                    monthNetTotal: 25834,
-                    topCategory: .food,
+                    monthExpenseTotal: 13_880,
+                    monthIncomeTotal: 28_000,
+                    monthNetTotal: 14_120,
+                    topCategory: .housing,
                     reviewCount: 2,
                     monthEntryCount: 8,
                     monthAveragePerEntry: 270.75,
-                    topCategoryShare: 0.38,
-                    categoryBreakdown: [
-                        JournalCategoryBreakdown(
-                            category: .food,
-                            total: 822,
-                            share: 0.38,
-                            entryCount: 4
-                        )
-                    ]
+                    topCategoryShare: 0.62,
+                    categoryBreakdown: []
                 ),
-                entryCount: 4,
+                budgetInsight: BudgetInsight(
+                    plan: BudgetPlan(
+                        monthlySpendingLimit: 16_000,
+                        monthlySavingsTarget: 4_000,
+                        categoryTargets: []
+                    ),
+                    status: .balanced,
+                    spentThisMonth: 13_880,
+                    incomeThisMonth: 28_000,
+                    netThisMonth: 14_120,
+                    averageDailySpend: 693,
+                    projectedExpenseTotal: 15_600,
+                    remainingBudget: 2_120,
+                    spendingProgress: 0.86,
+                    remainingSavingsTarget: -10_120,
+                    savingsProgress: 1,
+                    daysElapsed: 20,
+                    daysInMonth: 30,
+                    suggestedMonthlyBudget: nil,
+                    categoryStatuses: []
+                ),
                 currencyCode: "NOK",
-                isExpanded: false,
                 onTap: {}
             )
         }

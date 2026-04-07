@@ -21,8 +21,10 @@ final class HomeViewModel: ObservableObject {
     @Published var journalText = ""
     @Published var isDatePickerPresented = false
     @Published var isSettingsPresented = false
+    @Published var isStatsPresented = false
     @Published private(set) var displayedEntries: [ExpenseEntry] = []
     @Published private(set) var insight: JournalInsight = .empty
+    @Published private(set) var budgetInsight: BudgetInsight = .empty
 
     let currencyCode = "NOK"
 
@@ -42,9 +44,13 @@ final class HomeViewModel: ObservableObject {
         self.store = store
         self.calendar = calendar
 
-        Publishers.CombineLatest(store.$entries, $selectedDate)
-            .sink { [weak self] entries, date in
-                self?.recompute(entries: entries, selectedDate: date)
+        Publishers.CombineLatest3(store.$entries, $selectedDate, store.$budgetPlan)
+            .sink { [weak self] entries, date, budgetPlan in
+                self?.recompute(
+                    entries: entries,
+                    selectedDate: date,
+                    budgetPlan: budgetPlan
+                )
             }
             .store(in: &cancellables)
     }
@@ -55,6 +61,10 @@ final class HomeViewModel: ObservableObject {
 
     var hasEntries: Bool {
         !displayedEntries.isEmpty
+    }
+
+    var budgetPlan: BudgetPlan {
+        store.budgetPlan
     }
 
     var draftFeedback: DraftComposerFeedback? {
@@ -373,7 +383,23 @@ final class HomeViewModel: ObservableObject {
         sortEntriesChronologically(store.entries(on: date))
     }
 
-    private func recompute(entries: [ExpenseEntry], selectedDate: Date) {
+    func setMonthlySpendingLimit(_ amount: Double) {
+        store.setMonthlySpendingLimit(amount)
+    }
+
+    func setMonthlySavingsTarget(_ amount: Double) {
+        store.setMonthlySavingsTarget(amount)
+    }
+
+    func setCategoryBudget(_ amount: Double, for category: ExpenseCategory) {
+        store.setCategoryBudget(amount, for: category)
+    }
+
+    func suggestedMonthlyBudgetAmount() -> Double? {
+        budgetInsight.suggestedMonthlyBudget
+    }
+
+    private func recompute(entries: [ExpenseEntry], selectedDate: Date, budgetPlan: BudgetPlan) {
         displayedEntries = sortEntriesChronologically(
             entries.filter { calendar.isDate($0.date, inSameDayAs: selectedDate) }
         )
@@ -428,6 +454,14 @@ final class HomeViewModel: ObservableObject {
             monthAveragePerEntry: monthAveragePerEntry,
             topCategoryShare: topCategoryShare,
             categoryBreakdown: categoryBreakdown
+        )
+
+        budgetInsight = makeBudgetInsight(
+            for: selectedDate,
+            monthExpenseEntries: monthExpenseEntries,
+            monthExpenseTotal: monthExpenseTotal,
+            monthIncomeTotal: monthIncomeTotal,
+            budgetPlan: budgetPlan
         )
     }
 
@@ -522,6 +556,128 @@ final class HomeViewModel: ObservableObject {
 
             return lhs.date < rhs.date
         }
+    }
+
+    private func makeBudgetInsight(
+        for date: Date,
+        monthExpenseEntries: [ExpenseEntry],
+        monthExpenseTotal: Double,
+        monthIncomeTotal: Double,
+        budgetPlan: BudgetPlan
+    ) -> BudgetInsight {
+        let daysInMonth = calendar.range(of: .day, in: .month, for: date)?.count ?? 30
+        let daysElapsed = max(1, min(calendar.component(.day, from: date), daysInMonth))
+        let averageDailySpend = monthExpenseTotal / Double(daysElapsed)
+        let projectedExpenseTotal = averageDailySpend * Double(daysInMonth)
+        let remainingBudget = budgetPlan.monthlySpendingLimit - monthExpenseTotal
+        let spendingProgress = budgetPlan.monthlySpendingLimit > 0
+            ? min(max(monthExpenseTotal / budgetPlan.monthlySpendingLimit, 0), 1)
+            : 0
+        let netThisMonth = monthIncomeTotal - monthExpenseTotal
+        let remainingSavingsTarget = budgetPlan.monthlySavingsTarget - max(netThisMonth, 0)
+        let savingsProgress = budgetPlan.monthlySavingsTarget > 0
+            ? min(max(netThisMonth / budgetPlan.monthlySavingsTarget, 0), 1)
+            : 0
+        let suggestedMonthlyBudget = suggestedBudgetAmount(
+            monthExpenseTotal: monthExpenseTotal,
+            projectedExpenseTotal: projectedExpenseTotal,
+            currentBudget: budgetPlan.monthlySpendingLimit
+        )
+
+        let groupedEntries = Dictionary(grouping: monthExpenseEntries, by: \.category)
+        var categories = ExpenseCategory.allCases.filter { $0 != .uncategorized }
+
+        if groupedEntries[.uncategorized] != nil || budgetPlan.target(for: .uncategorized) > 0 {
+            categories.append(.uncategorized)
+        }
+
+        let categoryStatuses = categories.map { category in
+            let categoryEntries = groupedEntries[category] ?? []
+            let spent = categoryEntries.reduce(0) { $0 + $1.amount }
+
+            return BudgetCategoryStatus(
+                category: category,
+                spent: spent,
+                target: budgetPlan.target(for: category),
+                share: monthExpenseTotal > 0 ? spent / monthExpenseTotal : 0,
+                entryCount: categoryEntries.count
+            )
+        }
+        .sorted { lhs, rhs in
+            if lhs.isActive != rhs.isActive {
+                return lhs.isActive && !rhs.isActive
+            }
+
+            if lhs.spent == rhs.spent {
+                return lhs.category.title < rhs.category.title
+            }
+
+            return lhs.spent > rhs.spent
+        }
+
+        let status: BudgetInsight.Status
+        if !budgetPlan.hasSpendingLimit {
+            status = .needsBudget
+        } else if remainingBudget < 0 {
+            status = .overBudget
+        } else if projectedExpenseTotal > budgetPlan.monthlySpendingLimit * 1.05 {
+            status = .caution
+        } else {
+            status = .balanced
+        }
+
+        return BudgetInsight(
+            plan: budgetPlan,
+            status: status,
+            spentThisMonth: monthExpenseTotal,
+            incomeThisMonth: monthIncomeTotal,
+            netThisMonth: netThisMonth,
+            averageDailySpend: averageDailySpend,
+            projectedExpenseTotal: projectedExpenseTotal,
+            remainingBudget: remainingBudget,
+            spendingProgress: spendingProgress,
+            remainingSavingsTarget: remainingSavingsTarget,
+            savingsProgress: savingsProgress,
+            daysElapsed: daysElapsed,
+            daysInMonth: daysInMonth,
+            suggestedMonthlyBudget: suggestedMonthlyBudget,
+            categoryStatuses: categoryStatuses
+        )
+    }
+
+    private func suggestedBudgetAmount(
+        monthExpenseTotal: Double,
+        projectedExpenseTotal: Double,
+        currentBudget: Double
+    ) -> Double? {
+        guard currentBudget == 0 else {
+            return nil
+        }
+
+        let baseline = max(monthExpenseTotal, projectedExpenseTotal)
+        guard baseline > 0 else {
+            return nil
+        }
+
+        return roundBudgetAmount(baseline * 1.08)
+    }
+
+    private func roundBudgetAmount(_ amount: Double) -> Double {
+        guard amount > 0 else {
+            return 0
+        }
+
+        let step: Double
+        switch amount {
+        case 0..<2_000:
+            step = 100
+        case 2_000..<10_000:
+            step = 250
+        default:
+            step = 500
+        }
+
+        return ceil(amount / step) * step
     }
 
     private func pendingTextEntry(_ entry: ExpenseEntry, rawText: String) -> ExpenseEntry {

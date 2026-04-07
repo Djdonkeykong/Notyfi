@@ -4,11 +4,13 @@ import Foundation
 @MainActor
 final class ExpenseJournalStore: ObservableObject {
     @Published private(set) var entries: [ExpenseEntry] = []
+    @Published private(set) var budgetPlan: BudgetPlan = .empty
 
     private let parser: ExpenseParsingServicing
     private let defaults: UserDefaults
     private let calendar: Calendar
     private let storageKey = "notely.expense.entries"
+    private let budgetPlanStorageKey = "notely.expense.budget-plan"
     private let parseCacheStorageKey = "notely.expense.parse-cache"
     private let maxParseCacheEntryCount = 300
     private var parseTasksByEntryID: [UUID: Task<Void, Never>] = [:]
@@ -26,8 +28,10 @@ final class ExpenseJournalStore: ObservableObject {
 
         if previewMode {
             entries = Self.mockEntries(calendar: calendar)
+            budgetPlan = Self.mockBudgetPlan
         } else {
             load()
+            loadBudgetPlan()
             loadParseCache()
             resumePendingParsesIfNeeded()
         }
@@ -151,6 +155,21 @@ final class ExpenseJournalStore: ObservableObject {
         persistParseCache()
     }
 
+    func setMonthlySpendingLimit(_ amount: Double) {
+        budgetPlan.setMonthlySpendingLimit(amount)
+        persistBudgetPlan()
+    }
+
+    func setMonthlySavingsTarget(_ amount: Double) {
+        budgetPlan.setMonthlySavingsTarget(amount)
+        persistBudgetPlan()
+    }
+
+    func setCategoryBudget(_ amount: Double, for category: ExpenseCategory) {
+        budgetPlan.setCategoryTarget(amount, for: category)
+        persistBudgetPlan()
+    }
+
     func entries(on date: Date) -> [ExpenseEntry] {
         entries.filter { calendar.isDate($0.date, inSameDayAs: date) }
     }
@@ -239,6 +258,24 @@ final class ExpenseJournalStore: ObservableObject {
         }
 
         defaults.set(data, forKey: storageKey)
+    }
+
+    private func loadBudgetPlan() {
+        guard let data = defaults.data(forKey: budgetPlanStorageKey),
+              let decoded = try? JSONDecoder().decode(BudgetPlan.self, from: data) else {
+            budgetPlan = .empty
+            return
+        }
+
+        budgetPlan = decoded
+    }
+
+    private func persistBudgetPlan() {
+        guard let data = try? JSONEncoder().encode(budgetPlan) else {
+            return
+        }
+
+        defaults.set(data, forKey: budgetPlanStorageKey)
     }
 
     private func makePendingEntry(
@@ -606,6 +643,17 @@ final class ExpenseJournalStore: ObservableObject {
 }
 
 private extension ExpenseJournalStore {
+    static let mockBudgetPlan = BudgetPlan(
+        monthlySpendingLimit: 15000,
+        monthlySavingsTarget: 5000,
+        categoryTargets: [
+            BudgetCategoryTarget(category: .housing, amount: 12000),
+            BudgetCategoryTarget(category: .food, amount: 1800),
+            BudgetCategoryTarget(category: .transport, amount: 1200),
+            BudgetCategoryTarget(category: .social, amount: 1500)
+        ]
+    )
+
     static func mockEntries(calendar: Calendar) -> [ExpenseEntry] {
         let today = Date()
         let morning = calendar.date(bySettingHour: 8, minute: 40, second: 0, of: today) ?? today

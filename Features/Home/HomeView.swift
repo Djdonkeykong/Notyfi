@@ -4,7 +4,6 @@ import UIKit
 struct HomeView: View {
     @ObservedObject private var store: ExpenseJournalStore
     @StateObject private var viewModel: HomeViewModel
-    @State private var isSummaryExpanded = false
     @State private var selectedEntry: ExpenseEntry?
     @State private var focusedEditor: JournalEditorTarget?
     @State private var editorFocusRequest: JournalEditorFocusRequest?
@@ -80,7 +79,6 @@ struct HomeView: View {
                         },
                         onMoveSelection: { dayOffset in
                             clearEditorFocus()
-                            isSummaryExpanded = false
                             viewModel.moveSelection(by: dayOffset)
                         }
                     )
@@ -96,28 +94,12 @@ struct HomeView: View {
                     .padding(.bottom, 14)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 } else {
-                    VStack(spacing: 10) {
-                        if isSummaryExpanded {
-                            HomeSnapshotCard(
-                                insight: viewModel.insight,
-                                currencyCode: viewModel.currencyCode
-                            )
-                            .transition(.opacity)
-                        }
-
-                        HomeSummaryBar(
-                            insight: viewModel.insight,
-                            entryCount: viewModel.displayedEntries.count,
-                            currencyCode: viewModel.currencyCode,
-                            isExpanded: isSummaryExpanded,
-                            onTap: {
-                                withAnimation(.spring(response: 0.28, dampingFraction: 0.72, blendDuration: 0.12)) {
-                                    isSummaryExpanded.toggle()
-                                }
-                            }
-                        )
-                    }
-                    .animation(.spring(response: 0.28, dampingFraction: 0.72, blendDuration: 0.12), value: isSummaryExpanded)
+                    HomeSummaryBar(
+                        insight: viewModel.insight,
+                        budgetInsight: viewModel.budgetInsight,
+                        currencyCode: viewModel.currencyCode,
+                        onTap: { presentStats() }
+                    )
                 }
             }
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
@@ -138,6 +120,13 @@ struct HomeView: View {
                     .presentationBackground(NotyfiTheme.background.opacity(0.98))
                     .presentationCornerRadius(34)
             }
+            .sheet(isPresented: $viewModel.isStatsPresented) {
+                StatsSheetView(viewModel: viewModel)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                    .presentationBackground(NotyfiTheme.background.opacity(0.98))
+                    .presentationCornerRadius(34)
+            }
             .sheet(item: $selectedEntry) { entry in
                 EntryDetailView(entry: entry, store: store)
                     .presentationDetents([.large])
@@ -152,7 +141,10 @@ struct HomeView: View {
 
 private extension HomeView {
     var isPresentingModalSurface: Bool {
-        viewModel.isDatePickerPresented || viewModel.isSettingsPresented || selectedEntry != nil
+        viewModel.isDatePickerPresented
+            || viewModel.isSettingsPresented
+            || viewModel.isStatsPresented
+            || selectedEntry != nil
     }
 
     var selectedDateBinding: Binding<Date> {
@@ -174,6 +166,12 @@ private extension HomeView {
         }
     }
 
+    func presentStats() {
+        presentAfterEditorSettles {
+            viewModel.isStatsPresented = true
+        }
+    }
+
     func presentEntryDetail(_ entry: ExpenseEntry) {
         presentAfterEditorSettles {
             selectedEntry = entry
@@ -190,10 +188,6 @@ private extension HomeView {
         let requestGeneration = presentationRequestGeneration
 
         clearEditorFocus(cancelsPendingPresentation: false)
-
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.9)) {
-            isSummaryExpanded = false
-        }
 
         let presentationDelay: TimeInterval = hadFocusedEditor ? 0.18 : 0.01
 
