@@ -84,9 +84,9 @@ struct HomeSummaryBar: View {
                         )
 
                         FooterMetricPill(
-                            title: trailingPillTitle,
-                            value: trailingPillValue,
-                            tint: trailingPillTint
+                            title: "Today",
+                            value: insight.dayExpenseTotal.formattedCurrency(code: currencyCode),
+                            tint: NotyfiTheme.brandBlue
                         )
                     }
                 }
@@ -169,34 +169,6 @@ struct HomeSummaryBar: View {
         case .overBudget:
             return "Over".notyfiLocalized
         }
-    }
-
-    private var trailingPillTitle: String {
-        if insight.reviewCount > 0 {
-            return "Review".notyfiLocalized
-        }
-
-        return insight.topCategory?.title ?? "Today".notyfiLocalized
-    }
-
-    private var trailingPillValue: String {
-        if insight.reviewCount > 0 {
-            return "\(insight.reviewCount)"
-        }
-
-        if let topCategory = insight.topCategory {
-            return "\(Int((insight.topCategoryShare * 100).rounded()))%"
-        }
-
-        return insight.dayExpenseTotal.formattedCurrency(code: currencyCode)
-    }
-
-    private var trailingPillTint: Color {
-        if insight.reviewCount > 0 {
-            return NotyfiTheme.reviewTint
-        }
-
-        return insight.topCategory?.tint ?? NotyfiTheme.brandBlue
     }
 
     private func signedCurrency(_ amount: Double) -> String {

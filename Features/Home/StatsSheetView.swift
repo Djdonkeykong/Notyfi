@@ -1,5 +1,11 @@
 import SwiftUI
 
+private enum MoneyPlanFocusField: Hashable {
+    case monthlyBudget
+    case savingsTarget
+    case category(ExpenseCategory)
+}
+
 struct StatsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: HomeViewModel
@@ -7,6 +13,7 @@ struct StatsSheetView: View {
     @State private var monthlyBudgetText = ""
     @State private var savingsTargetText = ""
     @State private var categoryBudgetTexts: [ExpenseCategory: String] = [:]
+    @FocusState private var focusedField: MoneyPlanFocusField?
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -16,6 +23,10 @@ struct StatsSheetView: View {
     var body: some View {
         ZStack {
             NotyfiTheme.background.ignoresSafeArea()
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    focusedField = nil
+                }
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
@@ -68,7 +79,9 @@ struct StatsSheetView: View {
                                 title: "Monthly spending cap",
                                 subtitle: "One gentle limit for the whole month",
                                 text: $monthlyBudgetText,
-                                currencyCode: viewModel.currencyCode
+                                currencyCode: viewModel.currencyCode,
+                                focusedField: $focusedField,
+                                field: .monthlyBudget
                             )
 
                             Divider()
@@ -78,7 +91,9 @@ struct StatsSheetView: View {
                                 title: "Savings target",
                                 subtitle: "How much you want to keep after expenses",
                                 text: $savingsTargetText,
-                                currencyCode: viewModel.currencyCode
+                                currencyCode: viewModel.currencyCode,
+                                focusedField: $focusedField,
+                                field: .savingsTarget
                             )
                         }
                     }
@@ -121,7 +136,9 @@ struct StatsSheetView: View {
                                 CategoryBudgetInputRow(
                                     status: status,
                                     text: binding(for: status.category),
-                                    currencyCode: viewModel.currencyCode
+                                    currencyCode: viewModel.currencyCode,
+                                    focusedField: $focusedField,
+                                    field: .category(status.category)
                                 )
 
                                 if index < viewModel.budgetInsight.categoryStatuses.count - 1 {
@@ -166,6 +183,10 @@ struct StatsSheetView: View {
                 .padding(.horizontal, 20)
                 .safeAreaPadding(.top, 14)
                 .padding(.bottom, 28)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    focusedField = nil
+                }
             }
             .scrollDismissesKeyboard(.interactively)
         }
@@ -175,6 +196,16 @@ struct StatsSheetView: View {
         }
         .onChange(of: savingsTargetText) { _, newValue in
             viewModel.setMonthlySavingsTarget(parsedAmount(from: newValue))
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+
+                Button("Done".notyfiLocalized) {
+                    focusedField = nil
+                }
+                .font(.notyfi(.footnote, weight: .semibold))
+            }
         }
     }
 
@@ -469,6 +500,8 @@ private struct BudgetAmountInputRow: View {
     let subtitle: String
     @Binding var text: String
     let currencyCode: String
+    @FocusState.Binding var focusedField: MoneyPlanFocusField?
+    let field: MoneyPlanFocusField
 
     var body: some View {
         HStack(spacing: 14) {
@@ -494,15 +527,26 @@ private struct BudgetAmountInputRow: View {
                     .multilineTextAlignment(.trailing)
                     .font(.notyfi(.subheadline, weight: .semibold))
                     .foregroundStyle(.primary.opacity(0.86))
-                    .frame(width: 96)
+                    .frame(width: 112)
+                    .focused($focusedField, equals: field)
 
                 Text(currencyCode)
                     .font(.notyfi(.caption, weight: .semibold))
                     .foregroundStyle(NotyfiTheme.secondaryText)
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(NotyfiTheme.elevatedSurface)
+            }
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            focusedField = field
+        }
     }
 }
 
@@ -510,6 +554,8 @@ private struct CategoryBudgetInputRow: View {
     let status: BudgetCategoryStatus
     @Binding var text: String
     let currencyCode: String
+    @FocusState.Binding var focusedField: MoneyPlanFocusField?
+    let field: MoneyPlanFocusField
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -536,11 +582,18 @@ private struct CategoryBudgetInputRow: View {
                         .multilineTextAlignment(.trailing)
                         .font(.notyfi(.subheadline, weight: .semibold))
                         .foregroundStyle(.primary.opacity(0.86))
-                        .frame(width: 88)
+                        .frame(width: 104)
+                        .focused($focusedField, equals: field)
 
                     Text(currencyCode)
                         .font(.notyfi(.caption, weight: .semibold))
                         .foregroundStyle(NotyfiTheme.secondaryText)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(NotyfiTheme.elevatedSurface)
                 }
             }
 
@@ -558,6 +611,10 @@ private struct CategoryBudgetInputRow: View {
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            focusedField = field
+        }
     }
 
     private var remainingLabel: String {
