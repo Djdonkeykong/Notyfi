@@ -25,8 +25,7 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var displayedEntries: [ExpenseEntry] = []
     @Published private(set) var insight: JournalInsight = .empty
     @Published private(set) var budgetInsight: BudgetInsight = .empty
-
-    let currencyCode = "NOK"
+    @Published private(set) var currencyCode: String
 
     private let store: ExpenseJournalStore
     private let calendar: Calendar
@@ -38,11 +37,13 @@ final class HomeViewModel: ObservableObject {
 
     init(
         store: ExpenseJournalStore,
-        calendar: Calendar = .current
+        calendar: Calendar = .current,
+        defaults: UserDefaults = .standard
     ) {
         self.selectedDate = calendar.startOfDay(for: Date())
         self.store = store
         self.calendar = calendar
+        self.currencyCode = NotyfiCurrency.currentCode(defaults: defaults)
 
         Publishers.CombineLatest3(store.$entries, $selectedDate, store.$budgetPlan)
             .sink { [weak self] entries, date, budgetPlan in
@@ -51,6 +52,14 @@ final class HomeViewModel: ObservableObject {
                     selectedDate: date,
                     budgetPlan: budgetPlan
                 )
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification, object: defaults)
+            .map { _ in NotyfiCurrency.currentCode(defaults: defaults) }
+            .removeDuplicates()
+            .sink { [weak self] currencyCode in
+                self?.currencyCode = currencyCode
             }
             .store(in: &cancellables)
     }

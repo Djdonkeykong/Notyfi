@@ -32,6 +32,7 @@
 "Bills" = "Bills";
 "Health" = "Health";
 "Social" = "Social";
+"Entertainment" = "Entertainment";
 "Other" = "Other";
 
 "Monthly insight" = "Monthly insight";
@@ -154,6 +155,16 @@
 "Norwegian Krone (NOK)" = "Norwegian Krone (NOK)";
 "US Dollar (USD)" = "US Dollar (USD)";
 "Euro (EUR)" = "Euro (EUR)";
+"British Pound (GBP)" = "British Pound (GBP)";
+"Swedish Krona (SEK)" = "Swedish Krona (SEK)";
+"Danish Krone (DKK)" = "Danish Krone (DKK)";
+"Swiss Franc (CHF)" = "Swiss Franc (CHF)";
+"Canadian Dollar (CAD)" = "Canadian Dollar (CAD)";
+"Australian Dollar (AUD)" = "Australian Dollar (AUD)";
+"New Zealand Dollar (NZD)" = "New Zealand Dollar (NZD)";
+"Japanese Yen (JPY)" = "Japanese Yen (JPY)";
+"Polish Zloty (PLN)" = "Polish Zloty (PLN)";
+"Singapore Dollar (SGD)" = "Singapore Dollar (SGD)";
 
 "Original Note" = "Original Note";
 "Entry Details" = "Entry Details";

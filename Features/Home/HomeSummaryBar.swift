@@ -29,14 +29,10 @@ struct HomeSummaryBar: View {
 
                         Spacer(minLength: 12)
 
-                        Image(systemName: "chevron.up.right")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(accentColor)
+                        Text(statusEmoji)
+                            .font(.system(size: 28))
                             .frame(width: 36, height: 36)
-                            .background {
-                                Circle()
-                                    .fill(accentColor.opacity(0.12))
-                            }
+                            .accessibilityLabel(statusText)
                     }
 
                     if budgetInsight.plan.hasSpendingLimit {
@@ -140,6 +136,19 @@ struct HomeSummaryBar: View {
             return "Watch pace".notyfiLocalized
         case .overBudget:
             return "Over".notyfiLocalized
+        }
+    }
+
+    private var statusEmoji: String {
+        switch budgetInsight.status {
+        case .needsBudget:
+            return "🙂"
+        case .balanced:
+            return "😌"
+        case .caution:
+            return "😬"
+        case .overBudget:
+            return "😵"
         }
     }
 

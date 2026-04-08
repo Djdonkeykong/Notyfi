@@ -2,7 +2,6 @@ import SwiftUI
 
 struct HomeTopBar: View {
     let selectedDate: Date
-    let entryCount: Int
     let onDateTap: () -> Void
     let onSettingsTap: () -> Void
 
@@ -14,28 +13,15 @@ struct HomeTopBar: View {
                 Spacer()
 
                 SoftCapsule(horizontalPadding: 14, verticalPadding: 11) {
-                    HStack(spacing: 10) {
-                        Label {
-                            Text("\(entryCount)")
-                                .font(.notyfi(.footnote, weight: .semibold))
-                                .foregroundStyle(.primary.opacity(0.82))
-                                .monospacedDigit()
-                        } icon: {
-                            Image(systemName: "circle.fill")
-                                .font(.system(size: 7, weight: .bold))
-                                .foregroundStyle(NotyfiTheme.reviewTint)
-                        }
-
-                        Button(action: {
-                            Haptics.mediumImpact()
-                            onSettingsTap()
-                        }) {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.primary.opacity(0.82))
-                        }
-                        .buttonStyle(.plain)
+                    Button(action: {
+                        Haptics.mediumImpact()
+                        onSettingsTap()
+                    }) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.primary.opacity(0.82))
                     }
+                    .buttonStyle(.plain)
                 }
             }
 
@@ -69,7 +55,6 @@ private struct NotyfiMark: View {
         VStack {
             HomeTopBar(
                 selectedDate: Date(),
-                entryCount: 2,
                 onDateTap: {},
                 onSettingsTap: {}
             )

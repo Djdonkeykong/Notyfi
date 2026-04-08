@@ -25,7 +25,6 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 22) {
                     HomeTopBar(
                         selectedDate: viewModel.selectedDate,
-                        entryCount: viewModel.displayedEntries.count,
                         onDateTap: { presentDatePicker() },
                         onSettingsTap: { presentSettings() }
                     )

@@ -24,10 +24,11 @@ struct SettingsSheetView: View {
 
                             Divider()
 
-                            SettingsValueRow(
+                            CurrencyMenuRow(
                                 icon: "banknote",
                                 title: "Currency",
-                                value: viewModel.currencyDisplayName
+                                selection: $viewModel.currencyPreference,
+                                onSelect: viewModel.setCurrencyPreference
                             )
 
                             Divider()
@@ -244,6 +245,54 @@ private struct AppearanceMenuRow: View {
                 Text(selection.title)
                     .font(.notyfi(.subheadline))
                     .foregroundStyle(NotyfiTheme.secondaryText)
+
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.tertiaryText)
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct CurrencyMenuRow: View {
+    let icon: String
+    let title: String
+    @Binding var selection: NotyfiCurrencyPreference
+    let onSelect: (NotyfiCurrencyPreference) -> Void
+
+    var body: some View {
+        Menu {
+            ForEach(NotyfiCurrencyPreference.allCases) { preference in
+                Button {
+                    onSelect(preference)
+                } label: {
+                    if preference == selection {
+                        Label(preference.title, systemImage: "checkmark")
+                    } else {
+                        Text(preference.title)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .frame(width: 18)
+
+                Text(title.notyfiLocalized)
+                    .font(.notyfi(.body))
+                    .foregroundStyle(.primary.opacity(0.82))
+
+                Spacer()
+
+                Text(selection.title)
+                    .font(.notyfi(.subheadline))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .multilineTextAlignment(.trailing)
 
                 Image(systemName: "chevron.up.chevron.down")
                     .font(.system(size: 10, weight: .semibold))

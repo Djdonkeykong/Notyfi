@@ -26,7 +26,7 @@ struct NotyfiFinanceSnapshot: Codable, Equatable {
 
     static let empty = NotyfiFinanceSnapshot(
         generatedAt: .distantPast,
-        currencyCode: "NOK",
+        currencyCode: NotyfiCurrency.currentCode(),
         todaySpent: 0,
         monthSpent: 0,
         monthIncome: 0,

@@ -44,7 +44,7 @@ final class ExpenseJournalStore: ObservableObject {
         }
     }
 
-    func addEntry(from rawText: String, on date: Date, currencyCode: String = "NOK") {
+    func addEntry(from rawText: String, on date: Date, currencyCode: String = NotyfiCurrency.currentCode()) {
         let entry = makePendingEntry(
             rawText: rawText,
             date: date,
@@ -68,7 +68,7 @@ final class ExpenseJournalStore: ObservableObject {
         after referenceEntry: ExpenseEntry,
         rawText: String,
         on date: Date,
-        currencyCode: String = "NOK"
+        currencyCode: String = NotyfiCurrency.currentCode()
     ) -> UUID {
         let nextEntry = nextEntry(after: referenceEntry, on: date)
 
@@ -86,7 +86,7 @@ final class ExpenseJournalStore: ObservableObject {
         and nextEntry: ExpenseEntry?,
         rawText: String,
         on date: Date,
-        currencyCode: String = "NOK"
+        currencyCode: String = NotyfiCurrency.currentCode()
     ) -> UUID {
         let createdAt = createdAtForInsertion(
             between: previousEntry,
@@ -200,7 +200,7 @@ final class ExpenseJournalStore: ObservableObject {
     func previewDraft(
         rawText: String,
         on date: Date,
-        currencyCode: String = "NOK"
+        currencyCode: String = NotyfiCurrency.currentCode()
     ) async throws -> ParsedExpenseDraft {
         let trimmedText = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedText.isEmpty else {
@@ -324,7 +324,7 @@ final class ExpenseJournalStore: ObservableObject {
 
         return NotyfiFinanceSnapshot(
             generatedAt: referenceDate,
-            currencyCode: monthEntries.first?.currencyCode ?? "NOK",
+            currencyCode: monthEntries.first?.currencyCode ?? NotyfiCurrency.currentCode(defaults: defaults),
             todaySpent: todaySpent,
             monthSpent: monthSpent,
             monthIncome: monthIncome,

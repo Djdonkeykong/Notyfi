@@ -32,6 +32,7 @@
 "Bills" = "Regninger";
 "Health" = "Helse";
 "Social" = "Sosialt";
+"Entertainment" = "Underholdning";
 "Other" = "Annet";
 
 "Monthly insight" = "Månedsoversikt";
@@ -154,6 +155,16 @@
 "Norwegian Krone (NOK)" = "Norsk krone (NOK)";
 "US Dollar (USD)" = "Amerikansk dollar (USD)";
 "Euro (EUR)" = "Euro (EUR)";
+"British Pound (GBP)" = "Britisk pund (GBP)";
+"Swedish Krona (SEK)" = "Svensk krone (SEK)";
+"Danish Krone (DKK)" = "Dansk krone (DKK)";
+"Swiss Franc (CHF)" = "Sveitsisk franc (CHF)";
+"Canadian Dollar (CAD)" = "Kanadisk dollar (CAD)";
+"Australian Dollar (AUD)" = "Australsk dollar (AUD)";
+"New Zealand Dollar (NZD)" = "Newzealandsk dollar (NZD)";
+"Japanese Yen (JPY)" = "Japansk yen (JPY)";
+"Polish Zloty (PLN)" = "Polsk zloty (PLN)";
+"Singapore Dollar (SGD)" = "Singapore-dollar (SGD)";
 
 "Original Note" = "Opprinnelig notat";
 "Entry Details" = "Postdetaljer";

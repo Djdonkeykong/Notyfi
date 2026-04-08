@@ -68,7 +68,7 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         rawText: String,
         title: String,
         amount: Double,
-        currencyCode: String = "NOK",
+        currencyCode: String = NotyfiCurrency.currentCode(),
         transactionKind: TransactionKind = .expense,
         category: ExpenseCategory,
         merchant: String? = nil,

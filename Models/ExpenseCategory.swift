@@ -10,6 +10,7 @@ enum ExpenseCategory: String, CaseIterable, Codable, Identifiable {
     case bills
     case health
     case social
+    case entertainment
     case uncategorized
 
     var id: String { rawValue }
@@ -34,6 +35,8 @@ enum ExpenseCategory: String, CaseIterable, Codable, Identifiable {
             return "Health".notyfiLocalized
         case .social:
             return "Social".notyfiLocalized
+        case .entertainment:
+            return "Entertainment".notyfiLocalized
         case .uncategorized:
             return "Other".notyfiLocalized
         }
@@ -59,6 +62,8 @@ enum ExpenseCategory: String, CaseIterable, Codable, Identifiable {
             return "cross.case.fill"
         case .social:
             return "person.2.fill"
+        case .entertainment:
+            return "tv.fill"
         case .uncategorized:
             return "circle.fill"
         }
@@ -84,6 +89,8 @@ enum ExpenseCategory: String, CaseIterable, Codable, Identifiable {
             return Color(red: 0.87, green: 0.32, blue: 0.40)
         case .social:
             return Color(red: 0.87, green: 0.69, blue: 0.33)
+        case .entertainment:
+            return Color(red: 0.48, green: 0.44, blue: 0.88)
         case .uncategorized:
             return NotyfiTheme.tertiaryText
         }

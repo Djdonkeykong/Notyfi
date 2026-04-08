@@ -3,7 +3,7 @@ import Foundation
 @MainActor
 final class SettingsViewModel: ObservableObject {
     @Published var appearanceMode: NotyfiAppearanceMode
-    @Published var currencyCode = "NOK"
+    @Published var currencyPreference: NotyfiCurrencyPreference
     @Published var remindersEnabled = false
     @Published var reminderTime: Date
     @Published private(set) var remindersPermissionDenied = false
@@ -26,6 +26,7 @@ final class SettingsViewModel: ObservableObject {
         self.appearanceMode = NotyfiAppearanceMode(
             rawValue: defaults.string(forKey: NotyfiAppearanceMode.storageKey) ?? ""
         ) ?? .system
+        self.currencyPreference = NotyfiCurrency.currentPreference(defaults: defaults)
 
         let reminderSettings = self.reminderManager.loadSettings()
         self.remindersEnabled = reminderSettings.isEnabled
@@ -38,19 +39,6 @@ final class SettingsViewModel: ObservableObject {
 
         Task {
             await refreshReminderAuthorization()
-        }
-    }
-
-    var currencyDisplayName: String {
-        switch currencyCode.uppercased() {
-        case "NOK":
-            return "Norwegian Krone (NOK)".notyfiLocalized
-        case "USD":
-            return "US Dollar (USD)".notyfiLocalized
-        case "EUR":
-            return "Euro (EUR)".notyfiLocalized
-        default:
-            return currencyCode
         }
     }
 
@@ -104,6 +92,11 @@ final class SettingsViewModel: ObservableObject {
     func setAppearanceMode(_ mode: NotyfiAppearanceMode) {
         appearanceMode = mode
         defaults.set(mode.rawValue, forKey: NotyfiAppearanceMode.storageKey)
+    }
+
+    func setCurrencyPreference(_ preference: NotyfiCurrencyPreference) {
+        currencyPreference = preference
+        defaults.set(preference.rawValue, forKey: NotyfiCurrency.storageKey)
     }
 
     private var reminderDateComponents: DateComponents {
