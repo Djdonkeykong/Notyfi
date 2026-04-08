@@ -109,7 +109,6 @@ struct HomeView: View {
                     .presentationDetents([.height(430)])
                     .presentationDragIndicator(.hidden)
                     .presentationBackground(.clear)
-                    .presentationBackgroundInteraction(.enabled(upThrough: .height(430)))
                     .presentationCornerRadius(34)
             }
             .sheet(isPresented: $viewModel.isSettingsPresented) {

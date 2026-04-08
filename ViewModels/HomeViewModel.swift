@@ -136,7 +136,11 @@ final class HomeViewModel: ObservableObject {
         }
 
         setComposerDraft("")
-        store.addEntry(from: trimmed, on: selectedDate, currencyCode: currencyCode)
+        store.addEntry(
+            from: trimmed,
+            on: defaultEntryDate(for: selectedDate),
+            currencyCode: currencyCode
+        )
     }
 
     func focusComposer() -> JournalEditorFocusRequest {
@@ -237,7 +241,7 @@ final class HomeViewModel: ObservableObject {
         setComposerDraft(normalizedTrailingText)
         store.addEntry(
             from: normalizedLeadingText,
-            on: selectedDate,
+            on: defaultEntryDate(for: selectedDate),
             currencyCode: currencyCode
         )
 
@@ -506,7 +510,7 @@ final class HomeViewModel: ObservableObject {
                     between: previousResolvedEntry,
                     and: nextResolvedEntry,
                     rawText: rawText,
-                    on: date,
+                    on: defaultEntryDate(for: date),
                     currencyCode: currencyCode
                 )
 
@@ -705,6 +709,23 @@ final class HomeViewModel: ObservableObject {
             isAmountEstimated: entry.isAmountEstimated,
             createdAt: entry.createdAt
         )
+    }
+
+    private func defaultEntryDate(for selectedDay: Date) -> Date {
+        let now = Date()
+
+        if calendar.isDate(selectedDay, inSameDayAs: now) {
+            return now
+        }
+
+        var components = calendar.dateComponents([.year, .month, .day], from: selectedDay)
+        let timeComponents = calendar.dateComponents([.hour, .minute, .second, .nanosecond], from: now)
+        components.hour = timeComponents.hour
+        components.minute = timeComponents.minute
+        components.second = timeComponents.second
+        components.nanosecond = timeComponents.nanosecond
+
+        return calendar.date(from: components) ?? selectedDay
     }
 
     private func dayKey(for date: Date) -> Date {

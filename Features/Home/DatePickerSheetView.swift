@@ -60,17 +60,7 @@ struct DatePickerSheetView: View {
 
     var body: some View {
         ZStack {
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    Rectangle()
-                        .fill(NotyfiTheme.glassOverlay)
-                }
-                .overlay {
-                    Rectangle()
-                        .stroke(NotyfiTheme.glassStroke, lineWidth: 1)
-                }
-                .ignoresSafeArea()
+            backgroundSurface
 
             VStack(spacing: 20) {
                 HStack {
@@ -154,6 +144,31 @@ struct DatePickerSheetView: View {
             .padding(.bottom, 12)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .safeAreaPadding(.top, 6)
+        }
+    }
+
+    @ViewBuilder
+    private var backgroundSurface: some View {
+        if #available(iOS 26.0, *) {
+            Color.clear
+                .glassEffect(in: .rect(cornerRadius: 0))
+                .ignoresSafeArea()
+        } else {
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    Rectangle()
+                        .fill(Color.black.opacity(0.04))
+                }
+                .overlay {
+                    Rectangle()
+                        .fill(NotyfiTheme.glassOverlay)
+                }
+                .overlay {
+                    Rectangle()
+                        .stroke(NotyfiTheme.glassStroke, lineWidth: 1)
+                }
+                .ignoresSafeArea()
         }
     }
 

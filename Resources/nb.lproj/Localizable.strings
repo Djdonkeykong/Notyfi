@@ -54,7 +54,7 @@
 "Net this month" = "Netto denne måneden";
 "Top category" = "Toppkategori";
 "Quiet week" = "Rolig uke";
-"Money pulse" = "Pengepuls";
+"Money pulse" = "Forbruk";
 "Set a gentle budget for this month" = "Sett et rolig budsjett for denne måneden";
 "No budget" = "Ingen budsjett";
 "On pace" = "I rute";
@@ -68,7 +68,7 @@
 "Avg / day" = "Snitt / dag";
 "Based on %d days" = "Basert på %d dager";
 "Plan" = "Plan";
-"Money plan" = "Pengeplan";
+"Money plan" = "Budsjettplan";
 "Monthly spending cap" = "Månedlig forbruksgrense";
 "One gentle limit for the whole month" = "Én rolig grense for hele måneden";
 "Savings target" = "Sparemål";
