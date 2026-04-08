@@ -71,11 +71,19 @@ protocol ExpenseParsingServicing {
         date: Date,
         currencyCode: String
     ) async throws -> ParsedExpenseDraft
+
+    func parse(
+        imageData: Data,
+        mimeType: String,
+        date: Date,
+        currencyCode: String
+    ) async throws -> [ParsedExpenseDraft]
 }
 
 enum ExpenseParsingServiceError: Error {
     case missingAPIKey
     case emptyModelResponse
+    case noTransactionsFound
 }
 
 struct OpenAIExpenseParsingService: ExpenseParsingServicing {
@@ -196,6 +204,59 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         )
     }
 
+    func parse(
+        imageData: Data,
+        mimeType: String,
+        date: Date,
+        currencyCode: String
+    ) async throws -> [ParsedExpenseDraft] {
+        guard let apiKey, !apiKey.isEmpty else {
+            throw ExpenseParsingServiceError.missingAPIKey
+        }
+
+        let requestBody = makeImageRequestBody(
+            imageData: imageData,
+            mimeType: mimeType,
+            date: date,
+            currencyCode: currencyCode
+        )
+        let payload = try JSONSerialization.data(withJSONObject: requestBody)
+        var request = URLRequest(url: endpointURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.httpBody = payload
+
+        let (data, response) = try await session.data(for: request)
+
+        if let httpResponse = response as? HTTPURLResponse,
+           !(200...299).contains(httpResponse.statusCode) {
+            let message = String(data: data, encoding: .utf8) ?? "Unknown API error"
+            throw RequestError.http(statusCode: httpResponse.statusCode, message: message)
+        }
+
+        let completion = try decoder.decode(ChatCompletionResponse.self, from: data)
+        guard let content = completion.choices.first?.message.content else {
+            throw ExpenseParsingServiceError.emptyModelResponse
+        }
+
+        let parsedData = Data(content.utf8)
+        let parsedBatch = try decoder.decode(ParsedExpenseDraftBatch.self, from: parsedData)
+        let drafts = parsedBatch.entries.map { draft in
+            sanitizeParsedDraft(
+                draft,
+                fallbackRawText: draft.title,
+                fallbackCurrencyCode: currencyCode
+            )
+        }
+
+        guard !drafts.isEmpty else {
+            throw ExpenseParsingServiceError.noTransactionsFound
+        }
+
+        return drafts
+    }
+
     private func makeRequestBody(
         rawText: String,
         date: Date,
@@ -278,6 +339,150 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
             ]
         ]
     }
+
+    private func makeImageRequestBody(
+        imageData: Data,
+        mimeType: String,
+        date: Date,
+        currencyCode: String
+    ) -> [String: Any] {
+        let appLanguage = Bundle.main.preferredLocalizations.first ?? "en"
+        let base64Image = imageData.base64EncodedString()
+        let imageDataURL = "data:\(mimeType);base64,\(base64Image)"
+        let userPrompt = """
+        Analyze this personal-finance photo and return one or more transaction JSON objects.
+        Date context: \(ISO8601DateFormatter().string(from: date))
+        Default currency: \(currencyCode)
+        App language: \(appLanguage)
+
+        Rules:
+        - Return one entry per distinct money movement visible in the image.
+        - A receipt, invoice, utility bill, order confirmation, brokerage trade, bank transfer, or payment confirmation is usually one entry.
+        - If the image clearly contains multiple separate purchases, bills, trades, or transfers, return multiple entries.
+        - Do not split a single receipt or bill into separate line-item transactions unless the image clearly shows separate payments.
+        - rawText should be a concise journal note the user could have typed manually.
+        - title should be short and clean.
+        - amount must be positive.
+        - Use the visible currency when explicit, otherwise use the default currency.
+        - Use category uncategorized when no listed category fits well, including stock purchases or investment-related documents.
+        - Use note for useful extra context from the image, such as billing period, share count, ticker, provider, or order details.
+        - If any detail is unclear, keep the entry but lower confidence to review or uncertain.
+        - Write rawText, title, merchant, and note in the app language above.
+        """
+
+        return [
+            "model": model,
+            "temperature": 0,
+            "messages": [
+                [
+                    "role": "system",
+                    "content": "You convert finance-related photos into strict transaction JSON for a budgeting app."
+                ],
+                [
+                    "role": "user",
+                    "content": [
+                        [
+                            "type": "text",
+                            "text": userPrompt
+                        ],
+                        [
+                            "type": "image_url",
+                            "image_url": [
+                                "url": imageDataURL,
+                                "detail": "high"
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "response_format": [
+                "type": "json_schema",
+                "json_schema": [
+                    "name": "notely_image_transaction_parse",
+                    "strict": true,
+                    "schema": [
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": [
+                            "entries": [
+                                "type": "array",
+                                "items": parsedExpenseDraftSchema()
+                            ]
+                        ],
+                        "required": ["entries"]
+                    ]
+                ]
+            ]
+        ]
+    }
+
+    private func parsedExpenseDraftSchema() -> [String: Any] {
+        [
+            "type": "object",
+            "additionalProperties": false,
+            "properties": [
+                "rawText": ["type": "string"],
+                "title": ["type": "string"],
+                "amount": ["type": "number"],
+                "currencyCode": ["type": "string"],
+                "transactionKind": [
+                    "type": "string",
+                    "enum": TransactionKind.allCases.map(\.rawValue)
+                ],
+                "category": [
+                    "type": "string",
+                    "enum": ExpenseCategory.allCases.map(\.rawValue)
+                ],
+                "merchant": [
+                    "anyOf": [
+                        ["type": "string"],
+                        ["type": "null"]
+                    ]
+                ],
+                "note": ["type": "string"],
+                "confidence": [
+                    "type": "string",
+                    "enum": ParsingConfidence.allCases.map(\.rawValue)
+                ],
+                "isAmountEstimated": ["type": "boolean"]
+            ],
+            "required": [
+                "rawText",
+                "title",
+                "amount",
+                "currencyCode",
+                "transactionKind",
+                "category",
+                "merchant",
+                "note",
+                "confidence",
+                "isAmountEstimated"
+            ]
+        ]
+    }
+
+    private func sanitizeParsedDraft(
+        _ draft: ParsedExpenseDraft,
+        fallbackRawText: String,
+        fallbackCurrencyCode: String
+    ) -> ParsedExpenseDraft {
+        let trimmedTitle = draft.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedRawText = draft.rawText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let fallbackText = fallbackRawText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        return ParsedExpenseDraft(
+            rawText: trimmedRawText.isEmpty ? (trimmedTitle.isEmpty ? fallbackText : trimmedTitle) : trimmedRawText,
+            title: trimmedTitle,
+            amount: max(draft.amount, 0),
+            currencyCode: draft.currencyCode.isEmpty ? fallbackCurrencyCode : draft.currencyCode,
+            transactionKind: draft.transactionKind,
+            category: draft.category,
+            merchant: draft.merchant?.trimmingCharacters(in: .whitespacesAndNewlines),
+            note: draft.note.trimmingCharacters(in: .whitespacesAndNewlines),
+            confidence: draft.confidence,
+            isAmountEstimated: draft.isAmountEstimated
+        )
+    }
 }
 
 private struct ChatCompletionResponse: Decodable {
@@ -290,4 +495,8 @@ private struct ChatCompletionResponse: Decodable {
     }
 
     let choices: [Choice]
+}
+
+private struct ParsedExpenseDraftBatch: Decodable {
+    let entries: [ParsedExpenseDraft]
 }

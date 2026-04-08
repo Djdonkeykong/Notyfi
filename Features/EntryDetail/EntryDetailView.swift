@@ -3,9 +3,16 @@ import SwiftUI
 struct EntryDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: EntryDetailViewModel
+    @State private var shouldPersistOnDisappear = true
+    private let isNewEntryDraft: Bool
+    private let store: ExpenseJournalStore
+    private let entryID: UUID
 
-    init(entry: ExpenseEntry, store: ExpenseJournalStore) {
+    init(entry: ExpenseEntry, store: ExpenseJournalStore, isNewEntryDraft: Bool = false) {
         _viewModel = StateObject(wrappedValue: EntryDetailViewModel(entry: entry, store: store))
+        self.isNewEntryDraft = isNewEntryDraft
+        self.store = store
+        self.entryID = entry.id
     }
 
     var body: some View {
@@ -144,7 +151,11 @@ struct EntryDetailView: View {
             }
         }
         .onDisappear {
-            viewModel.save()
+            if shouldPersistOnDisappear {
+                viewModel.save()
+            } else if isNewEntryDraft {
+                store.removeEntry(id: entryID)
+            }
         }
     }
 
@@ -166,11 +177,15 @@ struct EntryDetailView: View {
 
             VStack(spacing: 10) {
                 CircleActionButton(systemImage: "checkmark") {
+                    shouldPersistOnDisappear = true
                     viewModel.save()
                     dismiss()
                 }
 
                 CircleActionButton(systemImage: "xmark") {
+                    if isNewEntryDraft {
+                        shouldPersistOnDisappear = false
+                    }
                     dismiss()
                 }
             }

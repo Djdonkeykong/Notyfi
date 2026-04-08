@@ -1,10 +1,20 @@
 import SwiftUI
 import UIKit
+import PDFKit
+import UniformTypeIdentifiers
 
 struct HomeView: View {
     @ObservedObject private var store: ExpenseJournalStore
     @StateObject private var viewModel: HomeViewModel
+    @StateObject private var speechDictation = SpeechDictationService()
     @State private var selectedEntry: ExpenseEntry?
+    @State private var selectedEntryIsDraft = false
+    @State private var isCameraPresented = false
+    @State private var cameraSourceType: UIImagePickerController.SourceType = .camera
+    @State private var isQuickAddPresented = false
+    @State private var isFileImporterPresented = false
+    @State private var isImportingPhoto = false
+    @State private var photoImportAlert: PhotoImportAlert?
     @State private var focusedEditor: JournalEditorTarget?
     @State private var editorFocusRequest: JournalEditorFocusRequest?
     @State private var journalCursorLineIndex = 0
@@ -82,10 +92,26 @@ struct HomeView: View {
                         }
                     )
                 }
+
+                if isImportingPhoto {
+                    PhotoImportOverlay()
+                        .padding(.horizontal, 24)
+                        .transition(.opacity)
+                }
             }
             .safeAreaInset(edge: .bottom) {
                 if focusedEditor != nil {
                     KeyboardAccessoryBar(
+                        isDictating: speechDictation.isRecording,
+                        onToggleDictation: {
+                            EditableJournalTextView.beginActiveDictationSession()
+                            await speechDictation.toggleRecording()
+                            if !speechDictation.isRecording {
+                                EditableJournalTextView.endActiveDictationSession()
+                            }
+                        },
+                        onCameraTap: { presentCameraCapture() },
+                        onQuickAddTap: { presentQuickAdd() },
                         onDismissKeyboard: { clearEditorFocus() }
                     )
                     .padding(.horizontal, 8)
@@ -106,7 +132,7 @@ struct HomeView: View {
                     selection: selectedDateBinding,
                     entryDates: store.entries.map(\.date)
                 )
-                    .presentationDetents([.height(430)])
+                    .presentationDetents([.height(datePickerSheetHeight(for: viewModel.selectedDate))])
                     .presentationDragIndicator(.hidden)
                     .presentationBackground(.clear)
                     .presentationCornerRadius(34)
@@ -125,14 +151,59 @@ struct HomeView: View {
                     .presentationBackground(NotyfiTheme.background.opacity(0.98))
                     .presentationCornerRadius(34)
             }
+            .sheet(isPresented: $isQuickAddPresented) {
+                QuickAddSheetView { action in
+                    handleQuickAddSelection(action)
+                }
+                .presentationDetents([.height(452)])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(NotyfiTheme.background.opacity(0.98))
+                .presentationCornerRadius(34)
+            }
             .sheet(item: $selectedEntry) { entry in
-                EntryDetailView(entry: entry, store: store)
+                EntryDetailView(
+                    entry: entry,
+                    store: store,
+                    isNewEntryDraft: selectedEntryIsDraft
+                )
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
                     .presentationBackground(NotyfiTheme.background.opacity(0.98))
                     .presentationCornerRadius(34)
             }
+            .fullScreenCover(isPresented: $isCameraPresented) {
+                CameraCaptureView(
+                    sourceType: cameraSourceType,
+                    onImagePicked: handleCapturedImage
+                )
+                .ignoresSafeArea()
+            }
+            .alert(item: $photoImportAlert) { alert in
+                Alert(
+                    title: Text(alert.title),
+                    message: Text(alert.message),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
+            .fileImporter(
+                isPresented: $isFileImporterPresented,
+                allowedContentTypes: [.image, .pdf],
+                allowsMultipleSelection: false,
+                onCompletion: handleFileImportSelection
+            )
             .toolbar(.hidden, for: .navigationBar)
+            .onChange(of: speechDictation.transcript) { _, newValue in
+                guard !newValue.isEmpty else {
+                    return
+                }
+
+                EditableJournalTextView.updateActiveDictationTranscript(newValue)
+            }
+            .onChange(of: speechDictation.isRecording) { _, isRecording in
+                if !isRecording {
+                    EditableJournalTextView.endActiveDictationSession()
+                }
+            }
         }
     }
 }
@@ -142,6 +213,8 @@ private extension HomeView {
         viewModel.isDatePickerPresented
             || viewModel.isSettingsPresented
             || viewModel.isStatsPresented
+            || isQuickAddPresented
+            || isCameraPresented
             || selectedEntry != nil
     }
 
@@ -150,6 +223,21 @@ private extension HomeView {
             get: { viewModel.selectedDate },
             set: { viewModel.setSelectedDate($0) }
         )
+    }
+
+    func datePickerSheetHeight(for date: Date) -> CGFloat {
+        let calendar = Calendar.autoupdatingCurrent
+        guard let monthInterval = calendar.dateInterval(of: .month, for: date) else {
+            return 430
+        }
+
+        let monthStart = monthInterval.start
+        let daysInMonth = calendar.range(of: .day, in: .month, for: monthStart)?.count ?? 0
+        let weekday = calendar.component(.weekday, from: monthStart)
+        let leadingEmptyDays = (weekday - calendar.firstWeekday + 7) % 7
+        let rowCount = max(5, (leadingEmptyDays + daysInMonth + 6) / 7)
+
+        return 430 + CGFloat(max(0, rowCount - 5) * 60)
     }
 
     func presentDatePicker() {
@@ -172,7 +260,23 @@ private extension HomeView {
 
     func presentEntryDetail(_ entry: ExpenseEntry) {
         presentAfterEditorSettles {
+            selectedEntryIsDraft = false
             selectedEntry = entry
+        }
+    }
+
+    func presentCameraCapture() {
+        presentAfterEditorSettles {
+            cameraSourceType = UIImagePickerController.isSourceTypeAvailable(.camera)
+                ? .camera
+                : .photoLibrary
+            isCameraPresented = true
+        }
+    }
+
+    func presentQuickAdd() {
+        presentAfterEditorSettles {
+            isQuickAddPresented = true
         }
     }
 
@@ -225,6 +329,9 @@ private extension HomeView {
     }
 
     func clearEditorFocus(cancelsPendingPresentation: Bool = true) {
+        speechDictation.stopRecording(resetTranscript: true)
+        EditableJournalTextView.endActiveDictationSession()
+
         let activeEditor = focusedEditor
 
         if case .composer = activeEditor {
@@ -277,6 +384,199 @@ private extension HomeView {
                 for: nil
             )
         }
+    }
+
+    func handleCapturedImage(_ image: UIImage) {
+        guard let imageData = preparedImageData(from: image) else {
+            photoImportAlert = PhotoImportAlert(
+                title: "Photo import issue".notyfiLocalized,
+                message: "That photo could not be prepared for AI parsing.".notyfiLocalized
+            )
+            return
+        }
+
+        importEntriesFromPreparedImageData(imageData)
+    }
+
+    func handleQuickAddSelection(_ action: QuickAddAction) {
+        isQuickAddPresented = false
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+            switch action {
+            case .attachFiles:
+                isFileImporterPresented = true
+            default:
+                selectedEntryIsDraft = true
+                selectedEntry = viewModel.createManualEntryDraft(for: action)
+            }
+        }
+    }
+
+    func handleFileImportSelection(_ result: Result<[URL], Error>) {
+        Task { @MainActor in
+            do {
+                guard let fileURL = try result.get().first else {
+                    return
+                }
+
+                guard let imageData = try preparedImportImageData(from: fileURL) else {
+                    throw FileImportError.unreadable
+                }
+
+                importEntriesFromPreparedImageData(imageData)
+            } catch {
+                photoImportAlert = makePhotoImportAlert(for: error)
+            }
+        }
+    }
+
+    func importEntriesFromPreparedImageData(_ imageData: Data) {
+        isImportingPhoto = true
+
+        Task { @MainActor in
+            do {
+                _ = try await viewModel.importEntries(
+                    from: imageData,
+                    mimeType: "image/jpeg"
+                )
+                isImportingPhoto = false
+            } catch {
+                isImportingPhoto = false
+                photoImportAlert = makePhotoImportAlert(for: error)
+            }
+        }
+    }
+
+    func preparedImportImageData(from fileURL: URL) throws -> Data? {
+        let didAccessSecurityScope = fileURL.startAccessingSecurityScopedResource()
+        defer {
+            if didAccessSecurityScope {
+                fileURL.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        let resourceValues = try fileURL.resourceValues(forKeys: [.contentTypeKey])
+        let contentType = resourceValues.contentType
+
+        if contentType?.conforms(to: .pdf) == true {
+            return renderPDFAsImageData(from: fileURL)
+        }
+
+        if contentType?.conforms(to: .image) == true || contentType == nil {
+            let data = try Data(contentsOf: fileURL)
+            guard let image = UIImage(data: data) else {
+                throw FileImportError.unreadable
+            }
+
+            return preparedImageData(from: image)
+        }
+
+        throw FileImportError.unsupported
+    }
+
+    func preparedImageData(from image: UIImage) -> Data? {
+        let maxDimension: CGFloat = 1_800
+        let sourceSize = image.size
+        let longestSide = max(sourceSize.width, sourceSize.height)
+        let scaleRatio = longestSide > maxDimension ? maxDimension / longestSide : 1
+        let targetSize = CGSize(
+            width: max(sourceSize.width * scaleRatio, 1),
+            height: max(sourceSize.height * scaleRatio, 1)
+        )
+
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
+        let resizedImage = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+
+        return resizedImage.jpegData(compressionQuality: 0.82)
+    }
+
+    func renderPDFAsImageData(from fileURL: URL) -> Data? {
+        guard let document = PDFDocument(url: fileURL), document.pageCount > 0 else {
+            return nil
+        }
+
+        let renderedPages = (0..<min(document.pageCount, 3)).compactMap { pageIndex -> UIImage? in
+            guard let page = document.page(at: pageIndex) else {
+                return nil
+            }
+
+            let pageBounds = page.bounds(for: .mediaBox)
+            let scale: CGFloat = 2
+            let targetSize = CGSize(width: pageBounds.width * scale, height: pageBounds.height * scale)
+            let renderer = UIGraphicsImageRenderer(size: targetSize)
+
+            return renderer.image { context in
+                UIColor.white.setFill()
+                context.fill(CGRect(origin: .zero, size: targetSize))
+
+                context.cgContext.translateBy(x: 0, y: targetSize.height)
+                context.cgContext.scaleBy(x: scale, y: -scale)
+                page.draw(with: .mediaBox, to: context.cgContext)
+            }
+        }
+
+        guard !renderedPages.isEmpty else {
+            return nil
+        }
+
+        let mergedWidth = renderedPages.map(\.size.width).max() ?? 0
+        let mergedHeight = renderedPages.reduce(CGFloat(0)) { $0 + $1.size.height }
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: mergedWidth, height: mergedHeight))
+        let stitchedImage = renderer.image { _ in
+            UIColor.white.setFill()
+            UIBezierPath(rect: CGRect(x: 0, y: 0, width: mergedWidth, height: mergedHeight)).fill()
+
+            var offsetY: CGFloat = 0
+            for pageImage in renderedPages {
+                pageImage.draw(in: CGRect(x: 0, y: offsetY, width: pageImage.size.width, height: pageImage.size.height))
+                offsetY += pageImage.size.height
+            }
+        }
+
+        return preparedImageData(from: stitchedImage)
+    }
+
+    func makePhotoImportAlert(for error: Error) -> PhotoImportAlert {
+        if let fileImportError = error as? FileImportError {
+            switch fileImportError {
+            case .unsupported:
+                return PhotoImportAlert(
+                    title: "Unsupported file".notyfiLocalized,
+                    message: "Use an image or PDF file for now.".notyfiLocalized
+                )
+            case .unreadable:
+                return PhotoImportAlert(
+                    title: "File import issue".notyfiLocalized,
+                    message: "That file could not be prepared for AI parsing.".notyfiLocalized
+                )
+            }
+        }
+
+        if let parsingError = error as? ExpenseParsingServiceError {
+            switch parsingError {
+            case .missingAPIKey:
+                return PhotoImportAlert(
+                    title: "AI parsing unavailable".notyfiLocalized,
+                    message: "This build is missing the API key needed to read photos.".notyfiLocalized
+                )
+            case .noTransactionsFound:
+                return PhotoImportAlert(
+                    title: "Nothing to import".notyfiLocalized,
+                    message: "No clear money-related entry was found in that photo.".notyfiLocalized
+                )
+            case .emptyModelResponse:
+                break
+            }
+        }
+
+        return PhotoImportAlert(
+            title: "Photo import issue".notyfiLocalized,
+            message: "That photo could not be read right now. Try again with a clearer shot.".notyfiLocalized
+        )
     }
 }
 
@@ -336,7 +636,10 @@ private struct DayJournalPager: View {
             .offset(x: -geometry.size.width + dragOffset)
             .contentShape(Rectangle())
             .clipped()
-            .simultaneousGesture(dragGesture(pageWidth: geometry.size.width))
+            .simultaneousGesture(
+                dragGesture(pageWidth: geometry.size.width),
+                isEnabled: focusedEditor == nil
+            )
         }
     }
 
@@ -605,11 +908,17 @@ private struct DayJournalPage: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     if journalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Text("Start typing your money notes...".notyfiLocalized)
-                            .font(.notyfi(.body))
-                            .foregroundStyle(NotyfiTheme.tertiaryText)
-                            .padding(.leading, 1)
-                            .allowsHitTesting(false)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Start with a money note...".notyfiLocalized)
+                                .font(.notyfi(.body))
+                                .foregroundStyle(NotyfiTheme.tertiaryText)
+
+                            Text("Coffee 49 kr".notyfiLocalized)
+                                .font(.notyfi(.footnote))
+                                .foregroundStyle(NotyfiTheme.tertiaryText.opacity(0.72))
+                        }
+                        .padding(.leading, 1)
+                        .allowsHitTesting(false)
                     }
 
                     journalAccessoryOverlay(isAccessoryTapEnabled: !scrollDisabled)
@@ -626,9 +935,18 @@ private struct DayJournalPage: View {
                     onBlankSpaceTap()
                 }
             }
-            .scrollDisabled(scrollDisabled || contentHeight <= geometry.size.height + 1)
+            .scrollDismissesKeyboard(.interactively)
+            .scrollDisabled(scrollInteractionDisabled(in: geometry.size.height))
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
+    }
+
+    private func scrollInteractionDisabled(in availableHeight: CGFloat) -> Bool {
+        if scrollDisabled || contentHeight <= availableHeight + 1 {
+            return true
+        }
+
+        return isEditable && focusedEditor != nil
     }
 
     private func journalAccessoryOverlay(isAccessoryTapEnabled: Bool) -> some View {
@@ -881,13 +1199,33 @@ private enum PagerDragAxisLock {
 }
 
 private struct KeyboardAccessoryBar: View {
+    let isDictating: Bool
+    let onToggleDictation: () async -> Void
+    let onCameraTap: () -> Void
+    let onQuickAddTap: () -> Void
     let onDismissKeyboard: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
-            KeyboardCircleButton(systemImage: "mic.fill", tint: Color(red: 0.03, green: 0.51, blue: 0.98))
-            KeyboardCircleButton(systemImage: "camera.fill", tint: Color(red: 0.76, green: 0.17, blue: 0.87))
-            KeyboardCircleButton(systemImage: "plus", tint: Color(red: 0.98, green: 0.54, blue: 0.13))
+            KeyboardCircleButton(
+                systemImage: isDictating ? "waveform.circle.fill" : "mic.fill",
+                tint: isDictating ? Color(red: 0.90, green: 0.22, blue: 0.24) : Color(red: 0.03, green: 0.51, blue: 0.98),
+                action: {
+                    Task {
+                        await onToggleDictation()
+                    }
+                }
+            )
+            KeyboardCircleButton(
+                systemImage: "camera.fill",
+                tint: Color(red: 0.76, green: 0.17, blue: 0.87),
+                action: onCameraTap
+            )
+            KeyboardCircleButton(
+                systemImage: "plus",
+                tint: Color(red: 0.98, green: 0.54, blue: 0.13),
+                action: onQuickAddTap
+            )
             KeyboardCircleButton(
                 systemImage: "keyboard.chevron.compact.down",
                 tint: .primary.opacity(0.92),
@@ -895,6 +1233,179 @@ private struct KeyboardAccessoryBar: View {
             )
         }
         .frame(maxWidth: .infinity, alignment: .center)
+    }
+}
+
+private struct PhotoImportOverlay: View {
+    var body: some View {
+        VStack(spacing: 14) {
+            ProgressView()
+                .progressViewStyle(.circular)
+                .tint(NotyfiTheme.primaryText)
+                .scaleEffect(1.15)
+
+            Text("Reading attachment".notyfiLocalized)
+                .font(.notyfi(.title3, weight: .semibold))
+                .foregroundStyle(NotyfiTheme.primaryText)
+
+            Text("Turning it into notes".notyfiLocalized)
+                .font(.notyfi(.body))
+                .foregroundStyle(NotyfiTheme.secondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: 260)
+        .padding(.horizontal, 24)
+        .padding(.vertical, 22)
+        .background {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(NotyfiTheme.surface.opacity(0.96))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
+                }
+                .shadow(color: NotyfiTheme.shadow, radius: 24, x: 0, y: 16)
+        }
+    }
+}
+
+private struct PhotoImportAlert: Identifiable {
+    let title: String
+    let message: String
+
+    var id: String {
+        "\(title)|\(message)"
+    }
+}
+
+private enum FileImportError: Error {
+    case unsupported
+    case unreadable
+}
+
+private struct QuickAddSheetView: View {
+    let onSelect: (QuickAddAction) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Add".notyfiLocalized)
+                .font(.notyfi(.footnote, weight: .semibold))
+                .foregroundStyle(NotyfiTheme.secondaryText)
+
+            VStack(spacing: 12) {
+                ForEach(QuickAddAction.allCases) { action in
+                    Button {
+                        Haptics.mediumImpact()
+                        onSelect(action)
+                    } label: {
+                        HStack(spacing: 14) {
+                            Circle()
+                                .fill(action.tint.opacity(0.16))
+                                .frame(width: 44, height: 44)
+                                .overlay {
+                                    Image(systemName: action.systemImage)
+                                        .font(.system(size: 17, weight: .semibold))
+                                        .foregroundStyle(action.tint)
+                                }
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(action.title)
+                                    .font(.notyfi(.body, weight: .semibold))
+                                    .foregroundStyle(NotyfiTheme.primaryText)
+
+                                Text(action.subtitle)
+                                    .font(.notyfi(.footnote))
+                                    .foregroundStyle(NotyfiTheme.secondaryText)
+                                    .multilineTextAlignment(.leading)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(NotyfiTheme.tertiaryText)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                        .background {
+                            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                .fill(NotyfiTheme.surface)
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                        .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
+                                }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 22)
+        .padding(.bottom, 18)
+    }
+}
+
+private extension QuickAddAction {
+    var title: String {
+        switch self {
+        case .expense:
+            return "Expense".notyfiLocalized
+        case .income:
+            return "Income".notyfiLocalized
+        case .transfer:
+            return "Transfer".notyfiLocalized
+        case .recurringBill:
+            return "Recurring bill".notyfiLocalized
+        case .attachFiles:
+            return "Attachment from Files".notyfiLocalized
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .expense:
+            return "Add one manual expense entry.".notyfiLocalized
+        case .income:
+            return "Add one manual income entry.".notyfiLocalized
+        case .transfer:
+            return "Start a transfer entry and adjust the direction.".notyfiLocalized
+        case .recurringBill:
+            return "Create a bill entry you can fill in quickly.".notyfiLocalized
+        case .attachFiles:
+            return "Import an image or PDF from Files.".notyfiLocalized
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .expense:
+            return "minus.circle.fill"
+        case .income:
+            return "plus.circle.fill"
+        case .transfer:
+            return "arrow.left.arrow.right.circle.fill"
+        case .recurringBill:
+            return "repeat.circle.fill"
+        case .attachFiles:
+            return "doc.badge.plus"
+        }
+    }
+
+    var tint: Color {
+        switch self {
+        case .expense:
+            return Color(red: 0.90, green: 0.36, blue: 0.34)
+        case .income:
+            return Color(red: 0.28, green: 0.71, blue: 0.45)
+        case .transfer:
+            return Color(red: 0.27, green: 0.58, blue: 0.92)
+        case .recurringBill:
+            return Color(red: 0.74, green: 0.55, blue: 0.25)
+        case .attachFiles:
+            return Color(red: 0.68, green: 0.32, blue: 0.86)
+        }
     }
 }
 

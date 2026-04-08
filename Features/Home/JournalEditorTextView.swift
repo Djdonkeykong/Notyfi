@@ -21,6 +21,7 @@ final class EditableJournalTextView: UITextView {
     private static var lastDeleteTimestamp = Date.distantPast
     private static var shouldBridgeBackspace = false
     private static var pendingBridgeAttempts = 0
+    private var dictatedRange: NSRange?
 
     var onBackspaceAtLeadingEdge: (() -> Void)?
     var onLayoutUpdate: (() -> Void)?
@@ -43,6 +44,18 @@ final class EditableJournalTextView: UITextView {
         shouldBridgeBackspace = false
         pendingBridgeAttempts = 0
         activeEditor?.resignFirstResponder()
+    }
+
+    static func beginActiveDictationSession() {
+        activeEditor?.beginDictationSession()
+    }
+
+    static func updateActiveDictationTranscript(_ transcript: String) {
+        activeEditor?.updateDictationTranscript(transcript)
+    }
+
+    static func endActiveDictationSession() {
+        activeEditor?.endDictationSession()
     }
 
     override func deleteBackward() {
@@ -117,6 +130,37 @@ final class EditableJournalTextView: UITextView {
             pendingBridgeAttempts = 0
             activeEditor.deleteBackward()
         }
+    }
+
+    private func beginDictationSession() {
+        dictatedRange = selectedRange
+    }
+
+    private func updateDictationTranscript(_ transcript: String) {
+        guard let dictatedRange else {
+            return
+        }
+
+        let textLength = attributedText?.length ?? 0
+        let clampedLocation = min(max(dictatedRange.location, 0), textLength)
+        let clampedLength = min(max(dictatedRange.length, 0), max(textLength - clampedLocation, 0))
+        let replacementRange = NSRange(location: clampedLocation, length: clampedLength)
+
+        let replacementText = NSAttributedString(string: transcript, attributes: typingAttributes)
+        let updatedText = NSMutableAttributedString(attributedString: attributedText ?? NSAttributedString())
+        updatedText.replaceCharacters(in: replacementRange, with: replacementText)
+        attributedText = updatedText
+
+        let nextLocation = replacementRange.location + transcript.utf16.count
+        self.dictatedRange = NSRange(location: replacementRange.location, length: transcript.utf16.count)
+        selectedRange = NSRange(location: nextLocation, length: 0)
+
+        delegate?.textViewDidChange?(self)
+        delegate?.textViewDidChangeSelection?(self)
+    }
+
+    private func endDictationSession() {
+        dictatedRange = nil
     }
 }
 

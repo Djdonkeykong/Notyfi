@@ -64,6 +64,11 @@ final class ExpenseJournalStore: ObservableObject {
         )
     }
 
+    func addManualEntry(_ entry: ExpenseEntry) {
+        entries.insert(entry, at: 0)
+        sortAndPersist()
+    }
+
     func insertEntry(
         after referenceEntry: ExpenseEntry,
         rawText: String,
@@ -123,7 +128,18 @@ final class ExpenseJournalStore: ObservableObject {
             return
         }
 
-        entries[index] = entry
+        if shouldReparseRawText {
+            var reparsingEntry = entry
+            reparsingEntry.amount = 0
+            reparsingEntry.category = .uncategorized
+            reparsingEntry.merchant = nil
+            reparsingEntry.note = ""
+            reparsingEntry.confidence = .uncertain
+            reparsingEntry.isAmountEstimated = false
+            entries[index] = reparsingEntry
+        } else {
+            entries[index] = entry
+        }
         sortAndPersist()
 
         if shouldReparseRawText {
@@ -230,6 +246,36 @@ final class ExpenseJournalStore: ObservableObject {
         )
         cacheParsedDraft(draft, for: cacheKey)
         return draft
+    }
+
+    func importEntries(
+        from imageData: Data,
+        mimeType: String,
+        on date: Date,
+        currencyCode: String = NotyfiCurrency.currentCode()
+    ) async throws -> [UUID] {
+        let drafts = try await parseImageWithRetry(
+            imageData: imageData,
+            mimeType: mimeType,
+            date: date,
+            currencyCode: currencyCode
+        )
+
+        let timestampSeed = Date()
+        let importedEntries = drafts.enumerated().map { index, draft in
+            importedEntry(
+                from: draft,
+                on: date,
+                fallbackCurrencyCode: currencyCode,
+                createdAt: timestampSeed.addingTimeInterval(Double(index) * 0.001)
+            )
+        }
+
+        entries.insert(contentsOf: importedEntries, at: 0)
+        sortAndPersist()
+        Haptics.lightImpact()
+
+        return importedEntries.map(\.id)
     }
 
     private func load() {
@@ -549,6 +595,39 @@ final class ExpenseJournalStore: ObservableObject {
         }
     }
 
+    private func parseImageWithRetry(
+        imageData: Data,
+        mimeType: String,
+        date: Date,
+        currencyCode: String
+    ) async throws -> [ParsedExpenseDraft] {
+        do {
+            return try await parser.parse(
+                imageData: imageData,
+                mimeType: mimeType,
+                date: date,
+                currencyCode: currencyCode
+            )
+        } catch {
+            guard shouldRetryParsing(after: error), !Task.isCancelled else {
+                throw error
+            }
+
+            try await Task.sleep(nanoseconds: 700_000_000)
+
+            guard !Task.isCancelled else {
+                throw error
+            }
+
+            return try await parser.parse(
+                imageData: imageData,
+                mimeType: mimeType,
+                date: date,
+                currencyCode: currencyCode
+            )
+        }
+    }
+
     private func shouldRetryParsing(after error: Error) -> Bool {
         if let parsingError = error as? OpenAIExpenseParsingService.RequestError {
             return parsingError.isRetryable
@@ -650,6 +729,34 @@ final class ExpenseJournalStore: ObservableObject {
         }
 
         defaults.set(data, forKey: parseCacheStorageKey)
+    }
+
+    private func importedEntry(
+        from draft: ParsedExpenseDraft,
+        on date: Date,
+        fallbackCurrencyCode: String,
+        createdAt: Date
+    ) -> ExpenseEntry {
+        let rawText = draft.rawText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = draft.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let resolvedConfidence: ParsingConfidence = draft.amount == 0 && draft.confidence == .uncertain
+            ? .review
+            : draft.confidence
+
+        return ExpenseEntry(
+            rawText: rawText.isEmpty ? (title.isEmpty ? "Imported note".notyfiLocalized : title) : rawText,
+            title: title.isEmpty ? (rawText.isEmpty ? "Imported note".notyfiLocalized : rawText) : title,
+            amount: draft.amount,
+            currencyCode: draft.currencyCode.isEmpty ? fallbackCurrencyCode : draft.currencyCode,
+            transactionKind: draft.transactionKind,
+            category: draft.category,
+            merchant: draft.merchant?.isEmpty == true ? nil : draft.merchant,
+            date: date,
+            note: draft.note,
+            confidence: resolvedConfidence,
+            isAmountEstimated: draft.isAmountEstimated,
+            createdAt: createdAt
+        )
     }
 
     private func createdAtForInsertion(

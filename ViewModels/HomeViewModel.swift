@@ -14,6 +14,16 @@ struct DraftComposerFeedback {
     }
 }
 
+enum QuickAddAction: String, CaseIterable, Identifiable {
+    case expense
+    case income
+    case transfer
+    case recurringBill
+    case attachFiles
+
+    var id: String { rawValue }
+}
+
 @MainActor
 final class HomeViewModel: ObservableObject {
     @Published private(set) var selectedDate: Date
@@ -141,6 +151,93 @@ final class HomeViewModel: ObservableObject {
             on: defaultEntryDate(for: selectedDate),
             currencyCode: currencyCode
         )
+    }
+
+    func importEntries(
+        from imageData: Data,
+        mimeType: String
+    ) async throws -> Int {
+        let importedEntryIDs = try await store.importEntries(
+            from: imageData,
+            mimeType: mimeType,
+            on: defaultEntryDate(for: selectedDate),
+            currencyCode: currencyCode
+        )
+
+        return importedEntryIDs.count
+    }
+
+    func createManualEntryDraft(for action: QuickAddAction) -> ExpenseEntry {
+        let date = defaultEntryDate(for: selectedDate)
+        let entry: ExpenseEntry
+
+        switch action {
+        case .expense:
+            entry = ExpenseEntry(
+                rawText: "New expense".notyfiLocalized,
+                title: "New expense".notyfiLocalized,
+                amount: 0,
+                currencyCode: currencyCode,
+                transactionKind: .expense,
+                category: .uncategorized,
+                merchant: nil,
+                date: date,
+                note: "",
+                confidence: .review,
+                isAmountEstimated: false,
+                createdAt: Date()
+            )
+        case .income:
+            entry = ExpenseEntry(
+                rawText: "New income".notyfiLocalized,
+                title: "New income".notyfiLocalized,
+                amount: 0,
+                currencyCode: currencyCode,
+                transactionKind: .income,
+                category: .uncategorized,
+                merchant: nil,
+                date: date,
+                note: "",
+                confidence: .review,
+                isAmountEstimated: false,
+                createdAt: Date()
+            )
+        case .transfer:
+            entry = ExpenseEntry(
+                rawText: "Transfer".notyfiLocalized,
+                title: "Transfer".notyfiLocalized,
+                amount: 0,
+                currencyCode: currencyCode,
+                transactionKind: .expense,
+                category: .uncategorized,
+                merchant: nil,
+                date: date,
+                note: "Move between accounts. Adjust type if needed.".notyfiLocalized,
+                confidence: .review,
+                isAmountEstimated: false,
+                createdAt: Date()
+            )
+        case .recurringBill:
+            entry = ExpenseEntry(
+                rawText: "Recurring bill".notyfiLocalized,
+                title: "Recurring bill".notyfiLocalized,
+                amount: 0,
+                currencyCode: currencyCode,
+                transactionKind: .expense,
+                category: .bills,
+                merchant: nil,
+                date: date,
+                note: "",
+                confidence: .review,
+                isAmountEstimated: false,
+                createdAt: Date()
+            )
+        case .attachFiles:
+            fatalError("Attachment from Files is handled outside manual draft creation.")
+        }
+
+        store.addManualEntry(entry)
+        return entry
     }
 
     func focusComposer() -> JournalEditorFocusRequest {
