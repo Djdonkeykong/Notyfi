@@ -9,7 +9,6 @@ struct HomeView: View {
     @StateObject private var speechDictation = SpeechDictationService()
     @State private var selectedEntry: ExpenseEntry?
     @State private var selectedEntryIsDraft = false
-    @State private var isCameraSourcePickerPresented = false
     @State private var isCameraPresented = false
     @State private var cameraSourceType: UIImagePickerController.SourceType = .camera
     @State private var isQuickAddPresented = false
@@ -30,76 +29,7 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                NotyfiTheme.background.ignoresSafeArea()
-
-                VStack(alignment: .leading, spacing: 22) {
-                    HomeTopBar(
-                        selectedDate: viewModel.selectedDate,
-                        onDateTap: { presentDatePicker() },
-                        onSettingsTap: { presentSettings() }
-                    )
-                    .padding(.horizontal, 20)
-                    .padding(.top, 4)
-
-                    DayJournalPager(
-                        previousDate: viewModel.date(forDayOffset: -1),
-                        currentDate: viewModel.selectedDate,
-                        nextDate: viewModel.date(forDayOffset: 1),
-                        previousEntries: viewModel.entries(for: viewModel.date(forDayOffset: -1)),
-                        currentEntries: viewModel.displayedEntries,
-                        nextEntries: viewModel.entries(for: viewModel.date(forDayOffset: 1)),
-                        previousJournalText: viewModel.journalDraft(for: viewModel.date(forDayOffset: -1)),
-                        journalText: $viewModel.journalText,
-                        nextJournalText: viewModel.journalDraft(for: viewModel.date(forDayOffset: 1)),
-                        focusedEditor: $focusedEditor,
-                        editorFocusRequest: $editorFocusRequest,
-                        journalCursorLineIndex: $journalCursorLineIndex,
-                        lineFramesByDate: $journalLineFramesByDate,
-                        feedback: viewModel.draftFeedback,
-                        onJournalTextChange: { rawText in
-                            var transaction = Transaction()
-                            transaction.animation = nil
-
-                            withTransaction(transaction) {
-                                viewModel.updateJournalText(rawText)
-                            }
-                        },
-                        onReturnKey: { lineEdit in
-                            applyFocusRequest {
-                                viewModel.handleReturn(
-                                    at: lineEdit.lineIndex,
-                                    leadingText: lineEdit.leadingText,
-                                    trailingText: lineEdit.trailingText
-                                )
-                            }
-                        },
-                        onBackspaceAtLineStart: { lineIndex in
-                            applyFocusRequest {
-                                viewModel.handleBackspaceAtLineStart(at: lineIndex)
-                            }
-                        },
-                        onEntryTap: { entry in
-                            presentEntryDetail(entry)
-                        },
-                        onBlankSpaceTap: {
-                            applyFocusRequest {
-                                viewModel.focusComposer()
-                            }
-                        },
-                        onMoveSelection: { dayOffset in
-                            clearEditorFocus()
-                            viewModel.moveSelection(by: dayOffset)
-                        }
-                    )
-                }
-
-                if isImportingPhoto {
-                    PhotoImportOverlay()
-                        .padding(.horizontal, 24)
-                        .transition(.opacity)
-                }
-            }
+            homeContent
             .safeAreaInset(edge: .bottom) {
                 if focusedEditor != nil {
                     KeyboardAccessoryBar(
@@ -111,7 +41,8 @@ struct HomeView: View {
                                 EditableJournalTextView.endActiveDictationSession()
                             }
                         },
-                        onCameraTap: { presentCameraCapture() },
+                        onTakePhotoTap: { presentCamera(sourceType: .camera) },
+                        onChoosePhotoTap: { presentCamera(sourceType: .photoLibrary) },
                         onQuickAddTap: { presentQuickAdd() },
                         onDismissKeyboard: { clearEditorFocus() }
                     )
@@ -119,13 +50,17 @@ struct HomeView: View {
                     .padding(.top, 10)
                     .padding(.bottom, 14)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
-                } else {
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if focusedEditor == nil {
                     HomeSummaryBar(
                         insight: viewModel.insight,
                         budgetInsight: viewModel.budgetInsight,
                         currencyCode: viewModel.currencyCode,
                         onTap: { presentStats() }
                     )
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
@@ -179,23 +114,6 @@ struct HomeView: View {
                 )
                 .ignoresSafeArea()
             }
-            .confirmationDialog(
-                "Add photo".notyfiLocalized,
-                isPresented: $isCameraSourcePickerPresented,
-                titleVisibility: .visible
-            ) {
-                if UIImagePickerController.isSourceTypeAvailable(.camera) {
-                    Button("Take Photo".notyfiLocalized) {
-                        presentCamera(sourceType: .camera)
-                    }
-                }
-
-                Button("Choose Photo".notyfiLocalized) {
-                    presentCamera(sourceType: .photoLibrary)
-                }
-
-                Button("Cancel".notyfiLocalized, role: .cancel) {}
-            }
             .alert(item: $photoImportAlert) { alert in
                 Alert(
                     title: Text(alert.title),
@@ -227,14 +145,121 @@ struct HomeView: View {
 }
 
 private extension HomeView {
+    @ViewBuilder
+    var homeContent: some View {
+        if usesScrollEdgeTopBar {
+            if #available(iOS 26.0, *) {
+                baseHomeContent(includeInlineTopBar: false)
+                    .safeAreaBar(edge: .top, spacing: 0) {
+                        homeTopBar
+                    }
+            } else {
+                baseHomeContent(includeInlineTopBar: true)
+            }
+        } else {
+            baseHomeContent(includeInlineTopBar: true)
+        }
+    }
+
+    func baseHomeContent(includeInlineTopBar: Bool) -> some View {
+        ZStack {
+            NotyfiTheme.background.ignoresSafeArea()
+
+            VStack(alignment: .leading, spacing: 22) {
+                if includeInlineTopBar {
+                    homeTopBar
+                }
+
+                DayJournalPager(
+                    previousDate: viewModel.date(forDayOffset: -1),
+                    currentDate: viewModel.selectedDate,
+                    nextDate: viewModel.date(forDayOffset: 1),
+                    previousEntries: viewModel.entries(for: viewModel.date(forDayOffset: -1)),
+                    currentEntries: viewModel.displayedEntries,
+                    nextEntries: viewModel.entries(for: viewModel.date(forDayOffset: 1)),
+                    previousJournalText: viewModel.journalDraft(for: viewModel.date(forDayOffset: -1)),
+                    journalText: $viewModel.journalText,
+                    nextJournalText: viewModel.journalDraft(for: viewModel.date(forDayOffset: 1)),
+                    focusedEditor: $focusedEditor,
+                    editorFocusRequest: $editorFocusRequest,
+                    journalCursorLineIndex: $journalCursorLineIndex,
+                    lineFramesByDate: $journalLineFramesByDate,
+                    feedback: viewModel.draftFeedback,
+                    onJournalTextChange: { rawText in
+                        var transaction = Transaction()
+                        transaction.animation = nil
+
+                        withTransaction(transaction) {
+                            viewModel.updateJournalText(rawText)
+                        }
+                    },
+                    onReturnKey: { lineEdit in
+                        applyFocusRequest {
+                            viewModel.handleReturn(
+                                at: lineEdit.lineIndex,
+                                leadingText: lineEdit.leadingText,
+                                trailingText: lineEdit.trailingText
+                            )
+                        }
+                    },
+                    onBackspaceAtLineStart: { lineIndex in
+                        applyFocusRequest {
+                            viewModel.handleBackspaceAtLineStart(at: lineIndex)
+                        }
+                    },
+                    onEntryTap: { entry in
+                        presentEntryDetail(entry)
+                    },
+                    onBlankSpaceTap: {
+                        applyFocusRequest {
+                            viewModel.focusComposer()
+                        }
+                    },
+                    onMoveSelection: { dayOffset in
+                        clearEditorFocus()
+                        viewModel.moveSelection(by: dayOffset)
+                    }
+                )
+            }
+
+            if isImportingPhoto {
+                ZStack {
+                    Color.black.opacity(0.18)
+                        .ignoresSafeArea()
+
+                    PhotoImportOverlay()
+                        .padding(.horizontal, 24)
+                }
+                .transition(.opacity)
+            }
+        }
+    }
+
+    var homeTopBar: some View {
+        HomeTopBar(
+            selectedDate: viewModel.selectedDate,
+            onDateTap: { presentDatePicker() },
+            onSettingsTap: { presentSettings() }
+        )
+        .padding(.horizontal, 20)
+        .padding(.top, 4)
+    }
+
     var isPresentingModalSurface: Bool {
         viewModel.isDatePickerPresented
             || viewModel.isSettingsPresented
             || viewModel.isStatsPresented
             || isQuickAddPresented
-            || isCameraSourcePickerPresented
             || isCameraPresented
             || selectedEntry != nil
+    }
+
+    var usesScrollEdgeTopBar: Bool {
+        if #available(iOS 26.0, *) {
+            return true
+        }
+
+        return false
     }
 
     var selectedDateBinding: Binding<Date> {
@@ -284,15 +309,11 @@ private extension HomeView {
         }
     }
 
-    func presentCameraCapture() {
-        presentAfterEditorSettles {
-            isCameraSourcePickerPresented = true
-        }
-    }
-
     func presentCamera(sourceType: UIImagePickerController.SourceType) {
-        cameraSourceType = sourceType
-        isCameraPresented = true
+        presentAfterEditorSettles {
+            cameraSourceType = sourceType
+            isCameraPresented = true
+        }
     }
 
     func presentQuickAdd() {
@@ -857,6 +878,7 @@ private struct DayJournalPage: View {
 
     private let trailingColumnWidth: CGFloat = 114
     private let trailingGap: CGFloat = 14
+    private let bottomOverlayPadding: CGFloat = 92
 
     init(
         date: Date,
@@ -902,6 +924,8 @@ private struct DayJournalPage: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let minimumEditorHeight = max(geometry.size.height - bottomOverlayPadding, 240)
+
             ScrollView(showsIndicators: false) {
                 ZStack(alignment: .topLeading) {
                     JournalLogTextView(
@@ -910,7 +934,7 @@ private struct DayJournalPage: View {
                         focusRequest: $editorFocusRequest,
                         cursorLineIndex: $journalCursorLineIndex,
                         editorTarget: .composer(Calendar.current.startOfDay(for: date)),
-                        minHeight: max(geometry.size.height - 140, 240),
+                        minHeight: minimumEditorHeight,
                         isEditable: isEditable,
                         trailingInset: trailingColumnWidth + trailingGap,
                         onTextChange: onJournalTextChange,
@@ -921,7 +945,7 @@ private struct DayJournalPage: View {
                             lineFramesByDate[dayKey] = frames
                             contentHeight = max(
                                 frames.last.map { $0.minY + $0.height } ?? 0,
-                                max(geometry.size.height - 140, 240)
+                                minimumEditorHeight
                             )
                         }
                     )
@@ -945,7 +969,7 @@ private struct DayJournalPage: View {
                     journalAccessoryOverlay(isAccessoryTapEnabled: !scrollDisabled)
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 140)
+                .padding(.bottom, bottomOverlayPadding)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
                 .contentShape(Rectangle())
                 .onTapGesture {
@@ -955,6 +979,16 @@ private struct DayJournalPage: View {
 
                     onBlankSpaceTap()
                 }
+            }
+            .modifier(TopScrollEdgeEffectModifier())
+            .onChange(of: journalText) { _, newValue in
+                let estimatedFrames = Self.estimatedLineFrames(for: newValue)
+                lineFrames = estimatedFrames
+                lineFramesByDate[dayKey] = estimatedFrames
+                contentHeight = max(
+                    estimatedFrames.last.map { $0.minY + $0.height } ?? 0,
+                    minimumEditorHeight
+                )
             }
             .scrollDismissesKeyboard(.interactively)
             .scrollDisabled(scrollInteractionDisabled(in: geometry.size.height))
@@ -1040,6 +1074,16 @@ private struct DayJournalPage: View {
         return frames.isEmpty
             ? [JournalTextLineFrame(lineIndex: 0, minY: 0, height: lineHeight)]
             : frames
+    }
+}
+
+private struct TopScrollEdgeEffectModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.scrollEdgeEffectStyle(.soft, for: .top)
+        } else {
+            content
+        }
     }
 }
 
@@ -1222,7 +1266,8 @@ private enum PagerDragAxisLock {
 private struct KeyboardAccessoryBar: View {
     let isDictating: Bool
     let onToggleDictation: () async -> Void
-    let onCameraTap: () -> Void
+    let onTakePhotoTap: () -> Void
+    let onChoosePhotoTap: () -> Void
     let onQuickAddTap: () -> Void
     let onDismissKeyboard: () -> Void
 
@@ -1237,11 +1282,7 @@ private struct KeyboardAccessoryBar: View {
                     }
                 }
             )
-            KeyboardCircleButton(
-                systemImage: "camera.fill",
-                tint: Color(red: 0.76, green: 0.17, blue: 0.87),
-                action: onCameraTap
-            )
+            cameraMenuButton
             KeyboardCircleButton(
                 systemImage: "plus",
                 tint: Color(red: 0.98, green: 0.54, blue: 0.13),
@@ -1255,15 +1296,52 @@ private struct KeyboardAccessoryBar: View {
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }
+
+    private var cameraMenuButton: some View {
+        Menu {
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Button {
+                    Haptics.mediumImpact()
+                    onTakePhotoTap()
+                } label: {
+                    Label("Take Photo".notyfiLocalized, systemImage: "camera.fill")
+                }
+            }
+
+            Button {
+                Haptics.mediumImpact()
+                onChoosePhotoTap()
+            } label: {
+                Label("Choose Photo".notyfiLocalized, systemImage: "photo.on.rectangle")
+            }
+        } label: {
+            KeyboardCircleButtonLabel(
+                systemImage: "camera.fill",
+                tint: Color(red: 0.76, green: 0.17, blue: 0.87)
+            )
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+    }
 }
 
 private struct PhotoImportOverlay: View {
     var body: some View {
         VStack(spacing: 14) {
-            ProgressView()
-                .progressViewStyle(.circular)
-                .tint(NotyfiTheme.primaryText)
-                .scaleEffect(1.15)
+            ZStack {
+                Circle()
+                    .fill(NotyfiTheme.surface.opacity(0.9))
+                    .frame(width: 54, height: 54)
+                    .overlay {
+                        Circle()
+                            .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
+                    }
+
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .controlSize(.large)
+                    .tint(NotyfiTheme.primaryText)
+            }
 
             Text("Reading attachment".notyfiLocalized)
                 .font(.notyfi(.title3, weight: .semibold))
@@ -1479,21 +1557,30 @@ private struct KeyboardCircleButton: View {
             Haptics.mediumImpact()
             action()
         }) {
-            Image(systemName: systemImage)
-                .font(.system(size: 19, weight: .medium))
-                .foregroundStyle(tint)
-                .frame(width: 46, height: 46)
-                .background {
-                    Circle()
-                        .fill(NotyfiTheme.surface)
-                        .overlay {
-                            Circle()
-                                .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
-                        }
-                        .shadow(color: NotyfiTheme.shadow, radius: 18, x: 0, y: 10)
-                }
+            KeyboardCircleButtonLabel(systemImage: systemImage, tint: tint)
         }
         .buttonStyle(.plain)
+    }
+}
+
+private struct KeyboardCircleButtonLabel: View {
+    let systemImage: String
+    let tint: Color
+
+    var body: some View {
+        Image(systemName: systemImage)
+            .font(.system(size: 19, weight: .medium))
+            .foregroundStyle(tint)
+            .frame(width: 46, height: 46)
+            .background {
+                Circle()
+                    .fill(NotyfiTheme.surface)
+                    .overlay {
+                        Circle()
+                            .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
+                    }
+                    .shadow(color: NotyfiTheme.shadow, radius: 18, x: 0, y: 10)
+            }
     }
 }
 
