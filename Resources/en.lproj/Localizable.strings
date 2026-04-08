@@ -209,3 +209,6 @@
 "That photo could not be read right now. Try again with a clearer shot." = "That photo could not be read right now. Try again with a clearer shot.";
 "This build is missing the API key needed to read photos." = "This build is missing the API key needed to read photos.";
 "Turning it into notes" = "Turning it into notes";
+"Add photo" = "Add photo";
+"Take Photo" = "Take Photo";
+"Choose Photo" = "Choose Photo";

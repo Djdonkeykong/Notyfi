@@ -2,8 +2,8 @@
 "Yesterday" = "Ieri";
 "Start typing your money notes..." = "Inizia a scrivere le tue note di denaro...";
 "Start with a note" = "Inizia con una nota";
-"Nothing logged format" = "Non cÃ¢â‚¬â„¢ÃƒÂ¨ ancora nulla registrato per %@. Scrivi in modo naturale e Notyfi organizzerÃƒÂ  tutto silenziosamente in background.";
-"Coffee 49 kr" = "CaffÃƒÂ¨ 49 kr";
+"Nothing logged format" = "Non cÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã‚Â¨ ancora nulla registrato per %@. Scrivi in modo naturale e Notyfi organizzerÃƒÆ’Ã‚Â  tutto silenziosamente in background.";
+"Coffee 49 kr" = "CaffÃƒÆ’Ã‚Â¨ 49 kr";
 "Groceries 423 at Rema" = "Spesa 423 da Rema";
 "Train ticket 299" = "Biglietto del treno 299";
 
@@ -90,7 +90,7 @@
 "%@ over in %@" = "%@ oltre in %@";
 "Set a monthly budget" = "Imposta un budget mensile";
 "On pace this month" = "In linea questo mese";
-"Running a little hot" = "Un poÃ¢â‚¬â„¢ alto";
+"Running a little hot" = "Un poÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ alto";
 "Over budget" = "Oltre il budget";
 
 "Done" = "Fine";
@@ -116,11 +116,11 @@
 "Dark" = "Scuro";
 "AI Parsing" = "Analisi IA";
 "Always on" = "Sempre attivo";
-"Gentle Review Mode" = "ModalitÃƒÂ  di revisione delicata";
+"Gentle Review Mode" = "ModalitÃƒÆ’Ã‚Â  di revisione delicata";
 "Keep uncertain entries easy to confirm later" = "Mantieni le voci incerte facili da confermare in seguito";
 "Sync / Supabase" = "Sync / Supabase";
 "Sync" = "Sincronizzazione";
-"Stay local for now, with cloud sync ready later" = "Resta locale per ora, con la sincronizzazione cloud pronta piÃƒÂ¹ avanti";
+"Stay local for now, with cloud sync ready later" = "Resta locale per ora, con la sincronizzazione cloud pronta piÃƒÆ’Ã‚Â¹ avanti";
 "Connection" = "Connessione";
 "Supabase placeholder" = "Segnaposto Supabase";
 "Local only" = "Solo locale";
@@ -146,12 +146,12 @@
 "Reminders" = "Promemoria";
 "Privacy lock" = "Blocco privacy";
 "Export data" = "Esporta dati";
-"Keep things simple for now. More controls will arrive as the app grows." = "Mantieni le cose semplici per ora. Altri controlli arriveranno con la crescita dellÃ¢â‚¬â„¢app.";
+"Keep things simple for now. More controls will arrive as the app grows." = "Mantieni le cose semplici per ora. Altri controlli arriveranno con la crescita dellÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢app.";
 "Clear your entire log?" = "Cancellare tutto il registro?";
 "Cancel" = "Annulla";
 "This removes every saved entry from Notyfi." = "Questo rimuove tutte le voci salvate da Notyfi.";
 "Log today's money notes" = "Registra le note di denaro di oggi";
-"Open Notyfi and capture today's spending while it is still fresh." = "Apri Notyfi e registra le spese di oggi finchÃƒÂ© sono ancora fresche.";
+"Open Notyfi and capture today's spending while it is still fresh." = "Apri Notyfi e registra le spese di oggi finchÃƒÆ’Ã‚Â© sono ancora fresche.";
 "Norwegian Krone (NOK)" = "Corona norvegese (NOK)";
 "US Dollar (USD)" = "Dollaro statunitense (USD)";
 "Euro (EUR)" = "Euro (EUR)";
@@ -169,7 +169,7 @@
 "Original Note" = "Nota originale";
 "Entry Details" = "Dettagli della voce";
 "Title" = "Titolo";
-"Coffee" = "CaffÃƒÂ¨";
+"Coffee" = "CaffÃƒÆ’Ã‚Â¨";
 "Amount" = "Importo";
 "Type" = "Tipo";
 "Category" = "Categoria";
@@ -178,7 +178,7 @@
 "Notes & Review" = "Note e revisione";
 "Note" = "Nota";
 "Optional context" = "Contesto facoltativo";
-"Confidence" = "AffidabilitÃƒÂ ";
+"Confidence" = "AffidabilitÃƒÆ’Ã‚Â ";
 "Date" = "Data";
 "Untitled entry" = "Voce senza titolo";
 "Personal" = "Personale";
@@ -197,7 +197,7 @@
 "Unsupported file" = "File non supportato";
 "Use an image or PDF file for now." = "Per ora usa un file immagine o PDF.";
 "File import issue" = "Problema nell'importazione del file";
-"That file could not be prepared for AI parsing." = "Non Ã¨ stato possibile preparare il file per l'analisi AI.";
+"That file could not be prepared for AI parsing." = "Non ÃƒÂ¨ stato possibile preparare il file per l'analisi AI.";
 "Reading attachment" = "Lettura allegato";
 "Start with a money note..." = "Inizia con una nota sui soldi...";
 "AI parsing unavailable" = "AI parsing unavailable";
@@ -209,3 +209,6 @@
 "That photo could not be read right now. Try again with a clearer shot." = "That photo could not be read right now. Try again with a clearer shot.";
 "This build is missing the API key needed to read photos." = "This build is missing the API key needed to read photos.";
 "Turning it into notes" = "Turning it into notes";
+"Add photo" = "Add photo";
+"Take Photo" = "Take Photo";
+"Choose Photo" = "Choose Photo";

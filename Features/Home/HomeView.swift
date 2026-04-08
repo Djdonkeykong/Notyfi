@@ -9,6 +9,7 @@ struct HomeView: View {
     @StateObject private var speechDictation = SpeechDictationService()
     @State private var selectedEntry: ExpenseEntry?
     @State private var selectedEntryIsDraft = false
+    @State private var isCameraSourcePickerPresented = false
     @State private var isCameraPresented = false
     @State private var cameraSourceType: UIImagePickerController.SourceType = .camera
     @State private var isQuickAddPresented = false
@@ -178,6 +179,23 @@ struct HomeView: View {
                 )
                 .ignoresSafeArea()
             }
+            .confirmationDialog(
+                "Add photo".notyfiLocalized,
+                isPresented: $isCameraSourcePickerPresented,
+                titleVisibility: .visible
+            ) {
+                if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                    Button("Take Photo".notyfiLocalized) {
+                        presentCamera(sourceType: .camera)
+                    }
+                }
+
+                Button("Choose Photo".notyfiLocalized) {
+                    presentCamera(sourceType: .photoLibrary)
+                }
+
+                Button("Cancel".notyfiLocalized, role: .cancel) {}
+            }
             .alert(item: $photoImportAlert) { alert in
                 Alert(
                     title: Text(alert.title),
@@ -214,6 +232,7 @@ private extension HomeView {
             || viewModel.isSettingsPresented
             || viewModel.isStatsPresented
             || isQuickAddPresented
+            || isCameraSourcePickerPresented
             || isCameraPresented
             || selectedEntry != nil
     }
@@ -267,11 +286,13 @@ private extension HomeView {
 
     func presentCameraCapture() {
         presentAfterEditorSettles {
-            cameraSourceType = UIImagePickerController.isSourceTypeAvailable(.camera)
-                ? .camera
-                : .photoLibrary
-            isCameraPresented = true
+            isCameraSourcePickerPresented = true
         }
+    }
+
+    func presentCamera(sourceType: UIImagePickerController.SourceType) {
+        cameraSourceType = sourceType
+        isCameraPresented = true
     }
 
     func presentQuickAdd() {
@@ -1283,25 +1304,55 @@ private enum FileImportError: Error {
 }
 
 private struct QuickAddSheetView: View {
+    @Environment(\.dismiss) private var dismiss
     let onSelect: (QuickAddAction) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Add".notyfiLocalized)
-                .font(.notyfi(.footnote, weight: .semibold))
-                .foregroundStyle(NotyfiTheme.secondaryText)
+        ZStack {
+            NotyfiTheme.background.ignoresSafeArea()
 
-            VStack(spacing: 12) {
-                ForEach(QuickAddAction.allCases) { action in
-                    QuickAddRow(action: action, onSelect: onSelect)
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 24) {
+                    header
+
+                    VStack(spacing: 12) {
+                        ForEach(QuickAddAction.allCases) { action in
+                            QuickAddRow(action: action, onSelect: onSelect)
+                        }
+                    }
+
+                    Spacer(minLength: 0)
                 }
+                .padding(.horizontal, 20)
+                .safeAreaPadding(.top, 14)
+                .padding(.bottom, 28)
+            }
+        }
+    }
+
+    private var header: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Add".notyfiLocalized)
+                    .font(.notyfi(.title3, weight: .semibold))
+                    .foregroundStyle(.primary.opacity(0.84))
             }
 
-            Spacer(minLength: 0)
+            Spacer()
+
+            Button(action: { dismiss() }) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .frame(width: 38, height: 38)
+                    .background {
+                        Circle()
+                            .fill(NotyfiTheme.elevatedSurface)
+                    }
+            }
+            .buttonStyle(.plain)
         }
-        .padding(.horizontal, 20)
         .padding(.top, 22)
-        .padding(.bottom, 18)
     }
 }
 
