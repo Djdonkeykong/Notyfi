@@ -11,6 +11,13 @@ This workspace uses `XcodeGen` to keep the project file lightweight.
 3. Open `Notyfi.xcodeproj` in Xcode.
 4. Add `OPENAI_API_KEY` to your Xcode scheme environment variables to enable AI parsing during development.
 
+Run `python3 scripts/check_localizations.py` before committing UI text changes. Codemagic runs the same check and will fail the build if:
+
+- English is missing a key referenced from Swift
+- another locale is missing a key that exists in English
+- a locale has extra keys not present in English
+- a `Localizable.strings` file contains duplicate keys
+
 ## Codemagic
 
 `codemagic.yaml` is included at the repo root for internal TestFlight uploads.

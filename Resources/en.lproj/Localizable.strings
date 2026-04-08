@@ -200,3 +200,12 @@
 "That file could not be prepared for AI parsing." = "That file could not be prepared for AI parsing.";
 "Reading attachment" = "Reading attachment";
 "Start with a money note..." = "Start with a money note...";
+"AI parsing unavailable" = "AI parsing unavailable";
+"Imported note" = "Imported note";
+"No clear money-related entry was found in that photo." = "No clear money-related entry was found in that photo.";
+"Nothing to import" = "Nothing to import";
+"Photo import issue" = "Photo import issue";
+"That photo could not be prepared for AI parsing." = "That photo could not be prepared for AI parsing.";
+"That photo could not be read right now. Try again with a clearer shot." = "That photo could not be read right now. Try again with a clearer shot.";
+"This build is missing the API key needed to read photos." = "This build is missing the API key needed to read photos.";
+"Turning it into notes" = "Turning it into notes";

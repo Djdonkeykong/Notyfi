@@ -397,7 +397,7 @@ final class HomeViewModel: ObservableObject {
             shouldReparseRawText: true
         )
 
-        store.insertEntry(
+        _ = store.insertEntry(
             after: entry,
             rawText: normalizedTrailingText,
             on: entry.date,

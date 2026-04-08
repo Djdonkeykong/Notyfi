@@ -42,7 +42,7 @@
 "Month" = "Maand";
 "Net" = "Netto";
 "Balance" = "Saldo";
-"Top categories" = "TopcategorieÃ«n";
+"Top categories" = "TopcategorieÃƒÂ«n";
 "Start adding notes to see where your money goes." = "Begin met notities toevoegen om te zien waar je geld naartoe gaat.";
 "Top category insight format" = "%@ voert deze maand de uitgaven aan met %d%%.";
 "No notes yet this month." = "Nog geen notities deze maand.";
@@ -70,7 +70,7 @@
 "Plan" = "Plan";
 "Money plan" = "Budgetplan";
 "Monthly spending cap" = "Maandelijks uitgavenplafond";
-"One gentle limit for the whole month" = "EÃ©n rustige limiet voor de hele maand";
+"One gentle limit for the whole month" = "EÃƒÂ©n rustige limiet voor de hele maand";
 "Savings target" = "Spaardoel";
 "How much you want to keep after expenses" = "Hoeveel je wilt overhouden na uitgaven";
 "Category guides" = "Categorierichtlijnen";
@@ -80,7 +80,7 @@
 "Cap" = "Limiet";
 "0" = "0";
 "Use suggested cap %@" = "Gebruik voorgestelde limiet %@";
-"Start with one monthly cap, then add category guides only where they help." = "Begin met Ã©Ã©n maandelijkse limiet en voeg alleen categorierichtlijnen toe waar ze helpen.";
+"Start with one monthly cap, then add category guides only where they help." = "Begin met ÃƒÂ©ÃƒÂ©n maandelijkse limiet en voeg alleen categorierichtlijnen toe waar ze helpen.";
 "Spent %@ over %@ tracked days." = "%@ uitgegeven over %@ geregistreerde dagen.";
 "left" = "over";
 "over" = "over";
@@ -186,8 +186,8 @@
 "Transfer" = "Overboeking";
 "Recurring bill" = "Terugkerende rekening";
 "Attachment from Files" = "Bijlage uit Bestanden";
-"Add one manual expense entry." = "Voeg één handmatige uitgave toe.";
-"Add one manual income entry." = "Voeg één handmatige inkomenspost toe.";
+"Add one manual expense entry." = "Voeg Ã©Ã©n handmatige uitgave toe.";
+"Add one manual income entry." = "Voeg Ã©Ã©n handmatige inkomenspost toe.";
 "Start a transfer entry and adjust the direction." = "Start een overboeking en pas de richting aan.";
 "Create a bill entry you can fill in quickly." = "Maak een rekening aan die je snel kunt invullen.";
 "Import an image or PDF from Files." = "Importeer een afbeelding of pdf uit Bestanden.";
@@ -200,3 +200,12 @@
 "That file could not be prepared for AI parsing." = "Dat bestand kon niet worden voorbereid voor AI-analyse.";
 "Reading attachment" = "Bijlage lezen";
 "Start with a money note..." = "Begin met een geldnotitie...";
+"AI parsing unavailable" = "AI parsing unavailable";
+"Imported note" = "Imported note";
+"No clear money-related entry was found in that photo." = "No clear money-related entry was found in that photo.";
+"Nothing to import" = "Nothing to import";
+"Photo import issue" = "Photo import issue";
+"That photo could not be prepared for AI parsing." = "That photo could not be prepared for AI parsing.";
+"That photo could not be read right now. Try again with a clearer shot." = "That photo could not be read right now. Try again with a clearer shot.";
+"This build is missing the API key needed to read photos." = "This build is missing the API key needed to read photos.";
+"Turning it into notes" = "Turning it into notes";

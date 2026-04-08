@@ -1139,7 +1139,7 @@ private struct JournalLineAccessoryView: View {
                     .foregroundStyle(trailingPrimaryColor)
                     .multilineTextAlignment(.trailing)
                     .lineLimit(1)
-            } else if let entry {
+            } else if entry != nil {
                 Text(trailingPrimary)
                     .font(.notyfi(.body, weight: .semibold))
                     .foregroundStyle(trailingPrimaryColor)
@@ -1293,49 +1293,7 @@ private struct QuickAddSheetView: View {
 
             VStack(spacing: 12) {
                 ForEach(QuickAddAction.allCases) { action in
-                    Button {
-                        Haptics.mediumImpact()
-                        onSelect(action)
-                    } label: {
-                        HStack(spacing: 14) {
-                            Circle()
-                                .fill(action.tint.opacity(0.16))
-                                .frame(width: 44, height: 44)
-                                .overlay {
-                                    Image(systemName: action.systemImage)
-                                        .font(.system(size: 17, weight: .semibold))
-                                        .foregroundStyle(action.tint)
-                                }
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(action.title)
-                                    .font(.notyfi(.body, weight: .semibold))
-                                    .foregroundStyle(NotyfiTheme.primaryText)
-
-                                Text(action.subtitle)
-                                    .font(.notyfi(.footnote))
-                                    .foregroundStyle(NotyfiTheme.secondaryText)
-                                    .multilineTextAlignment(.leading)
-                            }
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(NotyfiTheme.tertiaryText)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 14)
-                        .background {
-                            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                .fill(NotyfiTheme.surface)
-                                .overlay {
-                                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                        .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
-                                }
-                        }
-                    }
-                    .buttonStyle(.plain)
+                    QuickAddRow(action: action, onSelect: onSelect)
                 }
             }
 
@@ -1344,6 +1302,57 @@ private struct QuickAddSheetView: View {
         .padding(.horizontal, 20)
         .padding(.top, 22)
         .padding(.bottom, 18)
+    }
+}
+
+private struct QuickAddRow: View {
+    let action: QuickAddAction
+    let onSelect: (QuickAddAction) -> Void
+
+    var body: some View {
+        Button {
+            Haptics.mediumImpact()
+            onSelect(action)
+        } label: {
+            HStack(spacing: 14) {
+                Circle()
+                    .fill(action.tint.opacity(0.16))
+                    .frame(width: 44, height: 44)
+                    .overlay {
+                        Image(systemName: action.systemImage)
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(action.tint)
+                    }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(action.title)
+                        .font(.notyfi(.body, weight: .semibold))
+                        .foregroundStyle(NotyfiTheme.primaryText)
+
+                    Text(action.subtitle)
+                        .font(.notyfi(.footnote))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                        .multilineTextAlignment(.leading)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.tertiaryText)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background {
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(NotyfiTheme.surface)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
+                    }
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 

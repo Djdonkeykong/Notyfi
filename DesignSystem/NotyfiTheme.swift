@@ -34,6 +34,7 @@ enum NotyfiTheme {
         light: UIColor.black.withAlphaComponent(0.045),
         dark: UIColor.black.withAlphaComponent(0.24)
     )
+    static let primaryText = Color(uiColor: .label)
     static let secondaryText = Color(uiColor: .secondaryLabel)
     static let tertiaryText = Color(uiColor: .tertiaryLabel)
     static let shimmerHighlight = adaptiveColor(

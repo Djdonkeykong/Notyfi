@@ -46,6 +46,11 @@ workflows:
         script: |
           brew install xcodegen
 
+      - name: Verify localizations
+        script: |
+          cd "$CM_BUILD_DIR"
+          python3 scripts/check_localizations.py
+
       - name: Generate Xcode project
         script: |
           xcodegen generate
@@ -136,6 +141,11 @@ workflows:
       - name: Install XcodeGen
         script: |
           brew install xcodegen
+
+      - name: Verify localizations
+        script: |
+          cd "$CM_BUILD_DIR"
+          python3 scripts/check_localizations.py
 
       - name: Generate Xcode project
         script: |
