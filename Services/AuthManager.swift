@@ -92,6 +92,17 @@ final class AuthManager: ObservableObject {
         }
     }
 
+    // MARK: - Delete Account
+
+    func deleteAccount() async {
+        // Supabase does not expose a client-side delete-user API on the anon key.
+        // The recommended pattern is an Edge Function that calls admin.deleteUser()
+        // with the service_role key. For now we sign the user out locally so they
+        // are not stuck in the app; the Edge Function call will be wired in Phase 5.
+        try? await SupabaseService.client.auth.signOut()
+        isAuthenticated = false
+    }
+
     // MARK: - Apple Sign In Helpers
 
     private func requestAppleCredential(nonce: String) async throws -> ASAuthorizationAppleIDCredential {

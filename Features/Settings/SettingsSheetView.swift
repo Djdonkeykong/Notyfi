@@ -3,7 +3,10 @@ import SwiftUI
 struct SettingsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: SettingsViewModel
+    @ObservedObject var authManager: AuthManager
     @State private var isClearLogConfirmationPresented = false
+    @State private var isSignOutConfirmationPresented = false
+    @State private var isDeleteAccountConfirmationPresented = false
 
     var body: some View {
         ZStack {
@@ -141,6 +144,29 @@ struct SettingsSheetView: View {
                         }
                     }
 
+                    SectionHeader(title: "Account")
+                    SettingsCard {
+                        VStack(spacing: 0) {
+                            SettingsActionRow(
+                                icon: "rectangle.portrait.and.arrow.right",
+                                title: "Sign Out",
+                                isDestructive: false,
+                                showsChevron: false,
+                                action: { isSignOutConfirmationPresented = true }
+                            )
+
+                            Divider()
+
+                            SettingsActionRow(
+                                icon: "person.crop.circle.badge.minus",
+                                title: "Delete Account",
+                                isDestructive: true,
+                                showsChevron: false,
+                                action: { isDeleteAccountConfirmationPresented = true }
+                            )
+                        }
+                    }
+
                     SectionHeader(title: "About")
                     SettingsCard {
                         VStack(spacing: 0) {
@@ -178,6 +204,32 @@ struct SettingsSheetView: View {
             Button("Cancel".notyfiLocalized, role: .cancel) {}
         } message: {
             Text("This removes every saved entry from Notyfi.".notyfiLocalized)
+        }
+        .confirmationDialog(
+            "Sign out of Notyfi?".notyfiLocalized,
+            isPresented: $isSignOutConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Sign Out".notyfiLocalized, role: .destructive) {
+                authManager.signOut()
+                dismiss()
+            }
+            Button("Cancel".notyfiLocalized, role: .cancel) {}
+        }
+        .confirmationDialog(
+            "Delete your account?".notyfiLocalized,
+            isPresented: $isDeleteAccountConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Account".notyfiLocalized, role: .destructive) {
+                Task {
+                    await authManager.deleteAccount()
+                    dismiss()
+                }
+            }
+            Button("Cancel".notyfiLocalized, role: .cancel) {}
+        } message: {
+            Text("This permanently deletes your account and all data. This cannot be undone.".notyfiLocalized)
         }
     }
 
@@ -500,5 +552,5 @@ private struct SettingsActionRow: View {
 }
 
 #Preview {
-    SettingsSheetView(viewModel: SettingsViewModel(store: ExpenseJournalStore(previewMode: true)))
+    SettingsSheetView(viewModel: SettingsViewModel(store: ExpenseJournalStore(previewMode: true)), authManager: AuthManager())
 }

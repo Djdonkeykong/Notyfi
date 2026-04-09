@@ -17,7 +17,7 @@ struct AppRootView: View {
                     authManager: authManager
                 )
             } else {
-                HomeView(store: store)
+                HomeView(store: store, authManager: authManager)
             }
         }
         .preferredColorScheme(appearanceMode.colorScheme)

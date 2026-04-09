@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 
 struct HomeView: View {
     @ObservedObject private var store: ExpenseJournalStore
+    @ObservedObject private var authManager: AuthManager
     @StateObject private var viewModel: HomeViewModel
     @StateObject private var speechDictation = SpeechDictationService()
     @State private var selectedEntry: ExpenseEntry?
@@ -23,8 +24,9 @@ struct HomeView: View {
     @State private var focusRequestGeneration = 0
     @State private var presentationRequestGeneration = 0
 
-    init(store: ExpenseJournalStore) {
+    init(store: ExpenseJournalStore, authManager: AuthManager) {
         self.store = store
+        self.authManager = authManager
         _viewModel = StateObject(wrappedValue: HomeViewModel(store: store))
     }
 
@@ -112,7 +114,7 @@ private extension HomeView {
                     .presentationCornerRadius(34)
             }
             .sheet(isPresented: $viewModel.isSettingsPresented) {
-                SettingsSheetView(viewModel: SettingsViewModel(store: store))
+                SettingsSheetView(viewModel: SettingsViewModel(store: store), authManager: authManager)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
                     .presentationBackground(NotyfiTheme.background.opacity(0.98))
@@ -1704,5 +1706,5 @@ private struct HomeTopFadeOverlay: View {
 }
 
 #Preview {
-    HomeView(store: ExpenseJournalStore(previewMode: true))
+    HomeView(store: ExpenseJournalStore(previewMode: true), authManager: AuthManager())
 }
