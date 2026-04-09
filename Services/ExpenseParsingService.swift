@@ -117,8 +117,8 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
 
     init(
         apiKey: String? = OpenAIExpenseParsingService.resolveAPIKey(),
-        textModel: String = "gpt-5-mini",
-        imageModel: String = "gpt-5-mini",
+        textModel: String = "gpt-4.1-mini",
+        imageModel: String = "gpt-4.1",
         endpointURL: URL = URL(string: "https://api.openai.com/v1/chat/completions")!,
         session: URLSession = .shared
     ) {
