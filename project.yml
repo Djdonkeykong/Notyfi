@@ -15,6 +15,14 @@ settings:
     INFOPLIST_KEY_CFBundleDisplayName: Notyfi
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+packages:
+  RevenueCat:
+    url: https://github.com/RevenueCat/purchases-ios-spm.git
+    from: 5.0.0
+  RevenueCatUI:
+    url: https://github.com/RevenueCat/purchases-ios-spm.git
+    from: 5.0.0
+
 targets:
   Notyfi:
     type: application
@@ -38,6 +46,8 @@ targets:
       - target: NotyfiWidget
         embed: true
         link: false
+      - package: RevenueCat
+      - package: RevenueCatUI
     settings:
       base:
         INFOPLIST_KEY_OPENAI_API_KEY: $(OPENAI_API_KEY)
