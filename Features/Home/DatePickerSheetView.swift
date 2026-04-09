@@ -42,21 +42,21 @@ struct DatePickerSheetView: View {
     }
 
     private func days(for month: Date) -> [CalendarDay] {
-        let monthStart = calendar.dateInterval(of: .month, for: month)?.start ?? month
+        let resolvedMonthStart = calendar.dateInterval(of: .month, for: month)?.start ?? month
 
-        guard let monthInterval = calendar.dateInterval(of: .month, for: monthStart) else {
+        guard let monthInterval = calendar.dateInterval(of: .month, for: resolvedMonthStart) else {
             return []
         }
 
-        let monthStart = monthInterval.start
-        let daysInMonth = calendar.range(of: .day, in: .month, for: monthStart)?.count ?? 0
-        let weekday = calendar.component(.weekday, from: monthStart)
+        let intervalStart = monthInterval.start
+        let daysInMonth = calendar.range(of: .day, in: .month, for: intervalStart)?.count ?? 0
+        let weekday = calendar.component(.weekday, from: intervalStart)
         let leadingEmptyDays = (weekday - calendar.firstWeekday + 7) % 7
 
         var items: [CalendarDay] = Array(repeating: .empty, count: leadingEmptyDays)
 
         for day in 1...daysInMonth {
-            if let date = calendar.date(byAdding: .day, value: day - 1, to: monthStart) {
+            if let date = calendar.date(byAdding: .day, value: day - 1, to: intervalStart) {
                 items.append(.date(day: day, date: date))
             }
         }
