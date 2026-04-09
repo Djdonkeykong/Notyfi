@@ -27,8 +27,8 @@ workflows:
             exit 1
           fi
 
-          mkdir -p "$CM_BUILD_DIR/Config"
-          printf 'OPENAI_API_KEY = %s\n' "$OPENAI_API_KEY" > "$CM_BUILD_DIR/Config/Secrets.xcconfig"
+          # Update only OPENAI_API_KEY in the existing xcconfig, preserving Supabase values
+          sed -i '' "s|OPENAI_API_KEY =.*|OPENAI_API_KEY = $OPENAI_API_KEY|" "$CM_BUILD_DIR/Config/Secrets.xcconfig"
 
           python3 - <<'PY'
           import os
@@ -123,8 +123,8 @@ workflows:
             exit 1
           fi
 
-          mkdir -p "$CM_BUILD_DIR/Config"
-          printf 'OPENAI_API_KEY = %s\n' "$OPENAI_API_KEY" > "$CM_BUILD_DIR/Config/Secrets.xcconfig"
+          # Update only OPENAI_API_KEY in the existing xcconfig, preserving Supabase values
+          sed -i '' "s|OPENAI_API_KEY =.*|OPENAI_API_KEY = $OPENAI_API_KEY|" "$CM_BUILD_DIR/Config/Secrets.xcconfig"
 
           python3 - <<'PY'
           import os
