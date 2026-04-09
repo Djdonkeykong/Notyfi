@@ -944,8 +944,10 @@ private struct DayJournalPage: View {
         self.scrollDisabled = scrollDisabled
 
         let dayKey = Calendar.autoupdatingCurrent.startOfDay(for: date)
-        let resolvedFrames = lineFramesByDate.wrappedValue[dayKey]
-            ?? Self.estimatedLineFrames(for: journalText.wrappedValue)
+        let resolvedFrames = Self.resolvedLineFrames(
+            for: journalText.wrappedValue,
+            cachedFrames: lineFramesByDate.wrappedValue[dayKey]
+        )
         _lineFrames = State(initialValue: resolvedFrames)
         _contentHeight = State(
             initialValue: resolvedFrames.last.map { $0.minY + $0.height } ?? 34
@@ -1019,11 +1021,14 @@ private struct DayJournalPage: View {
                     return
                 }
 
-                let estimatedFrames = Self.estimatedLineFrames(for: journalText)
-                lineFrames = estimatedFrames
-                lineFramesByDate[dayKey] = estimatedFrames
+                let resolvedFrames = Self.resolvedLineFrames(
+                    for: journalText,
+                    cachedFrames: lineFramesByDate[dayKey]
+                )
+                lineFrames = resolvedFrames
+                lineFramesByDate[dayKey] = resolvedFrames
                 contentHeight = max(
-                    estimatedFrames.last.map { $0.minY + $0.height } ?? 0,
+                    resolvedFrames.last.map { $0.minY + $0.height } ?? 0,
                     minimumEditorHeight
                 )
             }
@@ -1032,11 +1037,14 @@ private struct DayJournalPage: View {
                     return
                 }
 
-                let estimatedFrames = Self.estimatedLineFrames(for: newValue)
-                lineFrames = estimatedFrames
-                lineFramesByDate[dayKey] = estimatedFrames
+                let resolvedFrames = Self.resolvedLineFrames(
+                    for: newValue,
+                    cachedFrames: lineFramesByDate[dayKey]
+                )
+                lineFrames = resolvedFrames
+                lineFramesByDate[dayKey] = resolvedFrames
                 contentHeight = max(
-                    estimatedFrames.last.map { $0.minY + $0.height } ?? 0,
+                    resolvedFrames.last.map { $0.minY + $0.height } ?? 0,
                     minimumEditorHeight
                 )
             }
@@ -1124,6 +1132,21 @@ private struct DayJournalPage: View {
         return frames.isEmpty
             ? [JournalTextLineFrame(lineIndex: 0, minY: 0, height: lineHeight)]
             : frames
+    }
+
+    private static func resolvedLineFrames(
+        for text: String,
+        cachedFrames: [JournalTextLineFrame]?
+    ) -> [JournalTextLineFrame] {
+        let expectedLineCount = max(text.components(separatedBy: "\n").count, 1)
+
+        if let cachedFrames,
+           cachedFrames.count == expectedLineCount,
+           cachedFrames.enumerated().allSatisfy({ index, frame in frame.lineIndex == index }) {
+            return cachedFrames
+        }
+
+        return estimatedLineFrames(for: text)
     }
 }
 

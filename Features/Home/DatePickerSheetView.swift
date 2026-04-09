@@ -6,9 +6,10 @@ struct DatePickerSheetView: View {
     let entryDates: [Date]
     @Environment(\.dismiss) private var dismiss
     @State private var horizontalDragOffset: CGFloat = 0
+    @State private var isMonthTransitioning = false
 
-    private let selectedRingColor = Color(red: 0.58, green: 0.43, blue: 0.96)
-    private let entryFillColor = Color(red: 0.78, green: 0.91, blue: 0.80)
+    private let selectedRingColor = Color(red: 0.0, green: 0.0, blue: 0.996)
+    private let entryFillColor = Color(red: 0.58, green: 0.88, blue: 0.62)
     private let dayCellSize: CGFloat = 46
     private let actionButtonWidth: CGFloat = 94
     private let actionButtonHeight: CGFloat = 44
@@ -65,96 +66,98 @@ struct DatePickerSheetView: View {
     }
 
     var body: some View {
-        ZStack {
-            backgroundSurface
+        GeometryReader { geometry in
+            ZStack {
+                backgroundSurface
 
-            VStack(spacing: 20) {
-                HStack {
-                    CalendarPillButton(
-                        title: "Today",
-                        foregroundStyle: AnyShapeStyle(Color(red: 0.12, green: 0.46, blue: 0.98)),
-                        width: actionButtonWidth,
-                        height: actionButtonHeight,
-                        action: {
-                            Haptics.mediumImpact()
-                            selection = Date()
-                            visibleMonth = Date()
-                        }
-                    )
-
-                    Spacer()
-
-                    Text(monthTitle)
-                        .font(.system(size: 17, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.primary.opacity(0.96))
-
-                    Spacer()
-
-                    CalendarPillButton(
-                        title: "Done",
-                        foregroundStyle: AnyShapeStyle(.primary.opacity(0.9)),
-                        width: actionButtonWidth,
-                        height: actionButtonHeight,
-                        action: {
-                            Haptics.mediumImpact()
-                            dismiss()
-                        }
-                    )
-                }
-
-                VStack(spacing: 16) {
+                VStack(spacing: 20) {
                     HStack {
-                        ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
-                            Text(symbol)
-                                .font(.system(size: 15, weight: .medium, design: .rounded))
-                                .foregroundStyle(NotyfiTheme.secondaryText)
-                                .frame(maxWidth: .infinity)
-                        }
+                        CalendarPillButton(
+                            title: "Today",
+                            foregroundStyle: AnyShapeStyle(Color(red: 0.12, green: 0.46, blue: 0.98)),
+                            width: actionButtonWidth,
+                            height: actionButtonHeight,
+                            action: {
+                                Haptics.mediumImpact()
+                                selection = Date()
+                                visibleMonth = Date()
+                            }
+                        )
+
+                        Spacer()
+
+                        Text(monthTitle)
+                            .font(.system(size: 17, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.primary.opacity(0.96))
+
+                        Spacer()
+
+                        CalendarPillButton(
+                            title: "Done",
+                            foregroundStyle: AnyShapeStyle(.primary.opacity(0.9)),
+                            width: actionButtonWidth,
+                            height: actionButtonHeight,
+                            action: {
+                                Haptics.mediumImpact()
+                                dismiss()
+                            }
+                        )
                     }
 
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 14) {
-                        ForEach(Array(days.enumerated()), id: \.offset) { _, item in
-                            switch item {
-                            case .empty:
-                                Color.clear
-                                    .frame(height: dayCellSize)
-                            case let .date(day, date):
-                                Button(action: {
-                                    Haptics.mediumImpact()
-                                    selection = date
-                                }) {
-                                    Text("\(day)")
-                                        .font(.system(size: 18, weight: calendar.isDate(date, inSameDayAs: selection) ? .semibold : .regular, design: .rounded))
-                                        .foregroundStyle(dayColor(for: date))
-                                        .frame(width: dayCellSize, height: dayCellSize)
-                                        .background {
+                    VStack(spacing: 16) {
+                        HStack {
+                            ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
+                                Text(symbol)
+                                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                                    .foregroundStyle(NotyfiTheme.secondaryText)
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 14) {
+                            ForEach(Array(days.enumerated()), id: \.offset) { _, item in
+                                switch item {
+                                case .empty:
+                                    Color.clear
+                                        .frame(height: dayCellSize)
+                                case let .date(day, date):
+                                    Button(action: {
+                                        Haptics.mediumImpact()
+                                        selection = date
+                                    }) {
+                                        Text("\(day)")
+                                            .font(.system(size: 18, weight: calendar.isDate(date, inSameDayAs: selection) ? .semibold : .regular, design: .rounded))
+                                            .foregroundStyle(dayColor(for: date))
+                                            .frame(width: dayCellSize, height: dayCellSize)
+                                            .background {
                                             if hasEntry(on: date) {
                                                 Circle()
-                                                    .fill(entryFillColor.opacity(calendar.compare(date, to: Date(), toGranularity: .day) == .orderedDescending ? 0.35 : 1))
+                                                    .fill(entryFillColor.opacity(calendar.compare(date, to: Date(), toGranularity: .day) == .orderedDescending ? 0.48 : 1))
                                             }
 
-                                            if calendar.isDate(date, inSameDayAs: selection) {
-                                                Circle()
-                                                    .stroke(selectedRingColor, lineWidth: 3)
+                                                if calendar.isDate(date, inSameDayAs: selection) {
+                                                    Circle()
+                                                        .stroke(selectedRingColor, lineWidth: 3)
+                                                }
                                             }
-                                        }
+                                    }
+                                    .buttonStyle(.plain)
+                                    .frame(maxWidth: .infinity)
                                 }
-                                .buttonStyle(.plain)
-                                .frame(maxWidth: .infinity)
                             }
                         }
                     }
                 }
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .safeAreaPadding(.top, 6)
-            .offset(x: horizontalDragOffset)
-            .gesture(monthSwipeGesture)
-            .onChange(of: selection) { _, newValue in
-                visibleMonth = newValue
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .safeAreaPadding(.top, 6)
+                .offset(x: horizontalDragOffset)
+                .gesture(monthSwipeGesture(containerWidth: geometry.size.width))
+                .onChange(of: selection) { _, newValue in
+                    visibleMonth = newValue
+                }
             }
         }
     }
@@ -200,33 +203,66 @@ struct DatePickerSheetView: View {
         entryDates.contains { calendar.isDate($0, inSameDayAs: date) }
     }
 
-    private var monthSwipeGesture: some Gesture {
+    private func monthSwipeGesture(containerWidth: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 12, coordinateSpace: .local)
             .onChanged { value in
+                guard !isMonthTransitioning else {
+                    return
+                }
+
                 guard abs(value.translation.width) > abs(value.translation.height) else {
                     return
                 }
 
-                horizontalDragOffset = value.translation.width * 0.18
+                let limit = min(containerWidth * 0.68, 220)
+                horizontalDragOffset = min(max(value.translation.width * 0.72, -limit), limit)
             }
             .onEnded { value in
-                defer {
+                guard !isMonthTransitioning else {
+                    return
+                }
+                guard abs(value.translation.width) > abs(value.translation.height) else {
+                    withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
+                        horizontalDragOffset = 0
+                    }
+                    return
+                }
+
+                let threshold = min(containerWidth * 0.16, 72)
+                if value.translation.width <= -threshold {
+                    animateMonthTransition(by: 1, containerWidth: containerWidth)
+                } else if value.translation.width >= threshold {
+                    animateMonthTransition(by: -1, containerWidth: containerWidth)
+                } else {
                     withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
                         horizontalDragOffset = 0
                     }
                 }
-
-                guard abs(value.translation.width) > abs(value.translation.height) else {
-                    return
-                }
-
-                let threshold: CGFloat = 44
-                if value.translation.width <= -threshold {
-                    moveMonth(by: 1)
-                } else if value.translation.width >= threshold {
-                    moveMonth(by: -1)
-                }
             }
+    }
+
+    private func animateMonthTransition(by offset: Int, containerWidth: CGFloat) {
+        isMonthTransitioning = true
+        let travelDistance = min(containerWidth * 0.62, 260)
+        let outgoingOffset = offset > 0 ? -travelDistance : travelDistance
+        let incomingOffset = -outgoingOffset
+
+        withAnimation(.easeOut(duration: 0.14)) {
+            horizontalDragOffset = outgoingOffset
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.14) {
+            moveMonth(by: offset)
+            horizontalDragOffset = incomingOffset
+
+            withAnimation(.spring(response: 0.28, dampingFraction: 0.88)) {
+                horizontalDragOffset = 0
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+                isMonthTransitioning = false
+            }
+        }
     }
 
     private func moveMonth(by offset: Int) {
