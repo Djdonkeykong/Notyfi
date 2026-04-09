@@ -15,6 +15,7 @@ struct HomeView: View {
     @State private var isFileImporterPresented = false
     @State private var isImportingPhoto = false
     @State private var photoImportAlert: PhotoImportAlert?
+    @State private var datePickerVisibleMonth = Date()
     @State private var focusedEditor: JournalEditorTarget?
     @State private var editorFocusRequest: JournalEditorFocusRequest?
     @State private var journalCursorLineIndex = 0
@@ -29,30 +30,14 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
-            if usesScrollEdgeTopBar {
-                if #available(iOS 26.0, *) {
-                    decoratedHomeContent(
-                        homeContent.safeAreaBar(edge: .top, spacing: 0) {
-                            homeTopBar
-                        }
-                    )
-                } else {
-                    decoratedHomeContent(inlineTopBarContent)
-                }
-            } else {
-                decoratedHomeContent(inlineTopBarContent)
-            }
+            decoratedHomeContent(homeContent)
         }
     }
 }
 
 private extension HomeView {
     var homeContent: some View {
-        baseHomeContent(includeInlineTopBar: false)
-    }
-
-    var inlineTopBarContent: some View {
-        baseHomeContent(includeInlineTopBar: true)
+        baseHomeContent
     }
 
     func decoratedHomeContent<Content: View>(_ content: Content) -> some View {
@@ -81,21 +66,27 @@ private extension HomeView {
             }
             .overlay(alignment: .bottom) {
                 if focusedEditor == nil {
-                    HomeSummaryBar(
-                        insight: viewModel.insight,
-                        budgetInsight: viewModel.budgetInsight,
-                        currencyCode: viewModel.currencyCode,
-                        onTap: { presentStats() }
-                    )
+                    ZStack(alignment: .bottom) {
+                        HomeBottomFadeOverlay()
+                            .allowsHitTesting(false)
+
+                        HomeSummaryBar(
+                            insight: viewModel.insight,
+                            budgetInsight: viewModel.budgetInsight,
+                            currencyCode: viewModel.currencyCode,
+                            onTap: { presentStats() }
+                        )
+                    }
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
                 DatePickerSheetView(
                     selection: selectedDateBinding,
+                    visibleMonth: $datePickerVisibleMonth,
                     entryDates: store.entries.map(\.date)
                 )
-                    .presentationDetents([.height(datePickerSheetHeight(for: viewModel.selectedDate))])
+                    .presentationDetents([.height(datePickerSheetHeight(for: datePickerVisibleMonth))])
                     .presentationDragIndicator(.hidden)
                     .presentationBackground(.clear)
                     .presentationCornerRadius(34)
@@ -154,7 +145,20 @@ private extension HomeView {
                 allowsMultipleSelection: false,
                 onCompletion: handleFileImportSelection
             )
-            .toolbar(.hidden, for: .navigationBar)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    toolbarBrandMark
+                }
+
+                ToolbarItem(placement: .principal) {
+                    toolbarDateButton
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    toolbarSettingsButton
+                }
+            }
             .onChange(of: speechDictation.transcript) { _, newValue in
                 guard !newValue.isEmpty else {
                     return
@@ -169,15 +173,11 @@ private extension HomeView {
             }
     }
 
-    func baseHomeContent(includeInlineTopBar: Bool) -> some View {
+    var baseHomeContent: some View {
         ZStack {
             NotyfiTheme.background.ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 22) {
-                if includeInlineTopBar {
-                    homeTopBar
-                }
-
                 DayJournalPager(
                     previousDate: viewModel.date(forDayOffset: -1),
                     currentDate: viewModel.selectedDate,
@@ -193,7 +193,7 @@ private extension HomeView {
                     journalCursorLineIndex: $journalCursorLineIndex,
                     lineFramesByDate: $journalLineFramesByDate,
                     feedback: viewModel.draftFeedback,
-                    contentTopInset: usesScrollEdgeTopBar ? 18 : 0,
+                    contentTopInset: 8,
                     onJournalTextChange: { rawText in
                         var transaction = Transaction()
                         transaction.animation = nil
@@ -244,14 +244,39 @@ private extension HomeView {
         }
     }
 
-    var homeTopBar: some View {
-        HomeTopBar(
-            selectedDate: viewModel.selectedDate,
-            onDateTap: { presentDatePicker() },
-            onSettingsTap: { presentSettings() }
-        )
-        .padding(.horizontal, 20)
-        .padding(.top, 4)
+    var toolbarBrandMark: some View {
+        Image("HomeBrandMark")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 43, height: 43)
+    }
+
+    var toolbarDateButton: some View {
+        Button(action: {
+            Haptics.mediumImpact()
+            presentDatePicker()
+        }) {
+            SoftCapsule(horizontalPadding: 20, verticalPadding: 12) {
+                Text(viewModel.selectedDate.notyfiDayTitle())
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.primary.opacity(0.84))
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    var toolbarSettingsButton: some View {
+        SoftCapsule(horizontalPadding: 14, verticalPadding: 11) {
+            Button(action: {
+                Haptics.mediumImpact()
+                presentSettings()
+            }) {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.primary.opacity(0.82))
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     var isPresentingModalSurface: Bool {
@@ -263,18 +288,13 @@ private extension HomeView {
             || selectedEntry != nil
     }
 
-    var usesScrollEdgeTopBar: Bool {
-        if #available(iOS 26.0, *) {
-            return true
-        }
-
-        return false
-    }
-
     var selectedDateBinding: Binding<Date> {
         Binding(
             get: { viewModel.selectedDate },
-            set: { viewModel.setSelectedDate($0) }
+            set: {
+                viewModel.setSelectedDate($0)
+                datePickerVisibleMonth = $0
+            }
         )
     }
 
@@ -295,6 +315,7 @@ private extension HomeView {
 
     func presentDatePicker() {
         presentAfterEditorSettles {
+            datePickerVisibleMonth = viewModel.selectedDate
             viewModel.isDatePickerPresented = true
         }
     }
@@ -891,7 +912,7 @@ private struct DayJournalPage: View {
 
     private let trailingColumnWidth: CGFloat = 114
     private let trailingGap: CGFloat = 14
-    private let bottomOverlayPadding: CGFloat = 168
+    private let bottomOverlayPadding: CGFloat = 220
 
     init(
         date: Date,
@@ -999,7 +1020,19 @@ private struct DayJournalPage: View {
                     onBlankSpaceTap()
                 }
             }
-            .modifier(VerticalScrollEdgeEffectModifier())
+            .onChange(of: entries.map(\.id)) { _, _ in
+                guard focusedEditor == nil else {
+                    return
+                }
+
+                let estimatedFrames = Self.estimatedLineFrames(for: journalText)
+                lineFrames = estimatedFrames
+                lineFramesByDate[dayKey] = estimatedFrames
+                contentHeight = max(
+                    estimatedFrames.last.map { $0.minY + $0.height } ?? 0,
+                    minimumEditorHeight
+                )
+            }
             .onChange(of: journalText) { _, newValue in
                 guard focusedEditor == nil else {
                     return
@@ -1097,16 +1130,6 @@ private struct DayJournalPage: View {
         return frames.isEmpty
             ? [JournalTextLineFrame(lineIndex: 0, minY: 0, height: lineHeight)]
             : frames
-    }
-}
-
-private struct VerticalScrollEdgeEffectModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
-            content.scrollEdgeEffectStyle(.soft, for: .all)
-        } else {
-            content
-        }
     }
 }
 
@@ -1351,20 +1374,10 @@ private struct KeyboardAccessoryBar: View {
 private struct PhotoImportOverlay: View {
     var body: some View {
         VStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(NotyfiTheme.surface.opacity(0.9))
-                    .frame(width: 54, height: 54)
-                    .overlay {
-                        Circle()
-                            .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
-                    }
-
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .controlSize(.large)
-                    .tint(NotyfiTheme.primaryText)
-            }
+            ProgressView()
+                .progressViewStyle(.circular)
+                .controlSize(.large)
+                .tint(NotyfiTheme.primaryText)
 
             Text("Reading attachment".notyfiLocalized)
                 .font(.notyfi(.title3, weight: .semibold))
@@ -1604,6 +1617,39 @@ private struct KeyboardCircleButtonLabel: View {
                     }
                     .shadow(color: NotyfiTheme.shadow, radius: 18, x: 0, y: 10)
             }
+    }
+}
+
+private struct HomeBottomFadeOverlay: View {
+    var body: some View {
+        Rectangle()
+            .fill(.ultraThinMaterial)
+            .overlay {
+                LinearGradient(
+                    colors: [
+                        Color.clear,
+                        NotyfiTheme.background.opacity(0.18),
+                        NotyfiTheme.background.opacity(0.56),
+                        NotyfiTheme.background.opacity(0.88)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+            .mask {
+                LinearGradient(
+                    colors: [
+                        .clear,
+                        .black.opacity(0.2),
+                        .black.opacity(0.7),
+                        .black
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+            .frame(height: 210)
+            .ignoresSafeArea(edges: .bottom)
     }
 }
 

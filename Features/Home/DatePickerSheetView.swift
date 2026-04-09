@@ -2,8 +2,10 @@ import SwiftUI
 
 struct DatePickerSheetView: View {
     @Binding var selection: Date
+    @Binding var visibleMonth: Date
     let entryDates: [Date]
     @Environment(\.dismiss) private var dismiss
+    @State private var horizontalDragOffset: CGFloat = 0
 
     private let selectedRingColor = Color(red: 0.58, green: 0.43, blue: 0.96)
     private let entryFillColor = Color(red: 0.78, green: 0.91, blue: 0.80)
@@ -15,8 +17,12 @@ struct DatePickerSheetView: View {
         Calendar.autoupdatingCurrent
     }
 
+    private var monthStart: Date {
+        calendar.dateInterval(of: .month, for: visibleMonth)?.start ?? visibleMonth
+    }
+
     private var monthTitle: String {
-        selection.formatted(.dateTime.month(.abbreviated).year())
+        monthStart.formatted(.dateTime.month(.abbreviated).year())
     }
 
     private var weekdaySymbols: [String] {
@@ -34,7 +40,7 @@ struct DatePickerSheetView: View {
     }
 
     private var days: [CalendarDay] {
-        guard let monthInterval = calendar.dateInterval(of: .month, for: selection) else {
+        guard let monthInterval = calendar.dateInterval(of: .month, for: monthStart) else {
             return []
         }
 
@@ -72,6 +78,7 @@ struct DatePickerSheetView: View {
                         action: {
                             Haptics.mediumImpact()
                             selection = Date()
+                            visibleMonth = Date()
                         }
                     )
 
@@ -144,6 +151,11 @@ struct DatePickerSheetView: View {
             .padding(.bottom, 12)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .safeAreaPadding(.top, 6)
+            .offset(x: horizontalDragOffset)
+            .gesture(monthSwipeGesture)
+            .onChange(of: selection) { _, newValue in
+                visibleMonth = newValue
+            }
         }
     }
 
@@ -187,6 +199,53 @@ struct DatePickerSheetView: View {
     private func hasEntry(on date: Date) -> Bool {
         entryDates.contains { calendar.isDate($0, inSameDayAs: date) }
     }
+
+    private var monthSwipeGesture: some Gesture {
+        DragGesture(minimumDistance: 12, coordinateSpace: .local)
+            .onChanged { value in
+                guard abs(value.translation.width) > abs(value.translation.height) else {
+                    return
+                }
+
+                horizontalDragOffset = value.translation.width * 0.18
+            }
+            .onEnded { value in
+                defer {
+                    withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
+                        horizontalDragOffset = 0
+                    }
+                }
+
+                guard abs(value.translation.width) > abs(value.translation.height) else {
+                    return
+                }
+
+                let threshold: CGFloat = 44
+                if value.translation.width <= -threshold {
+                    moveMonth(by: 1)
+                } else if value.translation.width >= threshold {
+                    moveMonth(by: -1)
+                }
+            }
+    }
+
+    private func moveMonth(by offset: Int) {
+        guard let targetMonth = calendar.date(byAdding: .month, value: offset, to: monthStart) else {
+            return
+        }
+
+        let targetMonthStart = calendar.dateInterval(of: .month, for: targetMonth)?.start ?? targetMonth
+        let preferredDay = calendar.component(.day, from: selection)
+        let daysInTargetMonth = calendar.range(of: .day, in: .month, for: targetMonthStart)?.count ?? preferredDay
+        let targetDay = max(1, min(preferredDay, daysInTargetMonth))
+
+        visibleMonth = targetMonthStart
+
+        if let resolvedDate = calendar.date(byAdding: .day, value: targetDay - 1, to: targetMonthStart) {
+            Haptics.mediumImpact()
+            selection = resolvedDate
+        }
+    }
 }
 
 private enum CalendarDay {
@@ -223,6 +282,7 @@ private struct CalendarPillButton: View {
 #Preview {
     DatePickerSheetView(
         selection: .constant(Date(timeIntervalSince1970: 1775080800)),
+        visibleMonth: .constant(Date(timeIntervalSince1970: 1775080800)),
         entryDates: [
             Date(timeIntervalSince1970: 1775080800),
             Date(timeIntervalSince1970: 1774994400)
