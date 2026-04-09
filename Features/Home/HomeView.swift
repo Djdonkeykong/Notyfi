@@ -30,18 +30,38 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
-            decoratedHomeContent(homeContent)
+            if usesScrollEdgeTopBar {
+                if #available(iOS 26.0, *) {
+                    decoratedHomeContent(
+                        homeContent.safeAreaBar(edge: .top, spacing: 0) {
+                            homeTopBar
+                        }
+                    )
+                } else {
+                    decoratedHomeContent(inlineTopBarContent)
+                }
+            } else {
+                decoratedHomeContent(inlineTopBarContent)
+            }
         }
     }
 }
 
 private extension HomeView {
     var homeContent: some View {
-        baseHomeContent
+        baseHomeContent(includeInlineTopBar: false)
+    }
+
+    var inlineTopBarContent: some View {
+        baseHomeContent(includeInlineTopBar: true)
     }
 
     func decoratedHomeContent<Content: View>(_ content: Content) -> some View {
         content
+            .background(alignment: .top) {
+                HomeTopFadeOverlay()
+                    .allowsHitTesting(false)
+            }
             .safeAreaInset(edge: .bottom) {
                 if focusedEditor != nil {
                     KeyboardAccessoryBar(
@@ -79,12 +99,6 @@ private extension HomeView {
                     }
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-            }
-            .overlay(alignment: .topLeading) {
-                toolbarBrandMark
-                    .padding(.leading, 18)
-                    .padding(.top, 6)
-                    .allowsHitTesting(false)
             }
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
                 DatePickerSheetView(
@@ -151,17 +165,7 @@ private extension HomeView {
                 allowsMultipleSelection: false,
                 onCompletion: handleFileImportSelection
             )
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    toolbarDateButton
-                }
-
-                ToolbarItem(placement: .topBarTrailing) {
-                    toolbarSettingsButton
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .onChange(of: speechDictation.transcript) { _, newValue in
                 guard !newValue.isEmpty else {
                     return
@@ -176,11 +180,15 @@ private extension HomeView {
             }
     }
 
-    var baseHomeContent: some View {
+    func baseHomeContent(includeInlineTopBar: Bool) -> some View {
         ZStack {
             NotyfiTheme.background.ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 22) {
+                if includeInlineTopBar {
+                    homeTopBar
+                }
+
                 DayJournalPager(
                     previousDate: viewModel.date(forDayOffset: -1),
                     currentDate: viewModel.selectedDate,
@@ -196,7 +204,7 @@ private extension HomeView {
                     journalCursorLineIndex: $journalCursorLineIndex,
                     lineFramesByDate: $journalLineFramesByDate,
                     feedback: viewModel.draftFeedback,
-                    contentTopInset: 22,
+                    contentTopInset: usesScrollEdgeTopBar ? 18 : 0,
                     onJournalTextChange: { rawText in
                         var transaction = Transaction()
                         transaction.animation = nil
@@ -247,41 +255,6 @@ private extension HomeView {
         }
     }
 
-    var toolbarBrandMark: some View {
-        Image("HomeBrandMark")
-            .resizable()
-            .scaledToFit()
-            .frame(width: 43, height: 43)
-    }
-
-    var toolbarDateButton: some View {
-        Button(action: {
-            Haptics.mediumImpact()
-            presentDatePicker()
-        }) {
-            SoftCapsule(horizontalPadding: 20, verticalPadding: 12) {
-                Text(viewModel.selectedDate.notyfiDayTitle())
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.primary.opacity(0.84))
-            }
-        }
-        .buttonStyle(.plain)
-    }
-
-    var toolbarSettingsButton: some View {
-        SoftCapsule(horizontalPadding: 14, verticalPadding: 11) {
-            Button(action: {
-                Haptics.mediumImpact()
-                presentSettings()
-            }) {
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.primary.opacity(0.82))
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
     var isPresentingModalSurface: Bool {
         viewModel.isDatePickerPresented
             || viewModel.isSettingsPresented
@@ -289,6 +262,24 @@ private extension HomeView {
             || isQuickAddPresented
             || isCameraPresented
             || selectedEntry != nil
+    }
+
+    var usesScrollEdgeTopBar: Bool {
+        if #available(iOS 26.0, *) {
+            return true
+        }
+
+        return false
+    }
+
+    var homeTopBar: some View {
+        HomeTopBar(
+            selectedDate: viewModel.selectedDate,
+            onDateTap: { presentDatePicker() },
+            onSettingsTap: { presentSettings() }
+        )
+        .padding(.horizontal, 20)
+        .padding(.top, 4)
     }
 
     var selectedDateBinding: Binding<Date> {
@@ -1653,6 +1644,39 @@ private struct HomeBottomFadeOverlay: View {
             }
             .frame(height: 210)
             .ignoresSafeArea(edges: .bottom)
+    }
+}
+
+private struct HomeTopFadeOverlay: View {
+    var body: some View {
+        Rectangle()
+            .fill(.ultraThinMaterial)
+            .overlay {
+                LinearGradient(
+                    colors: [
+                        NotyfiTheme.background.opacity(0.88),
+                        NotyfiTheme.background.opacity(0.56),
+                        NotyfiTheme.background.opacity(0.18),
+                        Color.clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+            .mask {
+                LinearGradient(
+                    colors: [
+                        .black,
+                        .black.opacity(0.75),
+                        .black.opacity(0.24),
+                        .clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+            .frame(height: 190)
+            .ignoresSafeArea(edges: .top)
     }
 }
 
