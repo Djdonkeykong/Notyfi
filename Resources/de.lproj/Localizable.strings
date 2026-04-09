@@ -132,6 +132,10 @@
 "Privacy" = "Datenschutz";
 "Contact Support" = "Support kontaktieren";
 "Sign Out" = "Abmelden";
+"Sign out of Notyfi?" = "Von Notyfi abmelden?";
+"Delete Account" = "Konto loschen";
+"Delete your account?" = "Konto loschen?";
+"This permanently deletes your account and all data. This cannot be undone." = "Dies loscht dein Konto und alle Daten dauerhaft. Dies kann nicht ruckgangig gemacht werden.";
 "Version 1.0" = "Version 1.0";
 "Storage" = "Speicher";
 "This device" = "Dieses GerÃƒÆ’Ã‚Â¤t";

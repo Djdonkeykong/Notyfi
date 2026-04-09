@@ -132,6 +132,10 @@
 "Privacy" = "Personvern";
 "Contact Support" = "Kontakt support";
 "Sign Out" = "Logg ut";
+"Sign out of Notyfi?" = "Logg ut av Notyfi?";
+"Delete Account" = "Slett konto";
+"Delete your account?" = "Slett kontoen din?";
+"This permanently deletes your account and all data. This cannot be undone." = "Dette sletter kontoen din og all data permanent. Dette kan ikke angres.";
 "Version 1.0" = "Versjon 1.0";
 "Storage" = "Lagring";
 "This device" = "Denne enheten";

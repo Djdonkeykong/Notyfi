@@ -132,6 +132,10 @@
 "Privacy" = "Yksityisyys";
 "Contact Support" = "Ota yhteyttÃƒÆ’Ã‚Â¤ tukeen";
 "Sign Out" = "Kirjaudu ulos";
+"Sign out of Notyfi?" = "Kirjaudutaanko ulos Notyfista?";
+"Delete Account" = "Poista tili";
+"Delete your account?" = "Poistetaanko tilisi?";
+"This permanently deletes your account and all data. This cannot be undone." = "Tama poistaa tilisi ja kaikki tiedot pysyvasti. Tata ei voi kumota.";
 "Version 1.0" = "Versio 1.0";
 "Storage" = "Tallennus";
 "This device" = "TÃƒÆ’Ã‚Â¤mÃƒÆ’Ã‚Â¤ laite";

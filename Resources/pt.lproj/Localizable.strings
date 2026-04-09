@@ -132,6 +132,10 @@
 "Privacy" = "Privacidade";
 "Contact Support" = "Contactar suporte";
 "Sign Out" = "Terminar sessÃƒÆ’Ã‚Â£o";
+"Sign out of Notyfi?" = "Sair do Notyfi?";
+"Delete Account" = "Eliminar conta";
+"Delete your account?" = "Eliminar a sua conta?";
+"This permanently deletes your account and all data. This cannot be undone." = "Isto elimina permanentemente a sua conta e todos os dados. Esta acao nao pode ser revertida.";
 "Version 1.0" = "VersÃƒÆ’Ã‚Â£o 1.0";
 "Storage" = "Armazenamento";
 "This device" = "Este dispositivo";

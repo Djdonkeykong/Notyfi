@@ -132,6 +132,10 @@
 "Privacy" = "Privacy";
 "Contact Support" = "Contact opnemen met support";
 "Sign Out" = "Uitloggen";
+"Sign out of Notyfi?" = "Uitloggen bij Notyfi?";
+"Delete Account" = "Account verwijderen";
+"Delete your account?" = "Je account verwijderen?";
+"This permanently deletes your account and all data. This cannot be undone." = "Dit verwijdert je account en alle gegevens permanent. Dit kan niet ongedaan worden gemaakt.";
 "Version 1.0" = "Versie 1.0";
 "Storage" = "Opslag";
 "This device" = "Dit apparaat";

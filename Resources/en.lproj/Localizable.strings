@@ -132,6 +132,10 @@
 "Privacy" = "Privacy";
 "Contact Support" = "Contact Support";
 "Sign Out" = "Sign Out";
+"Sign out of Notyfi?" = "Sign out of Notyfi?";
+"Delete Account" = "Delete Account";
+"Delete your account?" = "Delete your account?";
+"This permanently deletes your account and all data. This cannot be undone." = "This permanently deletes your account and all data. This cannot be undone.";
 "Version 1.0" = "Version 1.0";
 "Storage" = "Storage";
 "This device" = "This device";

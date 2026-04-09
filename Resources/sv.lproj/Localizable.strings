@@ -132,6 +132,10 @@
 "Privacy" = "Integritet";
 "Contact Support" = "Kontakta support";
 "Sign Out" = "Logga ut";
+"Sign out of Notyfi?" = "Logga ut fran Notyfi?";
+"Delete Account" = "Ta bort konto";
+"Delete your account?" = "Ta bort ditt konto?";
+"This permanently deletes your account and all data. This cannot be undone." = "Detta tar permanent bort ditt konto och all data. Det gar inte att angra.";
 "Version 1.0" = "Version 1.0";
 "Storage" = "Lagring";
 "This device" = "Den hÃƒÆ’Ã‚Â¤r enheten";
