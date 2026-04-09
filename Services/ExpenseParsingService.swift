@@ -109,19 +109,22 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
     }
 
     private let apiKey: String?
-    private let model: String
+    private let textModel: String
+    private let imageModel: String
     private let endpointURL: URL
     private let session: URLSession
     private let decoder = JSONDecoder()
 
     init(
         apiKey: String? = OpenAIExpenseParsingService.resolveAPIKey(),
-        model: String = "gpt-4.1-mini",
+        textModel: String = "gpt-5-mini",
+        imageModel: String = "gpt-5-mini",
         endpointURL: URL = URL(string: "https://api.openai.com/v1/chat/completions")!,
         session: URLSession = .shared
     ) {
         self.apiKey = apiKey?.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.model = model
+        self.textModel = textModel
+        self.imageModel = imageModel
         self.endpointURL = endpointURL
         self.session = session
     }
@@ -276,7 +279,7 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         """
 
         return [
-            "model": model,
+            "model": textModel,
             "temperature": 0,
             "messages": [
                 [
@@ -371,7 +374,7 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         """
 
         return [
-            "model": model,
+            "model": imageModel,
             "temperature": 0,
             "messages": [
                 [

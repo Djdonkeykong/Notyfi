@@ -737,8 +737,8 @@ final class ExpenseJournalStore: ObservableObject {
         fallbackCurrencyCode: String,
         createdAt: Date
     ) -> ExpenseEntry {
-        let rawText = draft.rawText.trimmingCharacters(in: .whitespacesAndNewlines)
-        let title = draft.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let rawText = normalizedImportedJournalText(draft.rawText)
+        let title = normalizedImportedJournalText(draft.title)
         let resolvedConfidence: ParsingConfidence = draft.amount == 0 && draft.confidence == .uncertain
             ? .review
             : draft.confidence
@@ -757,6 +757,18 @@ final class ExpenseJournalStore: ObservableObject {
             isAmountEstimated: draft.isAmountEstimated,
             createdAt: createdAt
         )
+    }
+
+    private func normalizedImportedJournalText(_ text: String) -> String {
+        let collapsedWhitespace = text
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        return collapsedWhitespace.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func createdAtForInsertion(
