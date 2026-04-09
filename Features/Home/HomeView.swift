@@ -29,7 +29,34 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
-            homeContent
+            if usesScrollEdgeTopBar {
+                if #available(iOS 26.0, *) {
+                    decoratedHomeContent(
+                        homeContent.safeAreaBar(edge: .top, spacing: 0) {
+                            homeTopBar
+                        }
+                    )
+                } else {
+                    decoratedHomeContent(inlineTopBarContent)
+                }
+            } else {
+                decoratedHomeContent(inlineTopBarContent)
+            }
+        }
+    }
+}
+
+private extension HomeView {
+    var homeContent: some View {
+        baseHomeContent(includeInlineTopBar: false)
+    }
+
+    var inlineTopBarContent: some View {
+        baseHomeContent(includeInlineTopBar: true)
+    }
+
+    func decoratedHomeContent<Content: View>(_ content: Content) -> some View {
+        content
             .safeAreaInset(edge: .bottom) {
                 if focusedEditor != nil {
                     KeyboardAccessoryBar(
@@ -140,25 +167,6 @@ struct HomeView: View {
                     EditableJournalTextView.endActiveDictationSession()
                 }
             }
-        }
-    }
-}
-
-private extension HomeView {
-    @ViewBuilder
-    var homeContent: some View {
-        if usesScrollEdgeTopBar {
-            if #available(iOS 26.0, *) {
-                baseHomeContent(includeInlineTopBar: false)
-                    .safeAreaBar(edge: .top, spacing: 0) {
-                        homeTopBar
-                    }
-            } else {
-                baseHomeContent(includeInlineTopBar: true)
-            }
-        } else {
-            baseHomeContent(includeInlineTopBar: true)
-        }
     }
 
     func baseHomeContent(includeInlineTopBar: Bool) -> some View {
@@ -185,6 +193,7 @@ private extension HomeView {
                     journalCursorLineIndex: $journalCursorLineIndex,
                     lineFramesByDate: $journalLineFramesByDate,
                     feedback: viewModel.draftFeedback,
+                    contentTopInset: usesScrollEdgeTopBar ? 18 : 0,
                     onJournalTextChange: { rawText in
                         var transaction = Transaction()
                         transaction.animation = nil
@@ -637,6 +646,7 @@ private struct DayJournalPager: View {
     @Binding var journalCursorLineIndex: Int
     @Binding var lineFramesByDate: [Date: [JournalTextLineFrame]]
     let feedback: DraftComposerFeedback?
+    let contentTopInset: CGFloat
     let onJournalTextChange: (String) -> Void
     let onReturnKey: (JournalLogLineEdit) -> Void
     let onBackspaceAtLineStart: (Int) -> Void
@@ -705,6 +715,7 @@ private struct DayJournalPager: View {
             journalCursorLineIndex: $journalCursorLineIndex,
             lineFramesByDate: $lineFramesByDate,
             feedback: feedback,
+            contentTopInset: contentTopInset,
             onJournalTextChange: onJournalTextChange,
             onReturnKey: onReturnKey,
             onBackspaceAtLineStart: onBackspaceAtLineStart,
@@ -731,6 +742,7 @@ private struct DayJournalPager: View {
             journalCursorLineIndex: .constant(0),
             lineFramesByDate: $lineFramesByDate,
             feedback: nil,
+            contentTopInset: contentTopInset,
             onJournalTextChange: { _ in },
             onReturnKey: { _ in },
             onBackspaceAtLineStart: { _ in },
@@ -866,6 +878,7 @@ private struct DayJournalPage: View {
     @Binding var journalCursorLineIndex: Int
     @Binding var lineFramesByDate: [Date: [JournalTextLineFrame]]
     let feedback: DraftComposerFeedback?
+    let contentTopInset: CGFloat
     let onJournalTextChange: (String) -> Void
     let onReturnKey: (JournalLogLineEdit) -> Void
     let onBackspaceAtLineStart: (Int) -> Void
@@ -878,7 +891,7 @@ private struct DayJournalPage: View {
 
     private let trailingColumnWidth: CGFloat = 114
     private let trailingGap: CGFloat = 14
-    private let bottomOverlayPadding: CGFloat = 92
+    private let bottomOverlayPadding: CGFloat = 168
 
     init(
         date: Date,
@@ -890,6 +903,7 @@ private struct DayJournalPage: View {
         journalCursorLineIndex: Binding<Int>,
         lineFramesByDate: Binding<[Date: [JournalTextLineFrame]]>,
         feedback: DraftComposerFeedback?,
+        contentTopInset: CGFloat,
         onJournalTextChange: @escaping (String) -> Void,
         onReturnKey: @escaping (JournalLogLineEdit) -> Void,
         onBackspaceAtLineStart: @escaping (Int) -> Void,
@@ -906,6 +920,7 @@ private struct DayJournalPage: View {
         _journalCursorLineIndex = journalCursorLineIndex
         _lineFramesByDate = lineFramesByDate
         self.feedback = feedback
+        self.contentTopInset = contentTopInset
         self.onJournalTextChange = onJournalTextChange
         self.onReturnKey = onReturnKey
         self.onBackspaceAtLineStart = onBackspaceAtLineStart
@@ -924,7 +939,10 @@ private struct DayJournalPage: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let minimumEditorHeight = max(geometry.size.height - bottomOverlayPadding, 240)
+            let minimumEditorHeight = max(
+                geometry.size.height - bottomOverlayPadding - contentTopInset,
+                240
+            )
 
             ScrollView(showsIndicators: false) {
                 ZStack(alignment: .topLeading) {
@@ -968,6 +986,7 @@ private struct DayJournalPage: View {
 
                     journalAccessoryOverlay(isAccessoryTapEnabled: !scrollDisabled)
                 }
+                .padding(.top, contentTopInset)
                 .padding(.horizontal, 20)
                 .padding(.bottom, bottomOverlayPadding)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -980,8 +999,12 @@ private struct DayJournalPage: View {
                     onBlankSpaceTap()
                 }
             }
-            .modifier(TopScrollEdgeEffectModifier())
+            .modifier(VerticalScrollEdgeEffectModifier())
             .onChange(of: journalText) { _, newValue in
+                guard focusedEditor == nil else {
+                    return
+                }
+
                 let estimatedFrames = Self.estimatedLineFrames(for: newValue)
                 lineFrames = estimatedFrames
                 lineFramesByDate[dayKey] = estimatedFrames
@@ -1077,10 +1100,10 @@ private struct DayJournalPage: View {
     }
 }
 
-private struct TopScrollEdgeEffectModifier: ViewModifier {
+private struct VerticalScrollEdgeEffectModifier: ViewModifier {
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
-            content.scrollEdgeEffectStyle(.soft, for: .top)
+            content.scrollEdgeEffectStyle(.soft, for: .all)
         } else {
             content
         }
