@@ -22,6 +22,9 @@ packages:
   RevenueCatUI:
     url: https://github.com/RevenueCat/purchases-ios-spm.git
     from: 5.0.0
+  Supabase:
+    url: https://github.com/supabase/supabase-swift.git
+    from: 2.0.0
 
 targets:
   Notyfi:
@@ -48,9 +51,15 @@ targets:
         link: false
       - package: RevenueCat
       - package: RevenueCatUI
+      - package: Supabase
+        product: Supabase
+      - package: Supabase
+        product: Auth
     settings:
       base:
         INFOPLIST_KEY_OPENAI_API_KEY: $(OPENAI_API_KEY)
+        INFOPLIST_KEY_SUPABASE_URL: $(SUPABASE_URL)
+        INFOPLIST_KEY_SUPABASE_ANON_KEY: $(SUPABASE_ANON_KEY)
         INFOPLIST_KEY_NSCameraUsageDescription: Notyfi uses the camera so you can turn bills, receipts, and confirmations into money notes.
         INFOPLIST_KEY_NSMicrophoneUsageDescription: Notyfi uses the microphone so you can dictate money notes.
         INFOPLIST_KEY_NSPhotoLibraryUsageDescription: Notyfi can read a photo from your library so you can turn bills, receipts, and confirmations into money notes.

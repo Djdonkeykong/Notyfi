@@ -117,6 +117,8 @@ struct OnboardingAuthView: View {
         Task {
             do {
                 try await authManager.signInWithApple()
+            } catch let error as AuthError where error.isCancelled {
+                // User dismissed the sheet — do nothing
             } catch {
                 errorMessage = "Sign in failed. Please try again."
             }
@@ -244,10 +246,19 @@ struct EmailSignUpView: View {
             do {
                 if isSignIn {
                     try await authManager.signInWithEmail(email, password: password)
+                    dismiss()
                 } else {
                     try await authManager.signUpWithEmail(email, password: password)
+                    if authManager.pendingEmailConfirmation {
+                        // Show confirmation prompt — do not dismiss yet.
+                        errorMessage = "Check your inbox and confirm your email, then sign in."
+                        isSignIn = true
+                    } else {
+                        dismiss()
+                    }
                 }
-                dismiss()
+            } catch let error as AuthError where error.isCancelled {
+                // Ignore cancellation silently
             } catch {
                 errorMessage = isSignIn
                     ? "Sign in failed. Check your credentials."
