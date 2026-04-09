@@ -43,6 +43,8 @@ enum NotyfiTheme {
     )
     static let accent = Color(red: 0.93, green: 0.72, blue: 0.51)
     static let brandBlue = Color(red: 0.02, green: 0.38, blue: 0.96)
+    static let brandPrimary = Color(red: 0, green: 0, blue: 254.0 / 255.0)
+    static let brandLight = Color(red: 239.0 / 255.0, green: 248.0 / 255.0, blue: 1.0)
     static let reviewTint = Color(red: 0.90, green: 0.60, blue: 0.29)
 
     private static func adaptiveColor(light: UIColor, dark: UIColor) -> Color {

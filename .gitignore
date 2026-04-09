@@ -9,3 +9,12 @@ build/
 
 .swiftpm/
 .build/
+
+# Claude Code / AI tooling
+.claude/
+.agents/
+.playwright-mcp/
+skills-lock.json
+
+# Secrets (never commit .p8 keys)
+*.p8

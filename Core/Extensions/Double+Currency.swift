@@ -6,7 +6,9 @@ extension Double {
         formatter.numberStyle = .currency
         formatter.currencyCode = code
         formatter.locale = .autoupdatingCurrent
-        formatter.maximumFractionDigits = self.rounded() == self ? 0 : 2
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 0
+        formatter.roundingMode = .halfUp
         return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
     }
 }
