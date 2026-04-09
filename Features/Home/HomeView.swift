@@ -80,6 +80,12 @@ private extension HomeView {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            .overlay(alignment: .topLeading) {
+                toolbarBrandMark
+                    .padding(.leading, 18)
+                    .padding(.top, 6)
+                    .allowsHitTesting(false)
+            }
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
                 DatePickerSheetView(
                     selection: selectedDateBinding,
@@ -146,11 +152,8 @@ private extension HomeView {
                 onCompletion: handleFileImportSelection
             )
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    toolbarBrandMark
-                }
-
                 ToolbarItem(placement: .principal) {
                     toolbarDateButton
                 }
@@ -193,7 +196,7 @@ private extension HomeView {
                     journalCursorLineIndex: $journalCursorLineIndex,
                     lineFramesByDate: $journalLineFramesByDate,
                     feedback: viewModel.draftFeedback,
-                    contentTopInset: 8,
+                    contentTopInset: 22,
                     onJournalTextChange: { rawText in
                         var transaction = Transaction()
                         transaction.animation = nil
