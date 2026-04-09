@@ -6,7 +6,7 @@ struct NotyfiApp: App {
     @StateObject private var store = ExpenseJournalStore()
 
     init() {
-        Purchases.configure(withAPIKey: "test_jOQXQZsoFfUBBxAXuhJtKDCqFiR")
+        Purchases.configure(withAPIKey: "appl_GngBYbfKxrVpjUFIKMMaGPhkpRr")
     }
 
     var body: some Scene {
