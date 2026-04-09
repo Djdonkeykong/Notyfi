@@ -27,8 +27,9 @@ workflows:
             exit 1
           fi
 
-          # Update only OPENAI_API_KEY in the existing xcconfig, preserving Supabase values
-          sed -i '' "s|OPENAI_API_KEY =.*|OPENAI_API_KEY = $OPENAI_API_KEY|" "$CM_BUILD_DIR/Config/Secrets.xcconfig"
+          mkdir -p "$CM_BUILD_DIR/Config"
+          printf 'OPENAI_API_KEY = %s\nSUPABASE_URL = https://uupftsuexunuwsdejxrh.supabase.co\nSUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1cGZ0c3VleHVudXdzZGVqeHJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NDk4MTQsImV4cCI6MjA5MTMyNTgxNH0.8mGjFrMj2bqyZuyrQIDcBsYlp7uXITLMyWSXqj-thQ8\n' \
+            "$OPENAI_API_KEY" > "$CM_BUILD_DIR/Config/Secrets.xcconfig"
 
           python3 - <<'PY'
           import os
@@ -123,8 +124,9 @@ workflows:
             exit 1
           fi
 
-          # Update only OPENAI_API_KEY in the existing xcconfig, preserving Supabase values
-          sed -i '' "s|OPENAI_API_KEY =.*|OPENAI_API_KEY = $OPENAI_API_KEY|" "$CM_BUILD_DIR/Config/Secrets.xcconfig"
+          mkdir -p "$CM_BUILD_DIR/Config"
+          printf 'OPENAI_API_KEY = %s\nSUPABASE_URL = https://uupftsuexunuwsdejxrh.supabase.co\nSUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1cGZ0c3VleHVudXdzZGVqeHJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NDk4MTQsImV4cCI6MjA5MTMyNTgxNH0.8mGjFrMj2bqyZuyrQIDcBsYlp7uXITLMyWSXqj-thQ8\n' \
+            "$OPENAI_API_KEY" > "$CM_BUILD_DIR/Config/Secrets.xcconfig"
 
           python3 - <<'PY'
           import os
