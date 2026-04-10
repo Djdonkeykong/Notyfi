@@ -24,8 +24,8 @@ struct OnboardingSignInView: View {
                     Image("mascot-welcome")
                         .resizable()
                         .scaledToFit()
+                        .frame(width: 300, height: 300)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 260)
                         .padding(.vertical, 36)
 
                     Text("Welcome back")

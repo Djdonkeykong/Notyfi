@@ -33,15 +33,14 @@ struct OnboardingFlowView: View {
 
     private var progressStep: Int {
         switch currentStep {
-        case .howItWorks: return 1
-        case .currency: return 2
-        case .budget: return 3
-        case .categories: return 4
-        case .allocate: return 5
-        case .notifications: return 6
-        case .beDetailed: return 7
-        case .inputMethods: return 8
-        case .widget: return 9
+        case .currency: return 1
+        case .budget: return 2
+        case .categories: return 3
+        case .allocate: return 4
+        case .notifications: return 5
+        case .beDetailed: return 6
+        case .inputMethods: return 7
+        case .widget: return 8
         default: return 0
         }
     }
@@ -128,7 +127,7 @@ struct OnboardingFlowView: View {
         switch step {
         case .welcome:
             OnboardingWelcomeView(
-                onGetStarted: { navigate(to: .howItWorks) },
+                onGetStarted: { navigate(to: .currency) },
                 onSignIn: { navigate(to: .signIn) }
             )
         case .howItWorks:
@@ -162,7 +161,7 @@ struct OnboardingFlowView: View {
             OnboardingSignInView(authManager: authManager, onBack: { goBack() }, onSignUp: {
                 // Don't push .signIn onto history — back from howItWorks should
                 // return to welcome, not the sign-in page.
-                navigate(to: .howItWorks, pushCurrent: false)
+                navigate(to: .currency, pushCurrent: false)
             })
         }
     }
@@ -172,7 +171,7 @@ struct OnboardingFlowView: View {
     private var topChrome: some View {
         HStack(spacing: 12) {
             OnboardingBackButton { goBack() }
-            OnboardingProgressBar(current: progressStep, total: 9)
+            OnboardingProgressBar(current: progressStep, total: 8)
             Color.clear.frame(width: 40, height: 40)
         }
         .padding(.horizontal, 20)
@@ -325,7 +324,7 @@ struct OnboardingFlowView: View {
     private func handleContinue() {
         switch currentStep {
         case .howItWorks:
-            navigate(to: .currency)
+            navigate(to: .currency) // disabled — skipped
         case .currency:
             navigate(to: .budget)
         case .budget:

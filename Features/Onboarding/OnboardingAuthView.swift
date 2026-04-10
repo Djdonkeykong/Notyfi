@@ -14,7 +14,8 @@ struct OnboardingAuthView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     illustration
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 36)
+                        .padding(.top, 36)
+                        .padding(.bottom, 28)
 
                     Text("Save your progress")
                         .font(.notyfi(.title2, weight: .bold))
@@ -73,8 +74,7 @@ struct OnboardingAuthView: View {
         Image("mascot-save")
             .resizable()
             .scaledToFit()
-            .frame(maxWidth: .infinity)
-            .frame(height: 260)
+            .frame(width: 300, height: 300)
     }
 
     private var authButtons: some View {

@@ -267,24 +267,10 @@ struct DatePickerSheetView: View {
     private var monthChooserCard: some View {
         VStack(spacing: 18) {
             HStack {
-                Button(action: {
+                CircleChevronButton(direction: .left) {
                     Haptics.mediumImpact()
                     chooserYear -= 1
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.primary.opacity(0.88))
-                        .frame(width: 34, height: 34)
-                        .background {
-                            Circle()
-                                .fill(NotyfiTheme.surface)
-                                .overlay {
-                                    Circle()
-                                        .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
-                                }
-                        }
                 }
-                .buttonStyle(.plain)
 
                 Spacer()
 
@@ -294,24 +280,10 @@ struct DatePickerSheetView: View {
 
                 Spacer()
 
-                Button(action: {
+                CircleChevronButton(direction: .right) {
                     Haptics.mediumImpact()
                     chooserYear += 1
-                }) {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.primary.opacity(0.88))
-                        .frame(width: 34, height: 34)
-                        .background {
-                            Circle()
-                                .fill(NotyfiTheme.surface)
-                                .overlay {
-                                    Circle()
-                                        .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
-                                }
-                        }
                 }
-                .buttonStyle(.plain)
             }
 
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {

@@ -31,7 +31,7 @@ struct OnboardingWelcomeView: View {
         Image("mascot-welcome")
             .resizable()
             .scaledToFit()
-            .frame(width: 390, height: 390)
+            .frame(width: 300, height: 300)
     }
 
     private var headline: some View {
@@ -40,10 +40,14 @@ struct OnboardingWelcomeView: View {
                 .font(.notyfi(.largeTitle, weight: .bold))
                 .foregroundStyle(.primary)
 
-            Text("The most frictionless way to track your spending.\nJust write it down.")
-                .font(.notyfi(.body))
-                .foregroundStyle(NotyfiTheme.secondaryText)
-                .lineSpacing(3)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("The most frictionless way to track your spending.")
+                    .font(.notyfi(.body))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                Text("Just write it down.")
+                    .font(.notyfi(.body))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

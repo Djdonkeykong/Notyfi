@@ -4,6 +4,8 @@ struct OnboardingBudgetView: View {
     let currencyCode: String
     @Binding var amountText: String
 
+    @State private var sheetPresented = false
+
     private var parsedAmount: Double? {
         let normalized = amountText
             .replacingOccurrences(of: ",", with: ".")
@@ -11,115 +13,114 @@ struct OnboardingBudgetView: View {
         return normalized.isEmpty ? nil : Double(normalized)
     }
 
-    private var displayAmount: String {
-        guard let amount = parsedAmount, amount > 0 else {
-            return amountText.isEmpty ? "0" : amountText
-        }
+    private var formattedAmount: String? {
+        guard let amount = parsedAmount, amount > 0 else { return nil }
         return amount.formattedCurrency(code: currencyCode)
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            Image("mascot-budget")
-                .resizable()
-                .scaledToFit()
-                .frame(maxHeight: 180)
-                .padding(.top, 8)
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                Image("mascot-budget")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 260)
+                    .padding(.vertical, 24)
 
-            Spacer(minLength: 16)
-
-            VStack(alignment: .leading, spacing: 8) {
                 Text("Set a monthly budget")
                     .font(.notyfi(.title2, weight: .bold))
+                    .padding(.bottom, 10)
 
                 Text("Notyfi will track your spending against it and warn you when you're getting close.")
                     .font(.notyfi(.body))
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .lineSpacing(3)
+                    .padding(.bottom, 28)
+
+                budgetCard
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 24)
-
-            Spacer(minLength: 24)
-
-            VStack(spacing: 4) {
-                Text(displayAmount)
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
-                    .foregroundStyle(amountText.isEmpty ? NotyfiTheme.secondaryText.opacity(0.4) : .primary)
-                    .animation(.easeInOut(duration: 0.15), value: amountText.isEmpty)
-                    .contentTransition(.numericText())
-
-                Text("per month")
-                    .font(.notyfi(.subheadline))
-                    .foregroundStyle(NotyfiTheme.secondaryText)
-            }
-            .frame(maxWidth: .infinity)
-
-            Spacer(minLength: 24)
-
-            numpad
-                .padding(.horizontal, 24)
-                .padding(.bottom, 140)
         }
-        .padding(.top, 80)
+        .contentMargins(.top, 72, for: .scrollContent)
+        .contentMargins(.bottom, 160, for: .scrollContent)
+        .scrollBounceBehavior(.always)
+        .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $sheetPresented) {
+            BudgetInputSheet(currencyCode: currencyCode, amountText: $amountText)
+                .presentationDetents([.height(220)])
+                .presentationCornerRadius(28)
+                .presentationDragIndicator(.hidden)
+                .presentationBackground(.regularMaterial)
+        }
     }
 
-    private var numpad: some View {
-        VStack(spacing: 10) {
-            ForEach([["1","2","3"], ["4","5","6"], ["7","8","9"], [".", "0", "del"]], id: \.self) { row in
-                HStack(spacing: 10) {
-                    ForEach(row, id: \.self) { key in
-                        NumpadKey(key: key) { handleKey(key) }
-                    }
+    private var budgetCard: some View {
+        Button { sheetPresented = true } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(formattedAmount ?? "Tap to set amount")
+                        .font(.notyfi(.title3, weight: .bold))
+                        .foregroundStyle(formattedAmount != nil ? .primary : NotyfiTheme.secondaryText)
+                    Text("per month")
+                        .font(.notyfi(.subheadline))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
                 }
+                Spacer()
+                Image(systemName: formattedAmount != nil ? "pencil" : "plus")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.brandPrimary)
+                    .frame(width: 32, height: 32)
+                    .background(NotyfiTheme.brandPrimary.opacity(0.1))
+                    .clipShape(Circle())
             }
+            .padding(18)
+            .background(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+            }
+            .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
         }
-    }
-
-    private func handleKey(_ key: String) {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        switch key {
-        case "del":
-            if !amountText.isEmpty { amountText.removeLast() }
-        case ".":
-            if !amountText.contains(".") {
-                amountText += amountText.isEmpty ? "0." : "."
-            }
-        default:
-            if amountText == "0" { amountText = key; return }
-            if let dotIndex = amountText.firstIndex(of: ".") {
-                let decimals = amountText.distance(from: amountText.index(after: dotIndex), to: amountText.endIndex)
-                if decimals >= 2 { return }
-            }
-            amountText += key
-        }
+        .buttonStyle(.plain)
     }
 }
 
-private struct NumpadKey: View {
-    let key: String
-    let action: () -> Void
+// MARK: - Budget Input Sheet
+
+private struct BudgetInputSheet: View {
+    let currencyCode: String
+    @Binding var amountText: String
+
+    @Environment(\.dismiss) private var dismiss
+    @FocusState private var focused: Bool
 
     var body: some View {
-        Button(action: action) {
-            Group {
-                if key == "del" {
-                    Image(systemName: "delete.left")
-                        .font(.system(size: 20, weight: .medium))
-                } else {
-                    Text(key)
-                        .font(.system(size: 24, weight: .medium, design: .rounded))
-                }
+        VStack(spacing: 20) {
+            VStack(spacing: 4) {
+                TextField("0", text: $amountText)
+                    .keyboardType(.decimalPad)
+                    .focused($focused)
+                    .multilineTextAlignment(.center)
+                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+                    .frame(maxWidth: .infinity)
+
+                Text("per month")
+                    .font(.notyfi(.subheadline))
+                    .foregroundStyle(.secondary)
             }
-            .foregroundStyle(.primary)
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(.white.opacity(0.7))
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .padding(.top, 28)
+
+            OnboardingPrimaryButton(title: "Set Budget") {
+                dismiss()
+            }
+            .padding(.horizontal, 24)
         }
-        .buttonStyle(.plain)
+        .onAppear { focused = true }
     }
 }
 

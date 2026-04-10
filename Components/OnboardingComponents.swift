@@ -34,22 +34,36 @@ struct OnboardingPrimaryButton: View {
     }
 }
 
-// MARK: - Back Button
+// MARK: - Circle Chevron Button (shared across entire app)
 
-struct OnboardingBackButton: View {
+struct CircleChevronButton: View {
+    var direction: Direction = .left
     let action: () -> Void
+
+    enum Direction { case left, right }
 
     var body: some View {
         Button {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             action()
         } label: {
-            Image(systemName: "chevron.left")
+            Image(systemName: direction == .left ? "chevron.left" : "chevron.right")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.black)
+                .foregroundStyle(.primary)
                 .frame(width: 40, height: 40)
-                .background(.regularMaterial, in: Circle())
+                .background(.thickMaterial, in: Circle())
         }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Back Button
+
+struct OnboardingBackButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        CircleChevronButton(direction: .left, action: action)
     }
 }
 
