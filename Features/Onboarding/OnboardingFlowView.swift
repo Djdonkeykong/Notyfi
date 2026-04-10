@@ -23,6 +23,9 @@ struct OnboardingFlowView: View {
         case .currency: return 2
         case .budget: return 3
         case .notifications: return 4
+        case .beDetailed: return 5
+        case .inputMethods: return 6
+        case .widget: return 7
         default: return 0
         }
     }
@@ -37,6 +40,7 @@ struct OnboardingFlowView: View {
 
     private var showSkip: Bool {
         currentStep == .budget || currentStep == .notifications
+            || currentStep == .beDetailed || currentStep == .inputMethods || currentStep == .widget
     }
 
     private var selectedCurrencyCode: String {
@@ -78,7 +82,7 @@ struct OnboardingFlowView: View {
     private var topChrome: some View {
         HStack(spacing: 12) {
             OnboardingBackButton { path.removeLast() }
-            OnboardingProgressBar(current: progressStep, total: 4)
+            OnboardingProgressBar(current: progressStep, total: 7)
             Color.clear.frame(width: 40, height: 40)
         }
         .padding(.horizontal, 20)
@@ -129,6 +133,12 @@ struct OnboardingFlowView: View {
             OnboardingBudgetView(currencyCode: selectedCurrencyCode, amountText: $budgetAmountText)
         case .notifications:
             OnboardingNotificationsView()
+        case .beDetailed:
+            OnboardingBeDetailedView()
+        case .inputMethods:
+            OnboardingInputMethodsView()
+        case .widget:
+            OnboardingWidgetView()
         case .auth:
             OnboardingAuthView(authManager: authManager)
         }
@@ -152,6 +162,12 @@ struct OnboardingFlowView: View {
             budgetAmountText = ""
             path.append(.notifications)
         case .notifications:
+            path.append(.beDetailed)
+        case .beDetailed:
+            path.append(.inputMethods)
+        case .inputMethods:
+            path.append(.widget)
+        case .widget:
             path.append(.auth)
         default:
             break
@@ -164,6 +180,12 @@ struct OnboardingFlowView: View {
             budgetAmountText = ""
             path.append(.notifications)
         case .notifications:
+            path.append(.beDetailed)
+        case .beDetailed:
+            path.append(.inputMethods)
+        case .inputMethods:
+            path.append(.widget)
+        case .widget:
             path.append(.auth)
         default:
             break
@@ -176,6 +198,9 @@ enum OnboardingStep: Hashable {
     case currency
     case budget
     case notifications
+    case beDetailed
+    case inputMethods
+    case widget
     case auth
 }
 
