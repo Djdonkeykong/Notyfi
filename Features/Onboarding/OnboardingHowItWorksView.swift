@@ -11,9 +11,6 @@ struct OnboardingHowItWorksView: View {
                     .frame(height: 260)
                     .padding(.vertical, 24)
 
-                OnboardingTag(text: "Quick tip")
-                    .padding(.bottom, 14)
-
                 Text("Just write what you spent")
                     .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)

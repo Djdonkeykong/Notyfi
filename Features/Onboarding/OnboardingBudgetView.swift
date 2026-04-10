@@ -6,6 +6,8 @@ struct OnboardingBudgetView: View {
     @Binding var isFocused: Bool
     @FocusState private var fieldFocused: Bool
 
+    @State private var keyboardHeight: CGFloat = 0
+
     private var parsedAmount: Double? {
         let normalized = amountText
             .replacingOccurrences(of: ",", with: ".")
@@ -21,36 +23,56 @@ struct OnboardingBudgetView: View {
     }
 
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                OnboardingIllustration(symbol: "chart.bar.fill", size: 68)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
+        ScrollViewReader { proxy in
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    OnboardingIllustration(symbol: "chart.bar.fill", size: 68)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 24)
 
-                Text("Set a monthly budget")
-                    .font(.notyfi(.title2, weight: .bold))
-                    .padding(.bottom, 10)
+                    Text("Set a monthly budget")
+                        .font(.notyfi(.title2, weight: .bold))
+                        .padding(.bottom, 10)
 
-                Text("Notyfi will track your spending against it and warn you when you're getting close.")
-                    .font(.notyfi(.body))
-                    .foregroundStyle(NotyfiTheme.secondaryText)
-                    .lineSpacing(3)
-                    .padding(.bottom, 28)
+                    Text("Notyfi will track your spending against it and warn you when you're getting close.")
+                        .font(.notyfi(.body))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                        .lineSpacing(3)
+                        .padding(.bottom, 28)
 
-                amountInput
+                    amountInput
+                        .id("amountInput")
+                }
+                .padding(.horizontal, 24)
             }
-            .padding(.horizontal, 24)
+            .contentMargins(.top, 72, for: .scrollContent)
+            .contentMargins(.bottom, keyboardHeight > 0 ? keyboardHeight + 80 : 160, for: .scrollContent)
+            .scrollBounceBehavior(.always)
+            .scrollIndicators(.hidden)
+            .onChange(of: fieldFocused) { _, focused in
+                isFocused = focused
+                if focused {
+                    withAnimation(.easeOut(duration: 0.25)) {
+                        proxy.scrollTo("amountInput", anchor: .center)
+                    }
+                }
+            }
+            .onChange(of: isFocused) { _, v in
+                if fieldFocused != v { fieldFocused = v }
+            }
         }
-        .contentMargins(.top, 72, for: .scrollContent)
-        .contentMargins(.bottom, 160, for: .scrollContent)
-        .scrollBounceBehavior(.always)
-        .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
         .toolbar(.hidden, for: .navigationBar)
-        // Keep isFocused binding in sync with internal FocusState
-        .onChange(of: fieldFocused) { _, v in isFocused = v }
-        .onChange(of: isFocused) { _, v in
-            if fieldFocused != v { fieldFocused = v }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notification in
+            guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+            withAnimation(.easeOut(duration: 0.25)) {
+                keyboardHeight = frame.height
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            withAnimation(.easeOut(duration: 0.25)) {
+                keyboardHeight = 0
+            }
         }
     }
 
@@ -84,8 +106,6 @@ struct OnboardingBudgetView: View {
             .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
         }
         .buttonStyle(.plain)
-        // Hidden TextField lives inside the button so SwiftUI's keyboard
-        // avoidance scrolls the visible input into view, not the bottom of the page.
         .overlay {
             TextField("", text: $amountText)
                 .keyboardType(.decimalPad)

@@ -61,7 +61,7 @@ struct OnboardingSignInView: View {
                     .fontWeight(.semibold)
                 }
                 .font(.notyfi(.subheadline))
-                .padding(.top, 4)
+                .padding(.top, 16)
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 40)

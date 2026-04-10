@@ -49,8 +49,10 @@ struct OnboardingWelcomeView: View {
     }
 
     private var actions: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 0) {
             OnboardingPrimaryButton(title: "Get Started", action: onGetStarted)
+
+            Spacer().frame(height: 28)
 
             HStack(spacing: 4) {
                 Text("Already have an account?")

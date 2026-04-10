@@ -271,6 +271,7 @@ struct OnboardingFlowView: View {
     }
 
     private func goBack() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         guard let prev = stepHistory.popLast() else { return }
         let wasChrome = hasChrome(currentStep)
         let willBeChrome = hasChrome(prev)
