@@ -19,9 +19,6 @@ struct OnboardingHowItWorksView: View {
                     .lineSpacing(3)
                     .padding(.bottom, 24)
 
-                LoopingVideoPlayer(name: "how-it-works")
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 260)
             }
             .padding(.horizontal, 24)
         }

@@ -15,10 +15,6 @@ struct OnboardingAllocateView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                OnboardingIllustration(symbol: "arrow.triangle.branch", size: 64)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
-
                 Text("Set category limits")
                     .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)

@@ -28,7 +28,9 @@ struct OnboardingWelcomeView: View {
     // MARK: - Subviews
 
     private var illustration: some View {
-        LoopingVideoPlayer(name: "mascot-welcome")
+        Image("mascot-welcome")
+            .resizable()
+            .scaledToFit()
             .frame(width: 390, height: 390)
     }
 

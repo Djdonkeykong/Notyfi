@@ -21,8 +21,11 @@ struct OnboardingSignInView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
-                    OnboardingIllustration(symbol: "person.fill", size: 60)
+                    Image("mascot-welcome")
+                        .resizable()
+                        .scaledToFit()
                         .frame(maxWidth: .infinity)
+                        .frame(height: 260)
                         .padding(.vertical, 36)
 
                     Text("Welcome back")

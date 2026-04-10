@@ -9,10 +9,6 @@ struct OnboardingCategoriesView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                OnboardingIllustration(symbol: "square.grid.2x2.fill", size: 64)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
-
                 Text("What do you spend on?")
                     .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)

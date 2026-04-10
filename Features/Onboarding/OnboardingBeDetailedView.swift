@@ -4,8 +4,16 @@ struct OnboardingBeDetailedView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                OnboardingTag(text: "Quick tip")
-                    .padding(.bottom, 14)
+                Text("Quick tip")
+                    .font(.notyfi(.footnote, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.brandPrimary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(NotyfiTheme.brandLight)
+                    .clipShape(Capsule())
+                    .overlay(Capsule().stroke(NotyfiTheme.brandPrimary.opacity(0.25), lineWidth: 1))
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.bottom, 18)
 
                 Text("The more detail,\nthe better it tracks")
                     .font(.notyfi(.title2, weight: .bold))

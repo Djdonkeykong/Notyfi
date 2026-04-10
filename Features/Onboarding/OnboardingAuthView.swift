@@ -70,7 +70,11 @@ struct OnboardingAuthView: View {
     // MARK: - Subviews
 
     private var illustration: some View {
-        OnboardingIllustration(symbol: "person.badge.shield.checkmark.fill", size: 64)
+        Image("mascot-save")
+            .resizable()
+            .scaledToFit()
+            .frame(maxWidth: .infinity)
+            .frame(height: 260)
     }
 
     private var authButtons: some View {

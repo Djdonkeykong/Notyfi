@@ -10,7 +10,6 @@ struct OnboardingFlowView: View {
     @State private var currentStep: OnboardingStep = .welcome
     @State private var stepHistory: [OnboardingStep] = []
     @State private var budgetAmountText: String = ""
-    @State private var budgetFieldFocused: Bool = false
     @State private var selectedCategories: Set<ExpenseCategory> = Set(ExpenseCategory.allCases.filter { $0 != .uncategorized })
     @State private var categoryBudgetTexts: [ExpenseCategory: String] = [:]
 
@@ -47,10 +46,7 @@ struct OnboardingFlowView: View {
         }
     }
 
-    private var continueTitle: String {
-        guard currentStep == .budget else { return "Continue" }
-        return budgetFieldFocused ? "Set Budget" : "Continue"
-    }
+    private var continueTitle: String { "Continue" }
 
     private var selectedCurrencyCode: String {
         NotyfiCurrencyPreference(rawValue: currencyRawValue)?.currencyCode
@@ -142,8 +138,7 @@ struct OnboardingFlowView: View {
         case .budget:
             OnboardingBudgetView(
                 currencyCode: selectedCurrencyCode,
-                amountText: $budgetAmountText,
-                isFocused: $budgetFieldFocused
+                amountText: $budgetAmountText
             )
         case .categories:
             OnboardingCategoriesView(selectedCategories: $selectedCategories)
@@ -334,20 +329,10 @@ struct OnboardingFlowView: View {
         case .currency:
             navigate(to: .budget)
         case .budget:
-            // Keyboard open — dismiss it, stay on page
-            if budgetFieldFocused {
-                budgetFieldFocused = false
-                return
-            }
             let normalized = budgetAmountText
                 .replacingOccurrences(of: ",", with: ".")
                 .trimmingCharacters(in: .whitespaces)
-            // No valid amount — open keyboard as a prompt
-            guard let amount = Double(normalized), amount > 0 else {
-                budgetFieldFocused = true
-                return
-            }
-            // Budget confirmed and keyboard dismissed — save and advance
+            guard let amount = Double(normalized), amount > 0 else { return }
             store.setMonthlySpendingLimit(amount)
             budgetAmountText = ""
             navigate(to: .categories)
