@@ -43,6 +43,18 @@ targets:
       - path: Features
       - path: Models
       - path: Resources
+        excludes:
+          - "*.json"
+      - path: Resources/mascot-welcome.json
+        buildPhase: resources
+      - path: Resources/mascot-writing.json
+        buildPhase: resources
+      - path: Resources/mascot-money.json
+        buildPhase: resources
+      - path: Resources/mascot-reminder.json
+        buildPhase: resources
+      - path: Resources/how-it-works.json
+        buildPhase: resources
       - path: Shared
       - path: Services
       - path: ViewModels
