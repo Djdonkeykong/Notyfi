@@ -12,16 +12,17 @@ struct OnboardingFlowView: View {
     @State private var stepHistory: [OnboardingStep] = []
     @State private var budgetAmountText: String = ""
     @State private var isGoingBack: Bool = false
-    // Fractional offsets: 0 = on screen, -1 = off left, +1 = off right
+
+    // Content slide — fractional: 0 = on screen, -1 = off left, +1 = off right
     @State private var incomingOffset: CGFloat = 0
     @State private var outgoingOffset: CGFloat = 0
 
-    private var showChrome: Bool {
-        switch currentStep {
-        case .welcome, .auth: return false
-        default: return true
-        }
-    }
+    // Chrome slide — only moves on boundary transitions (welcome<->step1, widget<->auth)
+    @State private var chromeVisible: Bool = false
+    @State private var chromeOffset: CGFloat = 0
+
+    // Captured from GeometryReader so overlays can use it
+    @State private var viewWidth: CGFloat = 390
 
     private var progressStep: Int {
         switch currentStep {
@@ -49,13 +50,19 @@ struct OnboardingFlowView: View {
             ?? NotyfiCurrency.deviceCode
     }
 
+    // Whether a given step shows chrome (back + progress + continue)
+    private func hasChrome(_ step: OnboardingStep) -> Bool {
+        switch step {
+        case .welcome, .auth: return false
+        default: return true
+        }
+    }
+
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .top) {
-                // Static — never moves regardless of any transition.
                 NotyfiTheme.brandLight.ignoresSafeArea()
 
-                // Outgoing view slides out while the incoming slides in.
                 if let outgoing = outgoingStep {
                     stepContent(for: outgoing)
                         .offset(x: outgoingOffset * geo.size.width)
@@ -67,20 +74,20 @@ struct OnboardingFlowView: View {
                     .zIndex(isGoingBack ? 0 : 1)
             }
             .clipped()
+            .onAppear { viewWidth = geo.size.width }
         }
         .overlay(alignment: .top) {
-            if showChrome {
+            if chromeVisible {
                 topChrome
-                    .transition(.opacity)
+                    .offset(x: chromeOffset * viewWidth)
             }
         }
         .overlay(alignment: .bottom) {
-            if showChrome {
+            if chromeVisible {
                 bottomChrome
-                    .transition(.opacity)
+                    .offset(x: chromeOffset * viewWidth)
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: showChrome)
         .onChange(of: authManager.isAuthenticated) { _, authenticated in
             if authenticated { isComplete = true }
         }
@@ -156,38 +163,82 @@ struct OnboardingFlowView: View {
     // MARK: - Navigation
 
     private func navigate(to step: OnboardingStep) {
+        let wasChrome = hasChrome(currentStep)
+        let willBeChrome = hasChrome(step)
+
         stepHistory.append(currentStep)
         outgoingStep = currentStep
         currentStep = step
         isGoingBack = false
         outgoingOffset = 0
-        incomingOffset = 1     // incoming starts off to the right
+        incomingOffset = 1
+
+        // Prepare chrome for this transition
+        if !wasChrome && willBeChrome {
+            // Welcome -> HowItWorks: chrome slides in from the right with the content
+            chromeVisible = true
+            chromeOffset = 1
+        } else if wasChrome && !willBeChrome {
+            // Widget -> Auth: chrome slides out to the left with the content
+            // chromeVisible stays true so it can animate out
+            chromeOffset = 0
+        }
+        // Middle steps: chromeVisible/chromeOffset unchanged (stays locked in place)
 
         withAnimation(.spring(response: 0.38, dampingFraction: 0.96)) {
-            outgoingOffset = -1  // outgoing exits to the left
-            incomingOffset = 0   // incoming lands at center
+            outgoingOffset = -1
+            incomingOffset = 0
+            if !wasChrome && willBeChrome {
+                chromeOffset = 0   // slides to center
+            } else if wasChrome && !willBeChrome {
+                chromeOffset = -1  // exits left
+            }
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             outgoingStep = nil
+            chromeVisible = willBeChrome
+            chromeOffset = 0
         }
     }
 
     private func goBack() {
         guard let prev = stepHistory.popLast() else { return }
+        let wasChrome = hasChrome(currentStep)
+        let willBeChrome = hasChrome(prev)
+
         outgoingStep = currentStep
         currentStep = prev
         isGoingBack = true
         outgoingOffset = 0
-        incomingOffset = -1    // incoming starts off to the left
+        incomingOffset = -1
+
+        // Prepare chrome for this transition
+        if !wasChrome && willBeChrome {
+            // Auth -> Widget (back): chrome slides in from the left with the content
+            chromeVisible = true
+            chromeOffset = -1
+        } else if wasChrome && !willBeChrome {
+            // HowItWorks -> Welcome (back): chrome slides out to the right with the content
+            // chromeVisible stays true so it can animate out
+            chromeOffset = 0
+        }
+        // Middle steps: chrome stays locked in place
 
         withAnimation(.spring(response: 0.38, dampingFraction: 0.96)) {
-            outgoingOffset = 1   // outgoing exits to the right
-            incomingOffset = 0   // incoming lands at center
+            outgoingOffset = 1
+            incomingOffset = 0
+            if !wasChrome && willBeChrome {
+                chromeOffset = 0   // slides to center from left
+            } else if wasChrome && !willBeChrome {
+                chromeOffset = 1   // exits right
+            }
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             outgoingStep = nil
+            chromeVisible = willBeChrome
+            chromeOffset = 0
         }
     }
 
