@@ -10,6 +10,9 @@ struct OnboardingFlowView: View {
     @State private var currentStep: OnboardingStep = .welcome
     @State private var stepHistory: [OnboardingStep] = []
     @State private var budgetAmountText: String = ""
+    @State private var budgetFieldFocused: Bool = false
+    @State private var selectedCategories: Set<ExpenseCategory> = Set(ExpenseCategory.allCases.filter { $0 != .uncategorized })
+    @State private var categoryBudgetTexts: [ExpenseCategory: String] = [:]
 
     // Two persistent rendering slots. The active slot's view is never recreated
     // during a transition, so its scroll position is preserved while it slides out.
@@ -34,20 +37,19 @@ struct OnboardingFlowView: View {
         case .howItWorks: return 1
         case .currency: return 2
         case .budget: return 3
-        case .notifications: return 4
-        case .beDetailed: return 5
-        case .inputMethods: return 6
-        case .widget: return 7
+        case .categories: return 4
+        case .allocate: return 5
+        case .notifications: return 6
+        case .beDetailed: return 7
+        case .inputMethods: return 8
+        case .widget: return 9
         default: return 0
         }
     }
 
     private var continueTitle: String {
         guard currentStep == .budget else { return "Continue" }
-        let normalized = budgetAmountText
-            .replacingOccurrences(of: ",", with: ".")
-            .trimmingCharacters(in: .whitespaces)
-        return Double(normalized) != nil ? "Set Budget" : "Continue"
+        return budgetFieldFocused ? "Set Budget" : "Continue"
     }
 
     private var selectedCurrencyCode: String {
@@ -138,7 +140,19 @@ struct OnboardingFlowView: View {
         case .currency:
             OnboardingCurrencyView(currencyRawValue: $currencyRawValue)
         case .budget:
-            OnboardingBudgetView(currencyCode: selectedCurrencyCode, amountText: $budgetAmountText)
+            OnboardingBudgetView(
+                currencyCode: selectedCurrencyCode,
+                amountText: $budgetAmountText,
+                isFocused: $budgetFieldFocused
+            )
+        case .categories:
+            OnboardingCategoriesView(selectedCategories: $selectedCategories)
+        case .allocate:
+            OnboardingAllocateView(
+                currencyCode: selectedCurrencyCode,
+                selectedCategories: selectedCategories,
+                categoryBudgetTexts: $categoryBudgetTexts
+            )
         case .notifications:
             OnboardingNotificationsView()
         case .beDetailed:
@@ -163,7 +177,7 @@ struct OnboardingFlowView: View {
     private var topChrome: some View {
         HStack(spacing: 12) {
             OnboardingBackButton { goBack() }
-            OnboardingProgressBar(current: progressStep, total: 7)
+            OnboardingProgressBar(current: progressStep, total: 9)
             Color.clear.frame(width: 40, height: 40)
         }
         .padding(.horizontal, 20)
@@ -213,26 +227,36 @@ struct OnboardingFlowView: View {
             chromeOffset = 0
         }
 
-        // Load new content into the inactive slot.
-        // Incoming is on top for forward navigation.
-        switch activeSlot {
-        case .a:
-            slotB = step
-            slotBOffset = 1
-            slotBZIndex = 1
-            slotAZIndex = 0
-        case .b:
-            slotA = step
-            slotAOffset = 1
-            slotAZIndex = 1
-            slotBZIndex = 0
+        let outgoing: Slot = activeSlot
+        let incoming: Slot = activeSlot == .a ? .b : .a
+
+        // Snap the incoming slot into its off-screen start position instantly,
+        // bypassing any in-flight animation that might have left it at the wrong offset.
+        var snap = Transaction()
+        snap.disablesAnimations = true
+        withTransaction(snap) {
+            switch incoming {
+            case .a:
+                slotA = step
+                slotAOffset = 1    // off-screen right
+                slotAZIndex = 1    // incoming on top for forward nav
+                slotBZIndex = 0
+            case .b:
+                slotB = step
+                slotBOffset = 1
+                slotBZIndex = 1
+                slotAZIndex = 0
+            }
         }
 
+        // Swap immediately so rapid taps see the correct active slot
+        activeSlot = incoming
+
         withAnimation(.spring(response: 0.38, dampingFraction: 0.96)) {
-            switch activeSlot {
+            switch outgoing {
             case .a:
-                slotAOffset = -1   // active slides out left
-                slotBOffset = 0    // incoming slides in from right
+                slotAOffset = -1   // outgoing slides left
+                slotBOffset = 0    // incoming arrives from right
             case .b:
                 slotBOffset = -1
                 slotAOffset = 0
@@ -241,12 +265,8 @@ struct OnboardingFlowView: View {
             else if wasChrome && !willBeChrome { chromeOffset = -1 }
         }
 
-        let newActive: Slot = activeSlot == .a ? .b : .a
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-            activeSlot = newActive
             chromeVisible = willBeChrome
-            // chromeOffset is always set explicitly at the start of the next
-            // transition — resetting it here risks a one-frame flash.
         }
     }
 
@@ -258,45 +278,50 @@ struct OnboardingFlowView: View {
 
         // Prepare chrome for boundary transitions
         if !wasChrome && willBeChrome {
-            // Auth -> Widget (back): chrome slides in from the left with the content
             chromeVisible = true
             chromeOffset = -1
         } else if wasChrome && !willBeChrome {
-            // HowItWorks -> Welcome (back): chrome slides out to the right
             chromeOffset = 0
         }
 
-        // Load previous content into the inactive slot.
-        // Outgoing is on top for back navigation (slides away revealing content below).
-        switch activeSlot {
-        case .a:
-            slotB = prev
-            slotBOffset = -1   // B starts off-screen left
-            slotBZIndex = 0
-            slotAZIndex = 1    // active (outgoing) stays on top
-        case .b:
-            slotA = prev
-            slotAOffset = -1
-            slotAZIndex = 0
-            slotBZIndex = 1
+        let outgoing: Slot = activeSlot
+        let incoming: Slot = activeSlot == .a ? .b : .a
+
+        // Snap the incoming slot into its off-screen start position instantly
+        var snap = Transaction()
+        snap.disablesAnimations = true
+        withTransaction(snap) {
+            switch incoming {
+            case .a:
+                slotA = prev
+                slotAOffset = -1   // off-screen left for back nav
+                slotAZIndex = 0
+                slotBZIndex = 1    // outgoing stays on top
+            case .b:
+                slotB = prev
+                slotBOffset = -1
+                slotBZIndex = 0
+                slotAZIndex = 1
+            }
         }
 
+        // Swap immediately
+        activeSlot = incoming
+
         withAnimation(.spring(response: 0.38, dampingFraction: 0.96)) {
-            switch activeSlot {
+            switch outgoing {
             case .a:
-                slotAOffset = 1    // active slides out right
-                slotBOffset = 0    // incoming slides in from left
+                slotAOffset = 1    // outgoing slides right
+                slotBOffset = 0    // incoming arrives from left
             case .b:
                 slotBOffset = 1
                 slotAOffset = 0
             }
             if !wasChrome && willBeChrome { chromeOffset = 0 }
-            else if wasChrome && !willBeChrome { chromeOffset = 1 }   // exits right
+            else if wasChrome && !willBeChrome { chromeOffset = 1 }
         }
 
-        let newActive: Slot = activeSlot == .a ? .b : .a
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-            activeSlot = newActive
             chromeVisible = willBeChrome
         }
     }
@@ -308,13 +333,34 @@ struct OnboardingFlowView: View {
         case .currency:
             navigate(to: .budget)
         case .budget:
+            // Keyboard open — dismiss it, stay on page
+            if budgetFieldFocused {
+                budgetFieldFocused = false
+                return
+            }
             let normalized = budgetAmountText
                 .replacingOccurrences(of: ",", with: ".")
                 .trimmingCharacters(in: .whitespaces)
-            if let amount = Double(normalized) {
-                store.setMonthlySpendingLimit(amount)
+            // No valid amount — open keyboard as a prompt
+            guard let amount = Double(normalized), amount > 0 else {
+                budgetFieldFocused = true
+                return
             }
+            // Budget confirmed and keyboard dismissed — save and advance
+            store.setMonthlySpendingLimit(amount)
             budgetAmountText = ""
+            navigate(to: .categories)
+        case .categories:
+            navigate(to: .allocate)
+        case .allocate:
+            for (category, text) in categoryBudgetTexts {
+                let normalized = text
+                    .replacingOccurrences(of: ",", with: ".")
+                    .trimmingCharacters(in: .whitespaces)
+                if let amount = Double(normalized), amount > 0 {
+                    store.setCategoryBudget(amount, for: category)
+                }
+            }
             navigate(to: .notifications)
         case .notifications:
             navigate(to: .beDetailed)
@@ -335,6 +381,8 @@ enum OnboardingStep: Hashable {
     case howItWorks
     case currency
     case budget
+    case categories
+    case allocate
     case notifications
     case beDetailed
     case inputMethods

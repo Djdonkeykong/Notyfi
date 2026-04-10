@@ -9,16 +9,7 @@ struct OnboardingAuthView: View {
     @State private var errorMessage: String? = nil
 
     var body: some View {
-        VStack(spacing: 0) {
-            // No progress bar on final step — auth is the "finish line"
-            HStack {
-                OnboardingBackButton(action: { onBack() })
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .padding(.bottom, 8)
-
+        ZStack(alignment: .topLeading) {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     illustration
@@ -47,9 +38,27 @@ struct OnboardingAuthView: View {
                 }
                 .padding(.horizontal, 24)
             }
-            .contentMargins(.bottom, 40, for: .scrollContent)
+            .contentMargins(.top, 72, for: .scrollContent)
+            .contentMargins(.bottom, 80, for: .scrollContent)
             .scrollBounceBehavior(.always)
             .scrollIndicators(.hidden)
+
+            // Floating back button — mirrors the flow's topChrome pattern
+            HStack {
+                OnboardingBackButton(action: { onBack() })
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .background {
+                LinearGradient(
+                    colors: [NotyfiTheme.brandLight, NotyfiTheme.brandLight.opacity(0)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea(edges: .top)
+                .frame(height: 80)
+            }
         }
         .background(NotyfiTheme.brandLight.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)

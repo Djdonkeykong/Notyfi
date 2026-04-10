@@ -1,5 +1,6 @@
 import SwiftUI
 import UserNotifications
+import Lottie
 
 struct OnboardingNotificationsView: View {
     @State private var isEnabled: Bool = false
@@ -8,8 +9,10 @@ struct OnboardingNotificationsView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                OnboardingIllustration(symbol: "bell.badge.fill", size: 68)
+                LottieView(animation: .named("mascot-reminder"))
+                    .playing(loopMode: .loop)
                     .frame(maxWidth: .infinity)
+                    .frame(height: 260)
                     .padding(.vertical, 24)
 
                 Text("Stay on track")
@@ -30,7 +33,7 @@ struct OnboardingNotificationsView: View {
         .contentMargins(.bottom, 160, for: .scrollContent)
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
-        .background(NotyfiTheme.brandLight.ignoresSafeArea())
+        .background(NotyfiTheme.brandLight)
         .toolbar(.hidden, for: .navigationBar)
     }
 

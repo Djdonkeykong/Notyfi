@@ -3,6 +3,7 @@ import SwiftUI
 struct OnboardingBudgetView: View {
     let currencyCode: String
     @Binding var amountText: String
+    @Binding var isFocused: Bool
     @FocusState private var fieldFocused: Bool
 
     private var parsedAmount: Double? {
@@ -44,46 +45,48 @@ struct OnboardingBudgetView: View {
         .contentMargins(.bottom, 160, for: .scrollContent)
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
-        .background(NotyfiTheme.brandLight.ignoresSafeArea())
+        .background(NotyfiTheme.brandLight)
         .toolbar(.hidden, for: .navigationBar)
-        .onTapGesture {
-            fieldFocused = false
+        // Keep isFocused binding in sync with internal FocusState
+        .onChange(of: fieldFocused) { _, v in isFocused = v }
+        .onChange(of: isFocused) { _, v in
+            if fieldFocused != v { fieldFocused = v }
         }
     }
 
     private var amountInput: some View {
-        VStack(spacing: 12) {
-            Button {
-                fieldFocused = true
-            } label: {
-                VStack(spacing: 6) {
-                    Text(amountText.isEmpty ? "Tap to enter" : displayAmount)
-                        .font(.notyfi(.largeTitle, weight: .bold))
-                        .foregroundStyle(amountText.isEmpty
-                            ? NotyfiTheme.secondaryText
-                            : NotyfiTheme.brandPrimary)
-                        .animation(.easeInOut(duration: 0.15), value: amountText.isEmpty)
+        Button {
+            fieldFocused = true
+        } label: {
+            VStack(spacing: 5) {
+                Text(amountText.isEmpty ? "Tap to enter" : displayAmount)
+                    .font(.notyfi(.title, weight: .bold))
+                    .foregroundStyle(amountText.isEmpty
+                        ? NotyfiTheme.secondaryText
+                        : NotyfiTheme.brandPrimary)
+                    .animation(.easeInOut(duration: 0.15), value: amountText.isEmpty)
 
-                    Text("per month")
-                        .font(.notyfi(.subheadline))
-                        .foregroundStyle(NotyfiTheme.secondaryText)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 28)
-                .background(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(
-                            fieldFocused ? NotyfiTheme.brandPrimary : Color.primary.opacity(0.08),
-                            lineWidth: fieldFocused ? 1.5 : 1
-                        )
-                }
-                .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+                Text("per month")
+                    .font(.notyfi(.subheadline))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
             }
-            .buttonStyle(.plain)
-
-            // Hidden text field drives keyboard input
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 18)
+            .background(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(
+                        fieldFocused ? NotyfiTheme.brandPrimary : Color.primary.opacity(0.08),
+                        lineWidth: fieldFocused ? 1.5 : 1
+                    )
+            }
+            .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+        }
+        .buttonStyle(.plain)
+        // Hidden TextField lives inside the button so SwiftUI's keyboard
+        // avoidance scrolls the visible input into view, not the bottom of the page.
+        .overlay {
             TextField("", text: $amountText)
                 .keyboardType(.decimalPad)
                 .focused($fieldFocused)
@@ -94,7 +97,10 @@ struct OnboardingBudgetView: View {
 }
 
 #Preview {
-    NavigationStack {
-        OnboardingBudgetView(currencyCode: "USD", amountText: .constant(""))
-    }
+    OnboardingBudgetView(
+        currencyCode: "USD",
+        amountText: .constant(""),
+        isFocused: .constant(false)
+    )
+    .background(NotyfiTheme.brandLight.ignoresSafeArea())
 }

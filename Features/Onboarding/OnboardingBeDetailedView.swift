@@ -41,7 +41,7 @@ struct OnboardingBeDetailedView: View {
         .contentMargins(.bottom, 160, for: .scrollContent)
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
-        .background(NotyfiTheme.brandLight.ignoresSafeArea())
+        .background(NotyfiTheme.brandLight)
         .toolbar(.hidden, for: .navigationBar)
     }
 }

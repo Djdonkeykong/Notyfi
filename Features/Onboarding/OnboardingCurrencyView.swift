@@ -1,4 +1,5 @@
 import SwiftUI
+import Lottie
 
 struct OnboardingCurrencyView: View {
     @Binding var currencyRawValue: String
@@ -17,14 +18,19 @@ struct OnboardingCurrencyView: View {
     }
 
     private var currencies: [NotyfiCurrencyPreference] {
-        NotyfiCurrencyPreference.allCases.filter { $0 != .auto }
+        let priority: [NotyfiCurrencyPreference] = [.usd, .eur]
+        let rest = NotyfiCurrencyPreference.allCases
+            .filter { $0 != .auto && !priority.contains($0) }
+        return priority + rest
     }
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                OnboardingIllustration(symbol: "banknote.fill", size: 68)
+                LottieView(animation: .named("mascot-money"))
+                    .playing(loopMode: .loop)
                     .frame(maxWidth: .infinity)
+                    .frame(height: 260)
                     .padding(.vertical, 24)
 
                 Text("Pick your currency")
@@ -45,7 +51,7 @@ struct OnboardingCurrencyView: View {
         .contentMargins(.bottom, 120, for: .scrollContent)
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
-        .background(NotyfiTheme.brandLight.ignoresSafeArea())
+        .background(NotyfiTheme.brandLight)
         .toolbar(.hidden, for: .navigationBar)
         .onChange(of: selected) { _, newValue in
             currencyRawValue = newValue.rawValue
@@ -59,10 +65,11 @@ struct OnboardingCurrencyView: View {
                     selected = currency
                 } content: {
                     HStack(spacing: 14) {
-                        Text(currencySymbol(for: currency.currencyCode))
-                            .font(.notyfi(.title3, weight: .semibold))
+                        let symbol = currencySymbol(for: currency.currencyCode)
+                        Text(symbol)
+                            .font(symbolFont(for: symbol))
                             .foregroundStyle(NotyfiTheme.brandPrimary)
-                            .frame(width: 32)
+                            .frame(width: 36, alignment: .center)
                         Text(currency.title)
                             .font(.notyfi(.subheadline))
                             .foregroundStyle(.primary)
@@ -73,6 +80,14 @@ struct OnboardingCurrencyView: View {
             }
         }
         .padding(.bottom, 12)
+    }
+
+    private func symbolFont(for symbol: String) -> Font {
+        switch symbol.count {
+        case 1:  return .notyfi(.title3, weight: .semibold)   // $, €, £, ¥
+        case 2:  return .notyfi(.body, weight: .semibold)     // A$, S$, NZ$-style
+        default: return .system(size: 11, weight: .bold, design: .rounded) // NOK, SEK, CHF …
+        }
     }
 
     private func currencySymbol(for code: String) -> String {
