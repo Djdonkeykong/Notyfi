@@ -28,11 +28,11 @@ struct OnboardingBudgetView: View {
                     .frame(height: 260)
                     .padding(.vertical, 24)
 
-                Text("Set a monthly budget")
+                Text("Set a monthly budget".notyfiLocalized)
                     .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
-                Text("Notyfi will track your spending against it and warn you when you're getting close.")
+                Text("Notyfi will track your spending against it and warn you when you're getting close.".notyfiLocalized)
                     .font(.notyfi(.body))
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .lineSpacing(3)
@@ -61,10 +61,10 @@ struct OnboardingBudgetView: View {
         Button { sheetPresented = true } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(formattedAmount ?? "Tap to set amount")
+                    Text(formattedAmount ?? "Tap to set amount".notyfiLocalized)
                         .font(.notyfi(.title3, weight: .bold))
                         .foregroundStyle(formattedAmount != nil ? .primary : NotyfiTheme.secondaryText)
-                    Text("per month")
+                    Text("per month".notyfiLocalized)
                         .font(.notyfi(.subheadline))
                         .foregroundStyle(NotyfiTheme.secondaryText)
                 }
@@ -109,7 +109,7 @@ private struct BudgetInputSheet: View {
                     .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity)
 
-                Text("per month")
+                Text("per month".notyfiLocalized)
                     .font(.notyfi(.subheadline))
                     .foregroundStyle(.secondary)
             }

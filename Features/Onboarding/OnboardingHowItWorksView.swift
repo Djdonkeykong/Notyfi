@@ -9,11 +9,11 @@ struct OnboardingHowItWorksView: View {
                     .frame(height: 260)
                     .padding(.vertical, 24)
 
-                Text("Just write what you spent")
+                Text("Just write what you spent".notyfiLocalized)
                     .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
-                Text("Type anything naturally. Notyfi reads it and fills in the details.")
+                Text("Type anything naturally. Notyfi reads it and fills in the details.".notyfiLocalized)
                     .font(.notyfi(.body))
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .lineSpacing(3)

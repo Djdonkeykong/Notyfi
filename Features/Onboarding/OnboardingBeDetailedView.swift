@@ -4,7 +4,7 @@ struct OnboardingBeDetailedView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Quick tip")
+                Text("Quick tip".notyfiLocalized)
                     .font(.notyfi(.footnote, weight: .semibold))
                     .foregroundStyle(NotyfiTheme.brandPrimary)
                     .padding(.horizontal, 16)
@@ -15,11 +15,11 @@ struct OnboardingBeDetailedView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.bottom, 18)
 
-                Text("The more detail,\nthe better it tracks")
+                Text("The more detail,\nthe better it tracks".notyfiLocalized)
                     .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
-                Text("Specific entries get categorized more accurately and make your spending history actually useful.")
+                Text("Specific entries get categorized more accurately and make your spending history actually useful.".notyfiLocalized)
                     .font(.notyfi(.body))
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .lineSpacing(3)
@@ -70,7 +70,7 @@ private struct DetailComparisonCard: View {
                     Circle()
                         .stroke(Color.orange.opacity(0.8), lineWidth: 2)
                         .frame(width: 13, height: 13)
-                    Text("Unclear")
+                    Text("Unclear".notyfiLocalized)
                         .font(.notyfi(.caption))
                         .foregroundStyle(.secondary)
                 }

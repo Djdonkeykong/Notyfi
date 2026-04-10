@@ -3,6 +3,7 @@ import SwiftUI
 struct AppRootView: View {
     @ObservedObject var store: ExpenseJournalStore
     @StateObject private var authManager = AuthManager()
+    @StateObject private var languageManager = LanguageManager()
 
     @AppStorage("notyfi.onboarding.complete") private var hasCompletedOnboarding = false
     @AppStorage(NotyfiAppearanceMode.storageKey) private var appearanceModeRawValue = NotyfiAppearanceMode.system.rawValue
@@ -13,12 +14,14 @@ struct AppRootView: View {
                 splashScreen
             } else if !hasCompletedOnboarding {
                 OnboardingFlowView(store: store, authManager: authManager)
+                    .id(languageManager.refreshID)
             } else if !authManager.isAuthenticated {
                 OnboardingSignInView(authManager: authManager)
             } else {
                 HomeView(store: store, authManager: authManager)
             }
         }
+        .environmentObject(languageManager)
         .preferredColorScheme(appearanceMode.colorScheme)
     }
 

@@ -19,7 +19,7 @@ struct OnboardingPrimaryButton: View {
                         .progressViewStyle(.circular)
                         .tint(.white)
                 } else {
-                    Text(title)
+                    Text(title.notyfiLocalized)
                         .font(.notyfi(.body, weight: .semibold))
                         .foregroundStyle(.white)
                 }
@@ -124,7 +124,7 @@ struct OnboardingTag: View {
     let text: String
 
     var body: some View {
-        Text(text)
+        Text(text.notyfiLocalized)
             .font(.notyfi(.caption, weight: .semibold))
             .foregroundStyle(NotyfiTheme.brandPrimary)
             .padding(.horizontal, 14)
@@ -179,7 +179,7 @@ struct OnboardingSkipButton: View {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             action()
         } label: {
-            Text("Skip for now")
+            Text("Skip for now".notyfiLocalized)
                 .font(.notyfi(.subheadline))
                 .foregroundStyle(NotyfiTheme.secondaryText)
         }

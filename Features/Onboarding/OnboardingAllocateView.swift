@@ -15,11 +15,11 @@ struct OnboardingAllocateView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Set category limits")
+                Text("Set category limits".notyfiLocalized)
                     .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
-                Text("Add a monthly limit for each category. Skip any you're not sure about — you can set these later.")
+                Text("Add a monthly limit for each category. Skip any you're not sure about — you can set these later.".notyfiLocalized)
                     .font(.notyfi(.body))
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .lineSpacing(3)
@@ -103,7 +103,7 @@ private struct AllocateRow: View {
                         .foregroundStyle(text.isEmpty ? NotyfiTheme.secondaryText : NotyfiTheme.brandPrimary)
                         .frame(width: 80)
 
-                    Text("/mo")
+                    Text("/mo".notyfiLocalized)
                         .font(.notyfi(.caption))
                         .foregroundStyle(NotyfiTheme.secondaryText)
                 }

@@ -26,11 +26,11 @@ struct OnboardingSignInView: View {
                 Spacer().frame(height: 36)
 
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("Welcome back")
+                    Text("Welcome back".notyfiLocalized)
                         .font(.notyfi(.title2, weight: .bold))
                         .padding(.bottom, 10)
 
-                    Text("Sign in to your account to pick up right where you left off.")
+                    Text("Sign in to your account to pick up right where you left off.".notyfiLocalized)
                         .font(.notyfi(.body))
                         .foregroundStyle(NotyfiTheme.secondaryText)
                         .lineSpacing(3)
@@ -53,9 +53,9 @@ struct OnboardingSignInView: View {
                     emailSignInButton
 
                     HStack(spacing: 4) {
-                        Text("Don't have an account?")
+                        Text("Don't have an account?".notyfiLocalized)
                             .foregroundStyle(NotyfiTheme.secondaryText)
-                        Button("Sign up") {
+                        Button("Sign up".notyfiLocalized) {
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
                             onSignUp?()
                         }
@@ -114,7 +114,7 @@ struct OnboardingSignInView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 21, height: 21)
-                        Text("Continue with Apple")
+                        Text("Continue with Apple".notyfiLocalized)
                             .font(.notyfi(.body, weight: .semibold))
                     }
                     .foregroundStyle(.white)
@@ -144,7 +144,7 @@ struct OnboardingSignInView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 21, height: 21)
-                        Text("Continue with Google")
+                        Text("Continue with Google".notyfiLocalized)
                             .font(.notyfi(.body, weight: .semibold))
                             .foregroundStyle(Color.black)
                     }

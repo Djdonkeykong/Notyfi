@@ -2,7 +2,7 @@ import Foundation
 
 extension String {
     var notyfiLocalized: String {
-        NSLocalizedString(self, comment: "")
+        NotyfiBundle.current.localizedString(forKey: self, value: self, table: nil)
     }
 
     static func notyfiNotesCount(_ count: Int) -> String {

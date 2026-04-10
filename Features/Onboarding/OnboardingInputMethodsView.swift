@@ -4,7 +4,7 @@ struct OnboardingInputMethodsView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Just a heads up")
+                Text("Just a heads up".notyfiLocalized)
                     .font(.notyfi(.footnote, weight: .semibold))
                     .foregroundStyle(NotyfiTheme.brandPrimary)
                     .padding(.horizontal, 16)
@@ -15,11 +15,11 @@ struct OnboardingInputMethodsView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.bottom, 18)
 
-                Text("You don't have to type everything")
+                Text("You don't have to type everything".notyfiLocalized)
                     .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
-                Text("Three other quick ways to log a spend without stopping what you're doing.")
+                Text("Three other quick ways to log a spend without stopping what you're doing.".notyfiLocalized)
                     .font(.notyfi(.body))
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .lineSpacing(3)
@@ -76,10 +76,10 @@ private struct InputMethodCard: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(title)
+                Text(title.notyfiLocalized)
                     .font(.notyfi(.body, weight: .semibold))
                     .foregroundStyle(.primary)
-                Text(description)
+                Text(description.notyfiLocalized)
                     .font(.notyfi(.subheadline))
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .lineSpacing(2)

@@ -15,11 +15,11 @@ struct OnboardingNotificationsView: View {
                     .frame(height: 260)
                     .padding(.vertical, 24)
 
-                Text("Stay on track")
+                Text("Stay on track".notyfiLocalized)
                     .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
-                Text("Get a daily nudge to log your spending. People who use reminders build the habit 3x faster.")
+                Text("Get a daily nudge to log your spending. People who use reminders build the habit 3x faster.".notyfiLocalized)
                     .font(.notyfi(.body))
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .lineSpacing(3)
@@ -49,10 +49,10 @@ struct OnboardingNotificationsView: View {
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Enable Notifications")
+                Text("Enable Notifications".notyfiLocalized)
                     .font(.notyfi(.subheadline, weight: .medium))
                     .foregroundStyle(.primary)
-                Text("Daily spending reminders")
+                Text("Daily spending reminders".notyfiLocalized)
                     .font(.notyfi(.caption))
                     .foregroundStyle(NotyfiTheme.secondaryText)
             }

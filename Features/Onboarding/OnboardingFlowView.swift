@@ -395,4 +395,5 @@ enum OnboardingStep: Hashable {
         store: ExpenseJournalStore(previewMode: true),
         authManager: AuthManager()
     )
+    .environmentObject(LanguageManager())
 }

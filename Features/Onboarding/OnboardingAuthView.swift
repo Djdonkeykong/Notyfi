@@ -18,11 +18,11 @@ struct OnboardingAuthView: View {
                     .padding(.top, 36)
                     .padding(.bottom, 12)
 
-                Text("Save your progress")
+                Text("Save your progress".notyfiLocalized)
                     .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
-                Text("Create an account to sync your data across devices and never lose your progress.")
+                Text("Create an account to sync your data across devices and never lose your progress.".notyfiLocalized)
                     .font(.notyfi(.body))
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .lineSpacing(3)
@@ -57,7 +57,7 @@ struct OnboardingAuthView: View {
         Image("mascot-save")
             .resizable()
             .scaledToFit()
-            .frame(width: 360, height: 360)
+            .frame(width: 288, height: 288)
     }
 
     private var authButtons: some View {
@@ -95,7 +95,7 @@ struct OnboardingAuthView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 21, height: 21)
-                        Text("Continue with Apple")
+                        Text("Continue with Apple".notyfiLocalized)
                             .font(.notyfi(.body, weight: .semibold))
                     }
                     .foregroundStyle(.white)
@@ -125,7 +125,7 @@ struct OnboardingAuthView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 21, height: 21)
-                        Text("Continue with Google")
+                        Text("Continue with Google".notyfiLocalized)
                             .font(.notyfi(.body, weight: .semibold))
                             .foregroundStyle(Color.black)
                     }
@@ -146,7 +146,7 @@ struct OnboardingAuthView: View {
             Rectangle()
                 .fill(Color.primary.opacity(0.12))
                 .frame(height: 1)
-            Text("or")
+            Text("or".notyfiLocalized)
                 .font(.notyfi(.caption))
                 .foregroundStyle(NotyfiTheme.secondaryText)
             Rectangle()
@@ -214,9 +214,9 @@ struct EmailSignUpView: View {
 
                 VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(isSignIn ? "Welcome back" : "Create account")
+                        Text(isSignIn ? "Welcome back".notyfiLocalized : "Create account".notyfiLocalized)
                             .font(.notyfi(.title2, weight: .bold))
-                        Text(isSignIn ? "Sign in to your Notyfi account." : "Start tracking. Your data, always backed up.")
+                        Text(isSignIn ? "Sign in to your Notyfi account.".notyfiLocalized : "Start tracking. Your data, always backed up.".notyfiLocalized)
                             .font(.notyfi(.subheadline))
                             .foregroundStyle(NotyfiTheme.secondaryText)
                     }
@@ -242,9 +242,9 @@ struct EmailSignUpView: View {
                     }
 
                     HStack(spacing: 4) {
-                        Text(isSignIn ? "No account?" : "Already have one?")
+                        Text(isSignIn ? "No account?".notyfiLocalized : "Already have one?".notyfiLocalized)
                             .foregroundStyle(NotyfiTheme.secondaryText)
-                        Button(isSignIn ? "Sign up" : "Sign in") {
+                        Button(isSignIn ? "Sign up".notyfiLocalized : "Sign in".notyfiLocalized) {
                             isSignIn.toggle()
                             errorMessage = nil
                         }
@@ -259,7 +259,7 @@ struct EmailSignUpView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel".notyfiLocalized) { dismiss() }
                         .foregroundStyle(NotyfiTheme.brandPrimary)
                 }
             }
@@ -276,7 +276,7 @@ struct EmailSignUpView: View {
         maxLength: Int? = nil
     ) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(label)
+            Text(label.notyfiLocalized)
                 .font(.notyfi(.caption, weight: .medium))
                 .foregroundStyle(NotyfiTheme.secondaryText)
             Group {
@@ -312,7 +312,7 @@ struct EmailSignUpView: View {
     private func submit() {
         errorMessage = nil
         guard !email.isEmpty, !password.isEmpty else {
-            errorMessage = "Please fill in all fields."
+            errorMessage = "Please fill in all fields.".notyfiLocalized
             return
         }
         Task {
@@ -324,7 +324,7 @@ struct EmailSignUpView: View {
                     try await authManager.signUpWithEmail(email, password: password)
                     if authManager.pendingEmailConfirmation {
                         // Show confirmation prompt — do not dismiss yet.
-                        errorMessage = "Check your inbox and confirm your email, then sign in."
+                        errorMessage = "Check your inbox and confirm your email, then sign in.".notyfiLocalized
                         isSignIn = true
                     } else {
                         dismiss()

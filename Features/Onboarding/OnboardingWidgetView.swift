@@ -4,11 +4,11 @@ struct OnboardingWidgetView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Add the Notyfi widget")
+                Text("Add the Notyfi widget".notyfiLocalized)
                     .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
-                Text("People who add the widget are far more consistent. Your spending is always one glance away.")
+                Text("People who add the widget are far more consistent. Your spending is always one glance away.".notyfiLocalized)
                     .font(.notyfi(.body))
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .lineSpacing(3)
@@ -94,7 +94,7 @@ private struct WidgetStep: View {
                     .font(.system(size: 14, weight: .bold))
                     .foregroundStyle(.white)
             }
-            Text(text)
+            Text(text.notyfiLocalized)
                 .font(.notyfi(.body))
                 .foregroundStyle(.primary)
                 .lineSpacing(2)
