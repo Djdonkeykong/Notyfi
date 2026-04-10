@@ -59,23 +59,50 @@ struct OnboardingFlowView: View {
     }
 
     var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .top) {
-                NotyfiTheme.brandLight.ignoresSafeArea()
+        ZStack {
+            // Screen-wide background outside the clipped ZStack so it fills
+            // safe areas on every page — welcome, auth, signIn included.
+            NotyfiTheme.brandLight.ignoresSafeArea()
 
-                if let outgoing = outgoingStep {
-                    stepContent(for: outgoing)
-                        .offset(x: outgoingOffset * geo.size.width)
-                        .zIndex(isGoingBack ? 1 : 0)
+            GeometryReader { geo in
+                ZStack(alignment: .top) {
+                    if let outgoing = outgoingStep {
+                        stepContent(for: outgoing)
+                            .offset(x: outgoingOffset * geo.size.width)
+                            .zIndex(isGoingBack ? 1 : 0)
+                    }
+
+                    stepContent(for: currentStep)
+                        .offset(x: incomingOffset * geo.size.width)
+                        .zIndex(isGoingBack ? 0 : 1)
                 }
-
-                stepContent(for: currentStep)
-                    .offset(x: incomingOffset * geo.size.width)
-                    .zIndex(isGoingBack ? 0 : 1)
+                .clipped()
+                .onAppear { viewWidth = geo.size.width }
             }
-            .clipped()
-            .onAppear { viewWidth = geo.size.width }
         }
+        // Always-present gradient fades — gives every page the soft top/bottom
+        // edge. Non-interactive so taps pass through to content beneath.
+        .overlay(alignment: .top) {
+            LinearGradient(
+                colors: [NotyfiTheme.brandLight, NotyfiTheme.brandLight.opacity(0)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 80)
+            .ignoresSafeArea(edges: .top)
+            .allowsHitTesting(false)
+        }
+        .overlay(alignment: .bottom) {
+            LinearGradient(
+                colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 60)
+            .ignoresSafeArea(edges: .bottom)
+            .allowsHitTesting(false)
+        }
+        // Chrome elements sit on top of the gradient fades
         .overlay(alignment: .top) {
             if chromeVisible {
                 topChrome
