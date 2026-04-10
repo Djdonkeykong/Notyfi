@@ -106,10 +106,7 @@ struct OnboardingAuthView: View {
             signInWithGoogle()
         } label: {
             HStack(spacing: 10) {
-                Text("G")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(Color(red: 0.26, green: 0.52, blue: 0.96))
-                    .frame(width: 21, height: 21)
+                GoogleGIcon(size: 21)
                 Text("Continue with Google")
                     .font(.notyfi(.body, weight: .semibold))
                     .foregroundStyle(.primary)
@@ -119,7 +116,7 @@ struct OnboardingAuthView: View {
             .background(.white)
             .clipShape(Capsule())
             .overlay(Capsule().stroke(Color.primary.opacity(0.14), lineWidth: 1))
-            .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+            .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
         }
         .disabled(authManager.isLoading)
     }
@@ -306,6 +303,51 @@ struct EmailSignUpView: View {
                     : "Sign up failed. Please try again."
             }
         }
+    }
+}
+
+// MARK: - Google G Icon
+
+private struct GoogleGIcon: View {
+    let size: CGFloat
+
+    var body: some View {
+        Canvas { ctx, sz in
+            let cx = sz.width / 2
+            let cy = sz.height / 2
+            let outerR: CGFloat = sz.width / 2 - 0.5
+            let strokeW: CGFloat = outerR * 0.46
+            let innerR = outerR - strokeW
+
+            func rad(_ deg: Double) -> Double { deg * .pi / 180 }
+
+            func segment(from s: Double, to e: Double) -> Path {
+                var p = Path()
+                p.move(to: CGPoint(x: cx + outerR * cos(rad(s)), y: cy + outerR * sin(rad(s))))
+                p.addArc(center: CGPoint(x: cx, y: cy), radius: outerR,
+                         startAngle: .degrees(s), endAngle: .degrees(e), clockwise: false)
+                p.addLine(to: CGPoint(x: cx + innerR * cos(rad(e)), y: cy + innerR * sin(rad(e))))
+                p.addArc(center: CGPoint(x: cx, y: cy), radius: innerR,
+                         startAngle: .degrees(e), endAngle: .degrees(s), clockwise: true)
+                p.closeSubpath()
+                return p
+            }
+
+            // Four colored arc segments covering the full ring
+            // Blue wraps around from top-right through right to bottom-right
+            ctx.fill(segment(from: -25, to:  90), with: .color(Color(red: 66/255,  green: 133/255, blue: 244/255)))
+            ctx.fill(segment(from:  90, to: 148), with: .color(Color(red: 52/255,  green: 168/255, blue: 83/255)))
+            ctx.fill(segment(from: 148, to: 212), with: .color(Color(red: 251/255, green: 188/255, blue: 5/255)))
+            ctx.fill(segment(from: 212, to: 335), with: .color(Color(red: 234/255, green: 67/255,  blue: 53/255)))
+
+            // Horizontal bar — fills the opening on the right and the inner cutout
+            let bar = Path(CGRect(x: cx,
+                                  y: cy - strokeW / 2,
+                                  width: outerR,
+                                  height: strokeW))
+            ctx.fill(bar, with: .color(Color(red: 66/255, green: 133/255, blue: 244/255)))
+        }
+        .frame(width: size, height: size)
     }
 }
 
