@@ -1,5 +1,4 @@
 import SwiftUI
-import Lottie
 
 struct OnboardingCurrencyView: View {
     @Binding var currencyRawValue: String
@@ -27,8 +26,7 @@ struct OnboardingCurrencyView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                LottieView(animation: .fromAsset("mascot-money"))
-                    .playing(loopMode: .loop)
+                LoopingVideoPlayer(name: "mascot-money")
                     .frame(maxWidth: .infinity)
                     .frame(height: 260)
                     .padding(.vertical, 24)

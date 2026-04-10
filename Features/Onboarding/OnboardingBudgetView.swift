@@ -6,7 +6,6 @@ struct OnboardingBudgetView: View {
     @Binding var isFocused: Bool
     @FocusState private var fieldFocused: Bool
 
-    @State private var keyboardHeight: CGFloat = 0
     @State private var scrollProxy: ScrollViewProxy? = nil
 
     private var parsedAmount: Double? {
@@ -46,13 +45,19 @@ struct OnboardingBudgetView: View {
                 }
                 .padding(.horizontal, 24)
             }
+            .ignoresSafeArea(.keyboard)
             .contentMargins(.top, 72, for: .scrollContent)
-            .contentMargins(.bottom, keyboardHeight > 0 ? keyboardHeight + 80 : 160, for: .scrollContent)
+            .contentMargins(.bottom, 160, for: .scrollContent)
             .scrollBounceBehavior(.always)
             .scrollIndicators(.hidden)
             .onAppear { scrollProxy = proxy }
             .onChange(of: fieldFocused) { _, focused in
                 isFocused = focused
+                if focused {
+                    withAnimation(.easeOut(duration: 0.25)) {
+                        scrollProxy?.scrollTo("amountInput", anchor: UnitPoint(x: 0.5, y: 0.6))
+                    }
+                }
             }
             .onChange(of: isFocused) { _, v in
                 if fieldFocused != v { fieldFocused = v }
@@ -60,23 +65,6 @@ struct OnboardingBudgetView: View {
         }
         .background(NotyfiTheme.brandLight)
         .toolbar(.hidden, for: .navigationBar)
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notification in
-            guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
-                  let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
-            else { return }
-
-            keyboardHeight = frame.height
-
-            // Scroll just enough to bring the input above the keyboard
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-                withAnimation(.easeOut(duration: 0.2)) {
-                    scrollProxy?.scrollTo("amountInput", anchor: UnitPoint(x: 0.5, y: 0.85))
-                }
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-            keyboardHeight = 0
-        }
     }
 
     private var amountInput: some View {
