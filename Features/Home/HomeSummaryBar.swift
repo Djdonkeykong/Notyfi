@@ -69,15 +69,15 @@ struct HomeSummaryBar: View {
                         FooterMetricPill(
                             title: "Month",
                             value: budgetInsight.spentThisMonth.formattedCurrency(code: currencyCode),
-                            tint: Color(red: 0.90, green: 0.36, blue: 0.34)
+                            tint: NotyfiTheme.expenseColor
                         )
 
                         FooterMetricPill(
                             title: "Net",
                             value: signedCurrency(budgetInsight.netThisMonth),
                             tint: budgetInsight.netThisMonth >= 0
-                                ? Color(red: 0.28, green: 0.71, blue: 0.45)
-                                : Color(red: 0.90, green: 0.36, blue: 0.34)
+                                ? NotyfiTheme.incomeColor
+                                : NotyfiTheme.expenseColor
                         )
 
                         FooterMetricPill(
@@ -100,11 +100,11 @@ struct HomeSummaryBar: View {
         case .needsBudget:
             return NotyfiTheme.brandBlue
         case .balanced:
-            return Color(red: 0.28, green: 0.71, blue: 0.45)
+            return NotyfiTheme.incomeColor
         case .caution:
             return Color(red: 0.90, green: 0.60, blue: 0.29)
         case .overBudget:
-            return Color(red: 0.90, green: 0.36, blue: 0.34)
+            return NotyfiTheme.expenseColor
         }
     }
 

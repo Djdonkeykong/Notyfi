@@ -1176,9 +1176,9 @@ private struct JournalLineAccessoryView: View {
         case .accent:
             return Color(red: 0.26, green: 0.56, blue: 0.96)
         case .income:
-            return Color(red: 0.28, green: 0.71, blue: 0.45)
+            return NotyfiTheme.incomeColor
         case .expense:
-            return Color(red: 0.90, green: 0.36, blue: 0.34)
+            return NotyfiTheme.expenseColor
         case .neutral, .none:
             return NotyfiTheme.secondaryText
         }
@@ -1244,8 +1244,8 @@ private struct JournalLineAccessoryView: View {
         }
 
         return entry.transactionKind == .income
-            ? Color(red: 0.28, green: 0.71, blue: 0.45)
-            : Color(red: 0.90, green: 0.36, blue: 0.34)
+            ? NotyfiTheme.incomeColor
+            : NotyfiTheme.expenseColor
     }
 
     private var isProcessingEntry: Bool {
@@ -1589,9 +1589,9 @@ private extension QuickAddAction {
     var tint: Color {
         switch self {
         case .expense:
-            return Color(red: 0.90, green: 0.36, blue: 0.34)
+            return NotyfiTheme.expenseColor
         case .income:
-            return Color(red: 0.28, green: 0.71, blue: 0.45)
+            return NotyfiTheme.incomeColor
         case .transfer:
             return Color(red: 0.27, green: 0.58, blue: 0.92)
         case .recurringBill:

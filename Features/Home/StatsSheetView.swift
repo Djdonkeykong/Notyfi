@@ -40,7 +40,7 @@ struct StatsSheetView: View {
                             title: "Spend",
                             value: viewModel.insight.monthExpenseTotal.formattedCurrency(code: viewModel.currencyCode),
                             caption: monthLabel,
-                            tint: Color(red: 0.90, green: 0.36, blue: 0.34),
+                            tint: NotyfiTheme.expenseColor,
                             symbol: "arrow.up.right.circle.fill"
                         )
 
@@ -48,7 +48,7 @@ struct StatsSheetView: View {
                             title: "Income",
                             value: viewModel.insight.monthIncomeTotal.formattedCurrency(code: viewModel.currencyCode),
                             caption: "Captured so far".notyfiLocalized,
-                            tint: Color(red: 0.28, green: 0.71, blue: 0.45),
+                            tint: NotyfiTheme.incomeColor,
                             symbol: "arrow.down.left.circle.fill"
                         )
 
@@ -57,8 +57,8 @@ struct StatsSheetView: View {
                             value: signedCurrency(viewModel.insight.monthNetTotal),
                             caption: "Income minus spend".notyfiLocalized,
                             tint: viewModel.insight.monthNetTotal >= 0
-                                ? Color(red: 0.28, green: 0.71, blue: 0.45)
-                                : Color(red: 0.90, green: 0.36, blue: 0.34),
+                                ? NotyfiTheme.incomeColor
+                                : NotyfiTheme.expenseColor,
                             symbol: "chart.line.uptrend.xyaxis"
                         )
 
@@ -166,7 +166,7 @@ struct StatsSheetView: View {
 
                                 HighlightRow(
                                     icon: "leaf.fill",
-                                    tint: Color(red: 0.28, green: 0.71, blue: 0.45),
+                                    tint: NotyfiTheme.incomeColor,
                                     title: "Savings target",
                                     value: savingsLabel
                                 )
@@ -270,14 +270,14 @@ struct StatsSheetView: View {
                     HStack(spacing: 12) {
                         MoneyPlanBadge(
                             symbol: "arrow.up.right.circle.fill",
-                            tint: Color(red: 0.90, green: 0.36, blue: 0.34),
+                            tint: NotyfiTheme.expenseColor,
                             title: "Spent",
                             value: viewModel.insight.monthExpenseTotal.formattedCurrency(code: viewModel.currencyCode)
                         )
 
                         MoneyPlanBadge(
                             symbol: "arrow.down.left.circle.fill",
-                            tint: Color(red: 0.28, green: 0.71, blue: 0.45),
+                            tint: NotyfiTheme.incomeColor,
                             title: "Income",
                             value: viewModel.insight.monthIncomeTotal.formattedCurrency(code: viewModel.currencyCode)
                         )
@@ -338,11 +338,11 @@ struct StatsSheetView: View {
         case .needsBudget:
             return NotyfiTheme.brandBlue
         case .balanced:
-            return Color(red: 0.28, green: 0.71, blue: 0.45)
+            return NotyfiTheme.incomeColor
         case .caution:
             return NotyfiTheme.reviewTint
         case .overBudget:
-            return Color(red: 0.90, green: 0.36, blue: 0.34)
+            return NotyfiTheme.expenseColor
         }
     }
 
@@ -575,7 +575,7 @@ private struct CategoryBudgetInputRow: View {
             if status.hasTarget {
                 VStack(alignment: .leading, spacing: 6) {
                     ProgressView(value: status.progress)
-                        .tint(status.remaining >= 0 ? status.category.tint : Color(red: 0.90, green: 0.36, blue: 0.34))
+                        .tint(status.remaining >= 0 ? status.category.tint : NotyfiTheme.expenseColor)
                         .scaleEffect(x: 1, y: 1.2, anchor: .center)
 
                     Text(remainingLabel)

@@ -3,7 +3,7 @@ import UIKit
 
 enum NotyfiTheme {
     static let background = adaptiveColor(
-        light: UIColor(red: 0.972, green: 0.966, blue: 0.962, alpha: 1),
+        light: UIColor(red: 0.951, green: 0.953, blue: 0.961, alpha: 1),
         dark: UIColor(red: 0.073, green: 0.078, blue: 0.090, alpha: 1)
     )
     static let surface = adaptiveColor(
@@ -44,8 +44,10 @@ enum NotyfiTheme {
     static let accent = Color(red: 0.93, green: 0.72, blue: 0.51)
     static let brandBlue = Color(red: 0.02, green: 0.38, blue: 0.96)
     static let brandPrimary = Color(red: 0, green: 0, blue: 254.0 / 255.0)
-    static let brandLight = Color(red: 239.0 / 255.0, green: 248.0 / 255.0, blue: 1.0)
+    static let brandLight = Color(red: 242.0 / 255.0, green: 243.0 / 255.0, blue: 245.0 / 255.0)
     static let reviewTint = Color(red: 0.90, green: 0.60, blue: 0.29)
+    static let incomeColor = Color(red: 0.28, green: 0.71, blue: 0.45)
+    static let expenseColor = Color(red: 0.90, green: 0.36, blue: 0.34)
 
     private static func adaptiveColor(light: UIColor, dark: UIColor) -> Color {
         Color(

@@ -382,8 +382,8 @@ private extension EntryDetailViewModel {
 
     var amountColor: Color {
         transactionKind == .income
-            ? Color(red: 0.28, green: 0.71, blue: 0.45)
-            : Color(red: 0.90, green: 0.36, blue: 0.34)
+            ? NotyfiTheme.incomeColor
+            : NotyfiTheme.expenseColor
     }
 
     var merchantDisplay: String {
@@ -400,7 +400,7 @@ private extension EntryDetailViewModel {
     }
 
     var confidenceColor: Color {
-        needsReview ? NotyfiTheme.reviewTint : Color(red: 0.28, green: 0.71, blue: 0.45)
+        needsReview ? NotyfiTheme.reviewTint : NotyfiTheme.incomeColor
     }
 
     var confidenceIcon: String {
