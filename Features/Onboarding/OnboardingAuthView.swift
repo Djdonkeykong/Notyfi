@@ -163,7 +163,7 @@ struct OnboardingAuthView: View {
             } catch let error as AuthError where error.isCancelled {
                 // User dismissed — do nothing
             } catch {
-                errorMessage = "Sign in failed. Please try again."
+                errorMessage = error.localizedDescription
             }
         }
     }
@@ -174,9 +174,9 @@ struct OnboardingAuthView: View {
             do {
                 try await authManager.signInWithApple()
             } catch let error as AuthError where error.isCancelled {
-                // User dismissed the sheet — do nothing
+                // User dismissed — do nothing
             } catch {
-                errorMessage = "Sign in failed. Please try again."
+                errorMessage = error.localizedDescription
             }
         }
     }
@@ -321,9 +321,7 @@ struct EmailSignUpView: View {
             } catch let error as AuthError where error.isCancelled {
                 // Ignore cancellation silently
             } catch {
-                errorMessage = isSignIn
-                    ? "Sign in failed. Check your credentials."
-                    : "Sign up failed. Please try again."
+                errorMessage = error.localizedDescription
             }
         }
     }

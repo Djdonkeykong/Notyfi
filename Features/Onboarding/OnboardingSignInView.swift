@@ -137,7 +137,7 @@ struct OnboardingSignInView: View {
             } catch let error as AuthError where error.isCancelled {
                 // User dismissed — do nothing
             } catch {
-                errorMessage = "Sign in failed. Please try again."
+                errorMessage = error.localizedDescription
             }
         }
     }
@@ -150,7 +150,7 @@ struct OnboardingSignInView: View {
             } catch let error as AuthError where error.isCancelled {
                 // User dismissed — do nothing
             } catch {
-                errorMessage = "Sign in failed. Please try again."
+                errorMessage = error.localizedDescription
             }
         }
     }
