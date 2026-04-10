@@ -4,9 +4,9 @@ import AuthenticationServices
 struct OnboardingSignInView: View {
     @ObservedObject var authManager: AuthManager
     let onBack: () -> Void
+    var onSignUp: (() -> Void)? = nil
 
     @State private var showEmailSignIn = false
-    @State private var showEmailSignUp = false
     @State private var errorMessage: String? = nil
 
     var body: some View {
@@ -55,7 +55,7 @@ struct OnboardingSignInView: View {
                     Text("Don't have an account?")
                         .foregroundStyle(NotyfiTheme.secondaryText)
                     Button("Sign up") {
-                        showEmailSignUp = true
+                        onSignUp?()
                     }
                     .foregroundStyle(NotyfiTheme.brandPrimary)
                     .fontWeight(.semibold)
@@ -71,9 +71,6 @@ struct OnboardingSignInView: View {
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showEmailSignIn) {
             EmailSignUpView(authManager: authManager, initialIsSignIn: true)
-        }
-        .sheet(isPresented: $showEmailSignUp) {
-            EmailSignUpView(authManager: authManager, initialIsSignIn: false)
         }
     }
 

@@ -147,7 +147,11 @@ struct OnboardingFlowView: View {
         case .auth:
             OnboardingAuthView(authManager: authManager, onBack: { goBack() })
         case .signIn:
-            OnboardingSignInView(authManager: authManager, onBack: { goBack() })
+            OnboardingSignInView(authManager: authManager, onBack: { goBack() }, onSignUp: {
+                // Don't push .signIn onto history — back from howItWorks should
+                // return to welcome, not the sign-in page.
+                navigate(to: .howItWorks, pushCurrent: false)
+            })
         }
     }
 
@@ -191,11 +195,11 @@ struct OnboardingFlowView: View {
 
     // MARK: - Navigation
 
-    private func navigate(to step: OnboardingStep) {
+    private func navigate(to step: OnboardingStep, pushCurrent: Bool = true) {
         let wasChrome = hasChrome(currentStep)
         let willBeChrome = hasChrome(step)
 
-        stepHistory.append(currentStep)
+        if pushCurrent { stepHistory.append(currentStep) }
         outgoingStep = currentStep
         currentStep = step
         isGoingBack = false
@@ -227,7 +231,9 @@ struct OnboardingFlowView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             outgoingStep = nil
             chromeVisible = willBeChrome
-            chromeOffset = 0
+            // chromeOffset is always set explicitly at the start of the next
+            // transition — resetting it here risks a one-frame flash if
+            // chromeVisible and chromeOffset don't collapse in the same render.
         }
     }
 
@@ -267,7 +273,6 @@ struct OnboardingFlowView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             outgoingStep = nil
             chromeVisible = willBeChrome
-            chromeOffset = 0
         }
     }
 

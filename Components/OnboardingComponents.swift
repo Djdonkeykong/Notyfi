@@ -46,7 +46,7 @@ struct OnboardingBackButton: View {
         } label: {
             Image(systemName: "chevron.left")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(.black)
                 .frame(width: 40, height: 40)
                 .background(.regularMaterial, in: Circle())
         }
