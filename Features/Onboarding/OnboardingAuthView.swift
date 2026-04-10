@@ -113,7 +113,7 @@ struct OnboardingAuthView: View {
                     .frame(width: 21, height: 21)
                 Text("Continue with Google")
                     .font(.notyfi(.body, weight: .semibold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(Color.black)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 56)
