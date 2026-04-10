@@ -8,11 +8,6 @@ settings:
     CURRENT_PROJECT_VERSION: 1
     VERSIONING_SYSTEM: apple-generic
     MARKETING_VERSION: 1.0
-    GENERATE_INFOPLIST_FILE: YES
-    INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
-    INFOPLIST_KEY_UILaunchScreen_Generation: NO
-    INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen
-    INFOPLIST_KEY_CFBundleDisplayName: Notyfi
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
 packages:
@@ -25,6 +20,9 @@ packages:
   Supabase:
     url: https://github.com/supabase/supabase-swift.git
     from: 2.0.0
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS.git
+    from: 8.0.0
 
 targets:
   Notyfi:
@@ -45,6 +43,22 @@ targets:
       - path: Shared
       - path: Services
       - path: ViewModels
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Notyfi
+        UILaunchStoryboardName: LaunchScreen
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        OPENAI_API_KEY: $(OPENAI_API_KEY)
+        NSCameraUsageDescription: Notyfi uses the camera so you can turn bills, receipts, and confirmations into money notes.
+        NSMicrophoneUsageDescription: Notyfi uses the microphone so you can dictate money notes.
+        NSPhotoLibraryUsageDescription: Notyfi can read a photo from your library so you can turn bills, receipts, and confirmations into money notes.
+        NSSpeechRecognitionUsageDescription: Notyfi uses speech recognition so you can dictate money notes.
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLSchemes:
+              - com.googleusercontent.apps.216447990819-4avsmvn10s1uejikf59dlu0taiqpalka
     dependencies:
       - target: NotyfiWidget
         embed: true
@@ -55,13 +69,10 @@ targets:
         product: Supabase
       - package: Supabase
         product: Auth
+      - package: GoogleSignIn
+        product: GoogleSignIn
     settings:
       base:
-        INFOPLIST_KEY_OPENAI_API_KEY: $(OPENAI_API_KEY)
-        INFOPLIST_KEY_NSCameraUsageDescription: Notyfi uses the camera so you can turn bills, receipts, and confirmations into money notes.
-        INFOPLIST_KEY_NSMicrophoneUsageDescription: Notyfi uses the microphone so you can dictate money notes.
-        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: Notyfi can read a photo from your library so you can turn bills, receipts, and confirmations into money notes.
-        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: Notyfi uses speech recognition so you can dictate money notes.
         TARGETED_DEVICE_FAMILY: 1
         CODE_SIGN_ENTITLEMENTS: Config/Notyfi.entitlements
   NotyfiWidget:

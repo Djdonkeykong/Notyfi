@@ -66,6 +66,7 @@ struct OnboardingAuthView: View {
     private var authButtons: some View {
         VStack(spacing: 12) {
             appleSignInButton
+            googleSignInButton
 
             divider
 
@@ -98,6 +99,29 @@ struct OnboardingAuthView: View {
         .disabled(authManager.isLoading)
     }
 
+    private var googleSignInButton: some View {
+        Button {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            signInWithGoogle()
+        } label: {
+            HStack(spacing: 10) {
+                Text("G")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Color(red: 0.26, green: 0.52, blue: 0.96))
+                Text("Continue with Google")
+                    .font(.notyfi(.body, weight: .semibold))
+                    .foregroundStyle(.primary)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(.white)
+            .clipShape(Capsule())
+            .overlay(Capsule().stroke(Color.primary.opacity(0.14), lineWidth: 1))
+            .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+        }
+        .disabled(authManager.isLoading)
+    }
+
     private var divider: some View {
         HStack(spacing: 12) {
             Rectangle()
@@ -113,6 +137,19 @@ struct OnboardingAuthView: View {
     }
 
     // MARK: - Actions
+
+    private func signInWithGoogle() {
+        errorMessage = nil
+        Task {
+            do {
+                try await authManager.signInWithGoogle()
+            } catch let error as AuthError where error.isCancelled {
+                // User dismissed — do nothing
+            } catch {
+                errorMessage = "Sign in failed. Please try again."
+            }
+        }
+    }
 
     private func signInWithApple() {
         errorMessage = nil

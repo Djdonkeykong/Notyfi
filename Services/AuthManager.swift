@@ -3,6 +3,8 @@ import Supabase
 import Auth
 import AuthenticationServices
 import CryptoKit
+import GoogleSignIn
+import UIKit
 
 @MainActor
 final class AuthManager: ObservableObject {
@@ -53,6 +55,30 @@ final class AuthManager: ObservableObject {
                 nonce: rawNonce
             )
         )
+    }
+
+    // MARK: - Google Sign In
+
+    func signInWithGoogle() async throws {
+        isLoading = true
+        defer { isLoading = false }
+
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
+            throw AuthError.googleSignInFailed
+        }
+
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: root)
+            guard let idToken = result.user.idToken?.tokenString else {
+                throw AuthError.missingIdentityToken
+            }
+            try await SupabaseService.client.auth.signInWithIdToken(
+                credentials: .init(provider: .google, idToken: idToken)
+            )
+        } catch let error as GIDSignInError where error.code == .canceled {
+            throw AuthError.googleSignInCancelled
+        }
     }
 
     // MARK: - Email
@@ -145,21 +171,27 @@ enum AuthError: LocalizedError {
     case missingIdentityToken
     case appleSignInCancelled
     case appleSignInFailed(Error)
+    case googleSignInCancelled
+    case googleSignInFailed
 
     var errorDescription: String? {
         switch self {
         case .missingIdentityToken:
-            return "Apple Sign In failed: missing identity token."
-        case .appleSignInCancelled:
+            return "Sign in failed: missing identity token."
+        case .appleSignInCancelled, .googleSignInCancelled:
             return "Sign in cancelled."
         case .appleSignInFailed(let error):
             return error.localizedDescription
+        case .googleSignInFailed:
+            return "Google Sign In failed. Please try again."
         }
     }
 
     var isCancelled: Bool {
-        if case .appleSignInCancelled = self { return true }
-        return false
+        switch self {
+        case .appleSignInCancelled, .googleSignInCancelled: return true
+        default: return false
+        }
     }
 }
 
