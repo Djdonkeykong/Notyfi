@@ -68,21 +68,13 @@ final class AuthManager: ObservableObject {
             throw AuthError.googleSignInFailed
         }
 
-        let rawNonce = randomNonce()
-        let hashedNonce = sha256(rawNonce)
-
         do {
-            let result = try await GIDSignIn.sharedInstance.signIn(
-                withPresenting: root,
-                hint: nil,
-                additionalScopes: nil,
-                nonce: hashedNonce
-            )
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: root)
             guard let idToken = result.user.idToken?.tokenString else {
                 throw AuthError.missingIdentityToken
             }
             try await SupabaseService.client.auth.signInWithIdToken(
-                credentials: .init(provider: .google, idToken: idToken, nonce: rawNonce)
+                credentials: .init(provider: .google, idToken: idToken)
             )
         } catch let error as GIDSignInError where error.code == .canceled {
             throw AuthError.googleSignInCancelled
