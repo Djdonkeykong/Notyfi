@@ -65,7 +65,9 @@ struct OnboardingCurrencyView: View {
                         Text(currency.title)
                             .font(.notyfi(.subheadline))
                             .foregroundStyle(.primary)
+                            .lineLimit(1)
                     }
+                    .frame(height: 28)
                 }
             }
         }
