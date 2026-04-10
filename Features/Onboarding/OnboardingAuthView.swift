@@ -19,14 +19,14 @@ struct OnboardingAuthView: View {
             .padding(.top, 8)
             .padding(.bottom, 8)
 
-            ScrollView(showsIndicators: false) {
+            ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     illustration
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 36)
 
-                    Text("Save Your Progress")
-                        .font(.notyfi(.title, weight: .bold))
+                    Text("Save your progress")
+                        .font(.notyfi(.title2, weight: .bold))
                         .padding(.bottom, 10)
 
                     Text("Create an account to sync your data across devices and never lose your progress.")
@@ -41,14 +41,15 @@ struct OnboardingAuthView: View {
                             .foregroundStyle(.red)
                             .padding(.top, 6)
                     }
+
+                    authButtons
+                        .padding(.top, 32)
                 }
                 .padding(.horizontal, 24)
             }
-
-            authButtons
-                .padding(.horizontal, 24)
-                .padding(.bottom, 40)
-                .padding(.top, 16)
+            .contentMargins(.bottom, 40, for: .scrollContent)
+            .scrollBounceBehavior(.always)
+            .scrollIndicators(.hidden)
         }
         .background(NotyfiTheme.brandLight.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)

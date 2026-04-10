@@ -5,7 +5,7 @@ struct OnboardingWidgetView: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 Text("Add the Notyfi widget")
-                    .font(.notyfi(.title, weight: .bold))
+                    .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
                 Text("People who add the widget are far more consistent. Your spending is always one glance away.")

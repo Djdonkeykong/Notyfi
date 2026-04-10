@@ -28,7 +28,7 @@ struct OnboardingCurrencyView: View {
                     .padding(.vertical, 24)
 
                 Text("Pick your currency")
-                    .font(.notyfi(.title, weight: .bold))
+                    .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
                 Text("Used to format your entries and budget. You can change this later.")

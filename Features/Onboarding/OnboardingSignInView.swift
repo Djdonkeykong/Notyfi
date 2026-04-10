@@ -26,7 +26,7 @@ struct OnboardingSignInView: View {
                         .padding(.vertical, 36)
 
                     Text("Welcome back")
-                        .font(.notyfi(.title, weight: .bold))
+                        .font(.notyfi(.title2, weight: .bold))
                         .padding(.bottom, 10)
 
                     Text("Sign in to your account to pick up right where you left off.")

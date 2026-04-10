@@ -8,7 +8,7 @@ struct OnboardingInputMethodsView: View {
                     .padding(.bottom, 14)
 
                 Text("You don't have to type everything")
-                    .font(.notyfi(.title, weight: .bold))
+                    .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
                 Text("Three other quick ways to log a spend without stopping what you're doing.")

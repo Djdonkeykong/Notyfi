@@ -12,7 +12,7 @@ struct OnboardingHowItWorksView: View {
                     .padding(.bottom, 14)
 
                 Text("Just write what you spent")
-                    .font(.notyfi(.title, weight: .bold))
+                    .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
                 Text("Type anything naturally. Notyfi reads it and fills in the details.")

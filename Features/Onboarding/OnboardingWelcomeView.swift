@@ -28,10 +28,10 @@ struct OnboardingWelcomeView: View {
     // MARK: - Subviews
 
     private var illustration: some View {
-        Image("WelcomeLogo")
+        Image("MascotWelcome")
             .resizable()
             .scaledToFit()
-            .frame(width: 180, height: 180)
+            .frame(width: 260, height: 260)
     }
 
     private var headline: some View {

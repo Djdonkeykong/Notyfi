@@ -8,14 +8,19 @@ struct OnboardingFlowView: View {
     @AppStorage(NotyfiCurrency.storageKey) private var currencyRawValue = NotyfiCurrencyPreference.auto.rawValue
 
     @State private var currentStep: OnboardingStep = .welcome
-    @State private var outgoingStep: OnboardingStep? = nil
     @State private var stepHistory: [OnboardingStep] = []
     @State private var budgetAmountText: String = ""
-    @State private var isGoingBack: Bool = false
 
-    // Content slide — fractional: 0 = on screen, -1 = off left, +1 = off right
-    @State private var incomingOffset: CGFloat = 0
-    @State private var outgoingOffset: CGFloat = 0
+    // Two persistent rendering slots. The active slot's view is never recreated
+    // during a transition, so its scroll position is preserved while it slides out.
+    private enum Slot { case a, b }
+    @State private var slotA: OnboardingStep = .welcome
+    @State private var slotB: OnboardingStep = .welcome
+    @State private var slotAOffset: CGFloat = 0
+    @State private var slotBOffset: CGFloat = 1   // B starts off-screen right
+    @State private var slotAZIndex: Double = 1
+    @State private var slotBZIndex: Double = 0
+    @State private var activeSlot: Slot = .a
 
     // Chrome slide — only moves on boundary transitions (welcome<->step1, widget<->auth)
     @State private var chromeVisible: Bool = false
@@ -66,15 +71,13 @@ struct OnboardingFlowView: View {
 
             GeometryReader { geo in
                 ZStack(alignment: .top) {
-                    if let outgoing = outgoingStep {
-                        stepContent(for: outgoing)
-                            .offset(x: outgoingOffset * geo.size.width)
-                            .zIndex(isGoingBack ? 1 : 0)
-                    }
+                    stepContent(for: slotA)
+                        .offset(x: slotAOffset * geo.size.width)
+                        .zIndex(slotAZIndex)
 
-                    stepContent(for: currentStep)
-                        .offset(x: incomingOffset * geo.size.width)
-                        .zIndex(isGoingBack ? 0 : 1)
+                    stepContent(for: slotB)
+                        .offset(x: slotBOffset * geo.size.width)
+                        .zIndex(slotBZIndex)
                 }
                 .clipped()
                 .onAppear { viewWidth = geo.size.width }
@@ -200,40 +203,50 @@ struct OnboardingFlowView: View {
         let willBeChrome = hasChrome(step)
 
         if pushCurrent { stepHistory.append(currentStep) }
-        outgoingStep = currentStep
         currentStep = step
-        isGoingBack = false
-        outgoingOffset = 0
-        incomingOffset = 1
 
-        // Prepare chrome for this transition
+        // Prepare chrome for boundary transitions
         if !wasChrome && willBeChrome {
-            // Welcome -> HowItWorks: chrome slides in from the right with the content
             chromeVisible = true
             chromeOffset = 1
         } else if wasChrome && !willBeChrome {
-            // Widget -> Auth: chrome slides out to the left with the content
-            // chromeVisible stays true so it can animate out
             chromeOffset = 0
         }
-        // Middle steps: chromeVisible/chromeOffset unchanged (stays locked in place)
 
-        withAnimation(.spring(response: 0.38, dampingFraction: 0.96)) {
-            outgoingOffset = -1
-            incomingOffset = 0
-            if !wasChrome && willBeChrome {
-                chromeOffset = 0   // slides to center
-            } else if wasChrome && !willBeChrome {
-                chromeOffset = -1  // exits left
-            }
+        // Load new content into the inactive slot.
+        // Incoming is on top for forward navigation.
+        switch activeSlot {
+        case .a:
+            slotB = step
+            slotBOffset = 1
+            slotBZIndex = 1
+            slotAZIndex = 0
+        case .b:
+            slotA = step
+            slotAOffset = 1
+            slotAZIndex = 1
+            slotBZIndex = 0
         }
 
+        withAnimation(.spring(response: 0.38, dampingFraction: 0.96)) {
+            switch activeSlot {
+            case .a:
+                slotAOffset = -1   // active slides out left
+                slotBOffset = 0    // incoming slides in from right
+            case .b:
+                slotBOffset = -1
+                slotAOffset = 0
+            }
+            if !wasChrome && willBeChrome { chromeOffset = 0 }
+            else if wasChrome && !willBeChrome { chromeOffset = -1 }
+        }
+
+        let newActive: Slot = activeSlot == .a ? .b : .a
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-            outgoingStep = nil
+            activeSlot = newActive
             chromeVisible = willBeChrome
             // chromeOffset is always set explicitly at the start of the next
-            // transition — resetting it here risks a one-frame flash if
-            // chromeVisible and chromeOffset don't collapse in the same render.
+            // transition — resetting it here risks a one-frame flash.
         }
     }
 
@@ -241,37 +254,49 @@ struct OnboardingFlowView: View {
         guard let prev = stepHistory.popLast() else { return }
         let wasChrome = hasChrome(currentStep)
         let willBeChrome = hasChrome(prev)
-
-        outgoingStep = currentStep
         currentStep = prev
-        isGoingBack = true
-        outgoingOffset = 0
-        incomingOffset = -1
 
-        // Prepare chrome for this transition
+        // Prepare chrome for boundary transitions
         if !wasChrome && willBeChrome {
             // Auth -> Widget (back): chrome slides in from the left with the content
             chromeVisible = true
             chromeOffset = -1
         } else if wasChrome && !willBeChrome {
-            // HowItWorks -> Welcome (back): chrome slides out to the right with the content
-            // chromeVisible stays true so it can animate out
+            // HowItWorks -> Welcome (back): chrome slides out to the right
             chromeOffset = 0
         }
-        // Middle steps: chrome stays locked in place
 
-        withAnimation(.spring(response: 0.38, dampingFraction: 0.96)) {
-            outgoingOffset = 1
-            incomingOffset = 0
-            if !wasChrome && willBeChrome {
-                chromeOffset = 0   // slides to center from left
-            } else if wasChrome && !willBeChrome {
-                chromeOffset = 1   // exits right
-            }
+        // Load previous content into the inactive slot.
+        // Outgoing is on top for back navigation (slides away revealing content below).
+        switch activeSlot {
+        case .a:
+            slotB = prev
+            slotBOffset = -1   // B starts off-screen left
+            slotBZIndex = 0
+            slotAZIndex = 1    // active (outgoing) stays on top
+        case .b:
+            slotA = prev
+            slotAOffset = -1
+            slotAZIndex = 0
+            slotBZIndex = 1
         }
 
+        withAnimation(.spring(response: 0.38, dampingFraction: 0.96)) {
+            switch activeSlot {
+            case .a:
+                slotAOffset = 1    // active slides out right
+                slotBOffset = 0    // incoming slides in from left
+            case .b:
+                slotBOffset = 1
+                slotAOffset = 0
+            }
+            if !wasChrome && willBeChrome { chromeOffset = 0 }
+            else if wasChrome && !willBeChrome { chromeOffset = 1 }   // exits right
+        }
+
+        let newActive: Slot = activeSlot == .a ? .b : .a
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-            outgoingStep = nil
+            activeSlot = newActive
             chromeVisible = willBeChrome
         }
     }
@@ -314,7 +339,7 @@ enum OnboardingStep: Hashable {
     case beDetailed
     case inputMethods
     case widget
-    case auth     // "Save Your Progress" — end of onboarding
+    case auth     // "Save your progress" — end of onboarding
     case signIn   // "Welcome back" — from welcome page sign-in link
 }
 

@@ -27,7 +27,7 @@ struct OnboardingBudgetView: View {
                     .padding(.vertical, 24)
 
                 Text("Set a monthly budget")
-                    .font(.notyfi(.title, weight: .bold))
+                    .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
                 Text("Notyfi will track your spending against it and warn you when you're getting close.")

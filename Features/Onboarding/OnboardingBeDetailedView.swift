@@ -8,7 +8,7 @@ struct OnboardingBeDetailedView: View {
                     .padding(.bottom, 14)
 
                 Text("The more detail,\nthe better it tracks")
-                    .font(.notyfi(.title, weight: .bold))
+                    .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
 
                 Text("Specific entries get categorized more accurately and make your spending history actually useful.")
