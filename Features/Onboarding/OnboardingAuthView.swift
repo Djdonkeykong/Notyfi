@@ -86,7 +86,9 @@ struct OnboardingAuthView: View {
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: "apple.logo")
-                    .font(.system(size: 18, weight: .medium))
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 21, height: 21)
                 Text("Continue with Apple")
                     .font(.notyfi(.body, weight: .semibold))
             }
@@ -106,8 +108,9 @@ struct OnboardingAuthView: View {
         } label: {
             HStack(spacing: 10) {
                 Text("G")
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(Color(red: 0.26, green: 0.52, blue: 0.96))
+                    .frame(width: 21, height: 21)
                 Text("Continue with Google")
                     .font(.notyfi(.body, weight: .semibold))
                     .foregroundStyle(.primary)
