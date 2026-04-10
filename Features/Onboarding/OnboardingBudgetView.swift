@@ -67,10 +67,10 @@ struct OnboardingBudgetView: View {
 
             keyboardHeight = frame.height
 
-            // Wait for the bottom margin to re-layout, then scroll the input into view
+            // Scroll just enough to bring the input above the keyboard
             DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
                 withAnimation(.easeOut(duration: 0.2)) {
-                    scrollProxy?.scrollTo("amountInput", anchor: .bottom)
+                    scrollProxy?.scrollTo("amountInput", anchor: UnitPoint(x: 0.5, y: 0.85))
                 }
             }
         }
