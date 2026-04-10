@@ -3,7 +3,7 @@ import AuthenticationServices
 
 struct OnboardingAuthView: View {
     @ObservedObject var authManager: AuthManager
-    @Environment(\.dismiss) private var dismiss
+    let onBack: () -> Void
 
     @State private var showEmailSignUp = false
     @State private var errorMessage: String? = nil
@@ -12,7 +12,7 @@ struct OnboardingAuthView: View {
         VStack(spacing: 0) {
             // No progress bar on final step — auth is the "finish line"
             HStack {
-                OnboardingBackButton(action: { dismiss() })
+                OnboardingBackButton(action: { onBack() })
                 Spacer()
             }
             .padding(.horizontal, 20)
@@ -312,7 +312,5 @@ struct EmailSignUpView: View {
 
 
 #Preview {
-    NavigationStack {
-        OnboardingAuthView(authManager: AuthManager())
-    }
+    OnboardingAuthView(authManager: AuthManager(), onBack: {})
 }

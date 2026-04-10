@@ -7,14 +7,16 @@ struct OnboardingFlowView: View {
     @AppStorage("notyfi.onboarding.complete") private var isComplete = false
     @AppStorage(NotyfiCurrency.storageKey) private var currencyRawValue = NotyfiCurrencyPreference.auto.rawValue
 
-    @State private var path: [OnboardingStep] = []
+    @State private var currentStep: OnboardingStep = .welcome
+    @State private var stepHistory: [OnboardingStep] = []
     @State private var budgetAmountText: String = ""
-
-    private var currentStep: OnboardingStep? { path.last }
+    @State private var isGoingBack: Bool = false
 
     private var showChrome: Bool {
-        guard let step = currentStep else { return false }
-        return step != .auth
+        switch currentStep {
+        case .welcome, .auth: return false
+        default: return true
+        }
     }
 
     private var progressStep: Int {
@@ -44,20 +46,17 @@ struct OnboardingFlowView: View {
     }
 
     var body: some View {
-        // Every pushed view carries the same brandLight background.
-        // UIKit slides both outgoing and incoming views — identical backgrounds
-        // make the background appear stationary. Only content visibly moves.
-        NavigationStack(path: $path) {
-            OnboardingWelcomeView(
-                onGetStarted: { path.append(.howItWorks) },
-                onSignIn: { path = [.auth] }
-            )
-            .navigationDestination(for: OnboardingStep.self) { step in
-                destination(for: step)
-            }
+        ZStack {
+            // Truly static — never participates in any transition.
+            NotyfiTheme.brandLight.ignoresSafeArea()
+
+            currentContent
+                .id(currentStep)
+                .transition(.asymmetric(
+                    insertion: .move(edge: isGoingBack ? .leading : .trailing),
+                    removal: .move(edge: isGoingBack ? .trailing : .leading)
+                ))
         }
-        // Chrome overlays are outside the NavigationStack — they never push or pop.
-        // Simple opacity so they don't fight the native slide animation.
         .overlay(alignment: .top) {
             if showChrome {
                 topChrome
@@ -76,11 +75,40 @@ struct OnboardingFlowView: View {
         }
     }
 
-    // MARK: - Floating chrome
+    // MARK: - Content
+
+    @ViewBuilder
+    private var currentContent: some View {
+        switch currentStep {
+        case .welcome:
+            OnboardingWelcomeView(
+                onGetStarted: { navigate(to: .howItWorks) },
+                onSignIn: { navigate(to: .auth) }
+            )
+        case .howItWorks:
+            OnboardingHowItWorksView()
+        case .currency:
+            OnboardingCurrencyView(currencyRawValue: $currencyRawValue)
+        case .budget:
+            OnboardingBudgetView(currencyCode: selectedCurrencyCode, amountText: $budgetAmountText)
+        case .notifications:
+            OnboardingNotificationsView()
+        case .beDetailed:
+            OnboardingBeDetailedView()
+        case .inputMethods:
+            OnboardingInputMethodsView()
+        case .widget:
+            OnboardingWidgetView()
+        case .auth:
+            OnboardingAuthView(authManager: authManager, onBack: { goBack() })
+        }
+    }
+
+    // MARK: - Chrome
 
     private var topChrome: some View {
         HStack(spacing: 12) {
-            OnboardingBackButton { path.removeLast() }
+            OnboardingBackButton { goBack() }
             OnboardingProgressBar(current: progressStep, total: 7)
             Color.clear.frame(width: 40, height: 40)
         }
@@ -114,38 +142,30 @@ struct OnboardingFlowView: View {
         }
     }
 
-    // MARK: - Destinations
+    // MARK: - Navigation
 
-    @ViewBuilder
-    private func destination(for step: OnboardingStep) -> some View {
-        switch step {
-        case .howItWorks:
-            OnboardingHowItWorksView()
-        case .currency:
-            OnboardingCurrencyView(currencyRawValue: $currencyRawValue)
-        case .budget:
-            OnboardingBudgetView(currencyCode: selectedCurrencyCode, amountText: $budgetAmountText)
-        case .notifications:
-            OnboardingNotificationsView()
-        case .beDetailed:
-            OnboardingBeDetailedView()
-        case .inputMethods:
-            OnboardingInputMethodsView()
-        case .widget:
-            OnboardingWidgetView()
-        case .auth:
-            OnboardingAuthView(authManager: authManager)
+    private func navigate(to step: OnboardingStep) {
+        stepHistory.append(currentStep)
+        withAnimation(.spring(response: 0.38, dampingFraction: 0.96)) {
+            isGoingBack = false
+            currentStep = step
         }
     }
 
-    // MARK: - Actions
+    private func goBack() {
+        guard let prev = stepHistory.popLast() else { return }
+        withAnimation(.spring(response: 0.38, dampingFraction: 0.96)) {
+            isGoingBack = true
+            currentStep = prev
+        }
+    }
 
     private func handleContinue() {
         switch currentStep {
         case .howItWorks:
-            path.append(.currency)
+            navigate(to: .currency)
         case .currency:
-            path.append(.budget)
+            navigate(to: .budget)
         case .budget:
             let normalized = budgetAmountText
                 .replacingOccurrences(of: ",", with: ".")
@@ -154,24 +174,23 @@ struct OnboardingFlowView: View {
                 store.setMonthlySpendingLimit(amount)
             }
             budgetAmountText = ""
-            path.append(.notifications)
+            navigate(to: .notifications)
         case .notifications:
-            path.append(.beDetailed)
+            navigate(to: .beDetailed)
         case .beDetailed:
-            path.append(.inputMethods)
+            navigate(to: .inputMethods)
         case .inputMethods:
-            path.append(.widget)
+            navigate(to: .widget)
         case .widget:
-            path.append(.auth)
+            navigate(to: .auth)
         default:
             break
         }
     }
-
-
 }
 
 enum OnboardingStep: Hashable {
+    case welcome
     case howItWorks
     case currency
     case budget
