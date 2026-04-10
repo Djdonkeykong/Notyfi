@@ -28,7 +28,7 @@ struct OnboardingPrimaryButton: View {
             .frame(height: 56)
             .background(NotyfiTheme.brandPrimary)
             .clipShape(Capsule())
-            .shadow(color: NotyfiTheme.brandPrimary.opacity(0.4), radius: 18, x: 0, y: 8)
+            .shadow(color: NotyfiTheme.brandPrimary.opacity(0.25), radius: 12, x: 0, y: 6)
         }
         .disabled(isLoading)
     }
