@@ -93,6 +93,9 @@ struct OnboardingSignInView: View {
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showEmailSignIn) {
             EmailSignUpView(authManager: authManager, initialIsSignIn: true)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(26)
         }
     }
 

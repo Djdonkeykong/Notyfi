@@ -48,6 +48,9 @@ struct OnboardingAuthView: View {
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showEmailSignUp) {
             EmailSignUpView(authManager: authManager)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(26)
         }
     }
 
@@ -198,6 +201,7 @@ struct EmailSignUpView: View {
     @State private var password = ""
     @State private var isSignIn: Bool
     @State private var errorMessage: String? = nil
+    @State private var showForgotPassword = false
     @FocusState private var focusedField: Field?
 
     enum Field { case email, password }
@@ -208,25 +212,18 @@ struct EmailSignUpView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                NotyfiTheme.brandLight.ignoresSafeArea()
+        ZStack {
+            NotyfiTheme.background.ignoresSafeArea()
 
-                VStack(alignment: .leading, spacing: 20) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(isSignIn ? "Welcome back".notyfiLocalized : "Create account".notyfiLocalized)
-                            .font(.notyfi(.title2, weight: .bold))
-                        Text(isSignIn ? "Sign in to your Notyfi account.".notyfiLocalized : "Start tracking. Your data, always backed up.".notyfiLocalized)
-                            .font(.notyfi(.subheadline))
-                            .foregroundStyle(NotyfiTheme.secondaryText)
-                    }
+            VStack(alignment: .leading, spacing: 0) {
+                sheetHeader
+                    .padding(.horizontal, 20)
+                    .padding(.top, 22)
+                    .padding(.bottom, 28)
 
-                    VStack(spacing: 12) {
-                        inputField(label: "Email", text: $email, field: .email,
-                                   keyboard: .emailAddress, contentType: .emailAddress, maxLength: 254)
-                        inputField(label: "Password", text: $password, field: .password,
-                                   isSecure: true, contentType: isSignIn ? .password : .newPassword)
-                    }
+                VStack(spacing: 14) {
+                    emailField
+                    passwordField
 
                     if let error = errorMessage {
                         Text(error)
@@ -240,6 +237,7 @@ struct EmailSignUpView: View {
                     ) {
                         submit()
                     }
+                    .padding(.top, 4)
 
                     HStack(spacing: 4) {
                         Text(isSignIn ? "No account?".notyfiLocalized : "Already have one?".notyfiLocalized)
@@ -251,61 +249,98 @@ struct EmailSignUpView: View {
                         .foregroundStyle(NotyfiTheme.brandPrimary)
                     }
                     .font(.notyfi(.subheadline))
+                    .frame(maxWidth: .infinity, alignment: .center)
+                }
+                .padding(.horizontal, 20)
 
-                    Spacer()
-                }
-                .padding(24)
+                Spacer()
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel".notyfiLocalized) { dismiss() }
-                        .foregroundStyle(NotyfiTheme.brandPrimary)
-                }
-            }
+        }
+        .sheet(isPresented: $showForgotPassword) {
+            ForgotPasswordSheet(authManager: authManager)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(26)
         }
     }
 
-    private func inputField(
-        label: String,
-        text: Binding<String>,
-        field: Field,
-        isSecure: Bool = false,
-        keyboard: UIKeyboardType = .default,
-        contentType: UITextContentType,
-        maxLength: Int? = nil
-    ) -> some View {
+    private var sheetHeader: some View {
+        HStack(alignment: .top) {
+            Text(isSignIn ? "Sign in".notyfiLocalized : "Create account".notyfiLocalized)
+                .font(.notyfi(.title3, weight: .semibold))
+                .foregroundStyle(.primary.opacity(0.84))
+
+            Spacer()
+
+            Button(action: { dismiss() }) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .frame(width: 38, height: 38)
+                    .background {
+                        Circle()
+                            .fill(NotyfiTheme.elevatedSurface)
+                    }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private var emailField: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(label.notyfiLocalized)
+            Text("Email".notyfiLocalized)
                 .font(.notyfi(.caption, weight: .medium))
                 .foregroundStyle(NotyfiTheme.secondaryText)
-            Group {
-                if isSecure {
-                    SecureField("", text: text)
-                } else {
-                    TextField("", text: text)
-                        .keyboardType(keyboard)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
+            TextField("", text: $email)
+                .keyboardType(.emailAddress)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .textContentType(.emailAddress)
+                .focused($focusedField, equals: .email)
+                .onChange(of: email) { _, newValue in
+                    if newValue.count > 254 { email = String(newValue.prefix(254)) }
+                }
+                .padding(16)
+                .background(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(
+                            focusedField == .email ? NotyfiTheme.brandPrimary : Color.primary.opacity(0.10),
+                            lineWidth: focusedField == .email ? 1.5 : 1
+                        )
+                }
+        }
+    }
+
+    private var passwordField: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("Password".notyfiLocalized)
+                    .font(.notyfi(.caption, weight: .medium))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                Spacer()
+                if isSignIn {
+                    Button("Forgot?".notyfiLocalized) {
+                        showForgotPassword = true
+                    }
+                    .font(.notyfi(.caption, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.brandPrimary)
                 }
             }
-            .textContentType(contentType)
-            .focused($focusedField, equals: field)
-            .onChange(of: text.wrappedValue) { _, newValue in
-                if let max = maxLength, newValue.count > max {
-                    text.wrappedValue = String(newValue.prefix(max))
+            SecureField("", text: $password)
+                .textContentType(isSignIn ? .password : .newPassword)
+                .focused($focusedField, equals: .password)
+                .padding(16)
+                .background(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(
+                            focusedField == .password ? NotyfiTheme.brandPrimary : Color.primary.opacity(0.10),
+                            lineWidth: focusedField == .password ? 1.5 : 1
+                        )
                 }
-            }
-            .padding(16)
-            .background(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(
-                        focusedField == field ? NotyfiTheme.brandPrimary : Color.primary.opacity(0.10),
-                        lineWidth: focusedField == field ? 1.5 : 1
-                    )
-            }
         }
     }
 
@@ -323,7 +358,6 @@ struct EmailSignUpView: View {
                 } else {
                     try await authManager.signUpWithEmail(email, password: password)
                     if authManager.pendingEmailConfirmation {
-                        // Show confirmation prompt — do not dismiss yet.
                         errorMessage = "Check your inbox and confirm your email, then sign in.".notyfiLocalized
                         isSignIn = true
                     } else {
@@ -335,6 +369,143 @@ struct EmailSignUpView: View {
             } catch {
                 errorMessage = error.localizedDescription
             }
+        }
+    }
+}
+
+// MARK: - Forgot Password Sheet
+
+private struct ForgotPasswordSheet: View {
+    @ObservedObject var authManager: AuthManager
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var email = ""
+    @State private var isSent = false
+    @State private var isLoading = false
+    @State private var errorMessage: String? = nil
+    @FocusState private var emailFocused: Bool
+
+    var body: some View {
+        ZStack {
+            NotyfiTheme.background.ignoresSafeArea()
+
+            VStack(alignment: .leading, spacing: 0) {
+                sheetHeader
+                    .padding(.horizontal, 20)
+                    .padding(.top, 22)
+                    .padding(.bottom, 28)
+
+                if isSent {
+                    sentConfirmation
+                } else {
+                    form
+                }
+
+                Spacer()
+            }
+        }
+    }
+
+    private var sheetHeader: some View {
+        HStack(alignment: .top) {
+            Text("Reset password".notyfiLocalized)
+                .font(.notyfi(.title3, weight: .semibold))
+                .foregroundStyle(.primary.opacity(0.84))
+
+            Spacer()
+
+            Button(action: { dismiss() }) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .frame(width: 38, height: 38)
+                    .background {
+                        Circle()
+                            .fill(NotyfiTheme.elevatedSurface)
+                    }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private var form: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Enter your email and we'll send you a reset link.".notyfiLocalized)
+                .font(.notyfi(.body))
+                .foregroundStyle(NotyfiTheme.secondaryText)
+                .lineSpacing(3)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Email".notyfiLocalized)
+                    .font(.notyfi(.caption, weight: .medium))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                TextField("", text: $email)
+                    .keyboardType(.emailAddress)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .textContentType(.emailAddress)
+                    .focused($emailFocused)
+                    .padding(16)
+                    .background(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(
+                                emailFocused ? NotyfiTheme.brandPrimary : Color.primary.opacity(0.10),
+                                lineWidth: emailFocused ? 1.5 : 1
+                            )
+                    }
+            }
+
+            if let error = errorMessage {
+                Text(error)
+                    .font(.notyfi(.caption))
+                    .foregroundStyle(.red)
+            }
+
+            OnboardingPrimaryButton(title: "Send Reset Link", isLoading: isLoading) {
+                sendReset()
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+
+    private var sentConfirmation: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "envelope.badge.checkmark")
+                .font(.system(size: 44, weight: .light))
+                .foregroundStyle(NotyfiTheme.brandPrimary)
+                .padding(.bottom, 4)
+
+            Text("Check your inbox".notyfiLocalized)
+                .font(.notyfi(.title3, weight: .semibold))
+
+            Text("We sent a reset link to \(email). Follow it to set a new password.".notyfiLocalized)
+                .font(.notyfi(.body))
+                .foregroundStyle(NotyfiTheme.secondaryText)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 20)
+    }
+
+    private func sendReset() {
+        errorMessage = nil
+        let trimmed = email.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else {
+            errorMessage = "Please enter your email.".notyfiLocalized
+            return
+        }
+        isLoading = true
+        Task {
+            do {
+                try await authManager.resetPassword(email: trimmed)
+                isSent = true
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+            isLoading = false
         }
     }
 }

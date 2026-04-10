@@ -116,6 +116,10 @@ final class AuthManager: ObservableObject {
         )
     }
 
+    func resetPassword(email: String) async throws {
+        try await SupabaseService.client.auth.resetPasswordForEmail(email)
+    }
+
     // MARK: - Sign Out
 
     func signOut() {
