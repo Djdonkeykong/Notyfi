@@ -44,42 +44,33 @@ struct OnboardingFlowView: View {
     }
 
     var body: some View {
-        ZStack {
-            // Static background — never participates in push/pop animation.
-            NotyfiTheme.brandLight.ignoresSafeArea()
-
-            NavigationStack(path: $path) {
-                OnboardingWelcomeView(
-                    onGetStarted: { path.append(.howItWorks) },
-                    onSignIn: { path = [.auth] }
-                )
-                .navigationDestination(for: OnboardingStep.self) { step in
-                    destination(for: step)
-                }
+        // Every pushed view carries the same brandLight background.
+        // UIKit slides both outgoing and incoming views — identical backgrounds
+        // make the background appear stationary. Only content visibly moves.
+        NavigationStack(path: $path) {
+            OnboardingWelcomeView(
+                onGetStarted: { path.append(.howItWorks) },
+                onSignIn: { path = [.auth] }
+            )
+            .navigationDestination(for: OnboardingStep.self) { step in
+                destination(for: step)
             }
         }
-        // Chrome overlays live outside NavigationStack — they never push or pop.
-        // Insertion slides from trailing to match the NavigationStack push direction.
-        // Removal fades (only happens when going to auth).
+        // Chrome overlays are outside the NavigationStack — they never push or pop.
+        // Simple opacity so they don't fight the native slide animation.
         .overlay(alignment: .top) {
             if showChrome {
                 topChrome
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .trailing),
-                        removal: .opacity
-                    ))
+                    .transition(.opacity)
             }
         }
         .overlay(alignment: .bottom) {
             if showChrome {
                 bottomChrome
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .trailing),
-                        removal: .opacity
-                    ))
+                    .transition(.opacity)
             }
         }
-        .animation(.spring(response: 0.38, dampingFraction: 0.92), value: showChrome)
+        .animation(.easeInOut(duration: 0.2), value: showChrome)
         .onChange(of: authManager.isAuthenticated) { _, authenticated in
             if authenticated { isComplete = true }
         }

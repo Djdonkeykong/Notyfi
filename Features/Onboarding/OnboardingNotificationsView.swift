@@ -30,6 +30,7 @@ struct OnboardingNotificationsView: View {
         .contentMargins(.bottom, 160, for: .scrollContent)
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
+        .background(NotyfiTheme.brandLight.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
     }
 

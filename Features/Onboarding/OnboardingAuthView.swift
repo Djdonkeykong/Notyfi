@@ -50,6 +50,7 @@ struct OnboardingAuthView: View {
                 .padding(.bottom, 40)
                 .padding(.top, 16)
         }
+        .background(NotyfiTheme.brandLight.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showEmailSignUp) {
             EmailSignUpView(authManager: authManager)
