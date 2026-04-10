@@ -53,20 +53,28 @@ struct OnboardingFlowView: View {
                 destination(for: step)
             }
         }
-        // Chrome overlays live outside NavigationStack — they never push or pop
+        // Chrome overlays live outside NavigationStack — they never push or pop.
+        // Insertion slides from trailing to match the NavigationStack push direction.
+        // Removal fades (only happens when going to auth).
         .overlay(alignment: .top) {
             if showChrome {
                 topChrome
-                    .transition(.opacity)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .trailing),
+                        removal: .opacity
+                    ))
             }
         }
         .overlay(alignment: .bottom) {
             if showChrome {
                 bottomChrome
-                    .transition(.opacity)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .trailing),
+                        removal: .opacity
+                    ))
             }
         }
-        .animation(.easeInOut(duration: 0.22), value: showChrome)
+        .animation(.spring(response: 0.38, dampingFraction: 0.92), value: showChrome)
         .onChange(of: authManager.isAuthenticated) { _, authenticated in
             if authenticated { isComplete = true }
         }
