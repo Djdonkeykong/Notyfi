@@ -1,14 +1,8 @@
 import SwiftUI
 
 struct OnboardingBudgetView: View {
-    let step: Int
-    let totalSteps: Int
     let currencyCode: String
-    let onNext: (Double?) -> Void
-    let onBack: () -> Void
-
-    @State private var amountText: String = ""
-    @State private var isEditing: Bool = false
+    @Binding var amountText: String
     @FocusState private var fieldFocused: Bool
 
     private var parsedAmount: Double? {
@@ -26,46 +20,35 @@ struct OnboardingBudgetView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            OnboardingNavBar(currentStep: step, totalSteps: totalSteps, onBack: onBack)
-                .padding(.bottom, 8)
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                OnboardingIllustration(symbol: "chart.bar.fill", size: 68)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 24)
 
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    illustration
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 28)
+                Text("Set a monthly budget")
+                    .font(.notyfi(.title, weight: .bold))
+                    .padding(.bottom, 10)
 
-                    Text("Set a monthly budget")
-                        .font(.notyfi(.title, weight: .bold))
-                        .padding(.bottom, 10)
+                Text("Notyfi will track your spending against it and warn you when you're getting close.")
+                    .font(.notyfi(.body))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .lineSpacing(3)
+                    .padding(.bottom, 28)
 
-                    Text("Notyfi will track your spending against it and warn you when you're getting close.")
-                        .font(.notyfi(.body))
-                        .foregroundStyle(NotyfiTheme.secondaryText)
-                        .lineSpacing(3)
-                        .padding(.bottom, 28)
-
-                    amountInput
-                }
-                .padding(.horizontal, 24)
+                amountInput
             }
-
-            bottomActions
-                .padding(.horizontal, 24)
-                .padding(.bottom, 40)
-                .padding(.top, 16)
+            .padding(.horizontal, 24)
         }
+        .contentMargins(.top, 72, for: .scrollContent)
+        .contentMargins(.bottom, 160, for: .scrollContent)
+        .scrollBounceBehavior(.always)
+        .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight.ignoresSafeArea())
+        .toolbar(.hidden, for: .navigationBar)
         .onTapGesture {
             fieldFocused = false
         }
-    }
-
-    // MARK: - Subviews
-
-    private var illustration: some View {
-        OnboardingIllustration(symbol: "chart.bar.fill", size: 68)
     }
 
     private var amountInput: some View {
@@ -100,7 +83,7 @@ struct OnboardingBudgetView: View {
             }
             .buttonStyle(.plain)
 
-            // Hidden text field for keyboard input
+            // Hidden text field drives keyboard input
             TextField("", text: $amountText)
                 .keyboardType(.decimalPad)
                 .focused($fieldFocused)
@@ -108,22 +91,10 @@ struct OnboardingBudgetView: View {
                 .opacity(0)
         }
     }
-
-    private var bottomActions: some View {
-        VStack(spacing: 14) {
-            OnboardingPrimaryButton(
-                title: parsedAmount != nil ? "Set Budget" : "Continue"
-            ) {
-                onNext(parsedAmount)
-            }
-
-            OnboardingSkipButton {
-                onNext(nil)
-            }
-        }
-    }
 }
 
 #Preview {
-    OnboardingBudgetView(step: 3, totalSteps: 5, currencyCode: "USD", onNext: { _ in }, onBack: {})
+    NavigationStack {
+        OnboardingBudgetView(currencyCode: "USD", amountText: .constant(""))
+    }
 }

@@ -1,54 +1,36 @@
 import SwiftUI
 
 struct OnboardingHowItWorksView: View {
-    let step: Int
-    let totalSteps: Int
-    let onNext: () -> Void
-    let onBack: () -> Void
-
     var body: some View {
-        VStack(spacing: 0) {
-            OnboardingNavBar(currentStep: step, totalSteps: totalSteps, onBack: onBack)
-                .padding(.bottom, 8)
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                OnboardingIllustration(symbol: "text.cursor", size: 72)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 24)
 
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    illustration
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 28)
+                OnboardingTag(text: "Quick tip")
+                    .padding(.bottom, 14)
 
-                    OnboardingTag(text: "Quick tip")
-                        .padding(.bottom, 14)
+                Text("Just write what you spent")
+                    .font(.notyfi(.title, weight: .bold))
+                    .padding(.bottom, 10)
 
-                    Text("Just write what you spent")
-                        .font(.notyfi(.title, weight: .bold))
-                        .padding(.bottom, 10)
+                Text("Type anything naturally. Notyfi reads it and fills in the details.")
+                    .font(.notyfi(.body))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .lineSpacing(3)
+                    .padding(.bottom, 24)
 
-                    Text("Type anything naturally. Notyfi reads it and fills in the details.")
-                        .font(.notyfi(.body))
-                        .foregroundStyle(NotyfiTheme.secondaryText)
-                        .lineSpacing(3)
-                        .padding(.bottom, 28)
-
-                    examples
-                }
-                .padding(.horizontal, 24)
+                examples
             }
-
-            Spacer(minLength: 0)
-
-            OnboardingPrimaryButton(title: "Continue", action: onNext)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 40)
-                .padding(.top, 16)
+            .padding(.horizontal, 24)
         }
+        .contentMargins(.top, 72, for: .scrollContent)
+        .contentMargins(.bottom, 160, for: .scrollContent)
+        .scrollBounceBehavior(.always)
+        .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight.ignoresSafeArea())
-    }
-
-    // MARK: - Subviews
-
-    private var illustration: some View {
-        OnboardingIllustration(symbol: "text.cursor", size: 72)
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     private var examples: some View {
@@ -77,7 +59,6 @@ private struct ExampleRow: View {
                     .font(.notyfi(.subheadline))
                     .foregroundStyle(.primary)
             }
-
             HStack(spacing: 8) {
                 Image(systemName: "arrow.down")
                     .font(.system(size: 10, weight: .semibold))
@@ -97,5 +78,7 @@ private struct ExampleRow: View {
 }
 
 #Preview {
-    OnboardingHowItWorksView(step: 1, totalSteps: 5, onNext: {}, onBack: {})
+    NavigationStack {
+        OnboardingHowItWorksView()
+    }
 }

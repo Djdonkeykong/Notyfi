@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - Primary CTA Button
 
@@ -8,7 +9,10 @@ struct OnboardingPrimaryButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            action()
+        } label: {
             ZStack {
                 if isLoading {
                     ProgressView()
@@ -35,7 +39,10 @@ struct OnboardingBackButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            action()
+        } label: {
             Image(systemName: "chevron.left")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(.primary)
@@ -68,28 +75,6 @@ struct OnboardingProgressBar: View {
                 }
         }
         .frame(height: 4)
-    }
-}
-
-// MARK: - Top Nav Bar (back + progress)
-
-struct OnboardingNavBar: View {
-    let currentStep: Int
-    let totalSteps: Int
-    let onBack: () -> Void
-
-    var body: some View {
-        HStack(spacing: 12) {
-            OnboardingBackButton(action: onBack)
-
-            OnboardingProgressBar(current: currentStep, total: totalSteps)
-
-            // Balance the back button width
-            Color.clear
-                .frame(width: 40, height: 40)
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 8)
     }
 }
 
@@ -175,10 +160,14 @@ struct OnboardingSkipButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            action()
+        } label: {
             Text("Skip for now")
                 .font(.notyfi(.subheadline))
                 .foregroundStyle(NotyfiTheme.secondaryText)
         }
     }
 }
+

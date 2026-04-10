@@ -1,60 +1,55 @@
 import SwiftUI
 
 struct OnboardingCurrencyView: View {
-    let step: Int
-    let totalSteps: Int
-    let onNext: (NotyfiCurrencyPreference) -> Void
-    let onBack: () -> Void
+    @Binding var currencyRawValue: String
+    @State private var selected: NotyfiCurrencyPreference
 
-    @State private var selected: NotyfiCurrencyPreference = {
-        let deviceCode = NotyfiCurrency.deviceCode.lowercased()
-        return NotyfiCurrencyPreference.allCases.first { $0.rawValue == deviceCode } ?? .usd
-    }()
+    init(currencyRawValue: Binding<String>) {
+        _currencyRawValue = currencyRawValue
+        let stored = NotyfiCurrencyPreference(rawValue: currencyRawValue.wrappedValue)
+        if let stored, stored != .auto {
+            _selected = State(initialValue: stored)
+        } else {
+            let deviceCode = NotyfiCurrency.deviceCode.lowercased()
+            let device = NotyfiCurrencyPreference.allCases.first { $0.rawValue == deviceCode } ?? .usd
+            _selected = State(initialValue: device)
+        }
+    }
 
     private var currencies: [NotyfiCurrencyPreference] {
         NotyfiCurrencyPreference.allCases.filter { $0 != .auto }
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            OnboardingNavBar(currentStep: step, totalSteps: totalSteps, onBack: onBack)
-                .padding(.bottom, 8)
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                OnboardingIllustration(symbol: "banknote.fill", size: 68)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 24)
 
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    illustration
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 28)
+                Text("Pick your currency")
+                    .font(.notyfi(.title, weight: .bold))
+                    .padding(.bottom, 10)
 
-                    Text("Pick your currency")
-                        .font(.notyfi(.title, weight: .bold))
-                        .padding(.bottom, 10)
+                Text("Used to format your entries and budget. You can change this later.")
+                    .font(.notyfi(.body))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .lineSpacing(3)
+                    .padding(.bottom, 24)
 
-                    Text("Used to format your entries and budget. You can change this later.")
-                        .font(.notyfi(.body))
-                        .foregroundStyle(NotyfiTheme.secondaryText)
-                        .lineSpacing(3)
-                        .padding(.bottom, 24)
-
-                    currencyList
-                }
-                .padding(.horizontal, 24)
-            }
-
-            OnboardingPrimaryButton(title: "Continue") {
-                onNext(selected)
+                currencyList
             }
             .padding(.horizontal, 24)
-            .padding(.bottom, 40)
-            .padding(.top, 16)
         }
+        .contentMargins(.top, 72, for: .scrollContent)
+        .contentMargins(.bottom, 120, for: .scrollContent)
+        .scrollBounceBehavior(.always)
+        .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight.ignoresSafeArea())
-    }
-
-    // MARK: - Subviews
-
-    private var illustration: some View {
-        OnboardingIllustration(symbol: "banknote.fill", size: 68)
+        .toolbar(.hidden, for: .navigationBar)
+        .onChange(of: selected) { _, newValue in
+            currencyRawValue = newValue.rawValue
+        }
     }
 
     private var currencyList: some View {
@@ -68,7 +63,6 @@ struct OnboardingCurrencyView: View {
                             .font(.notyfi(.title3, weight: .semibold))
                             .foregroundStyle(NotyfiTheme.brandPrimary)
                             .frame(width: 32)
-
                         Text(currency.title)
                             .font(.notyfi(.subheadline))
                             .foregroundStyle(.primary)
@@ -93,5 +87,7 @@ struct OnboardingCurrencyView: View {
 }
 
 #Preview {
-    OnboardingCurrencyView(step: 2, totalSteps: 5, onNext: { _ in }, onBack: {})
+    NavigationStack {
+        OnboardingCurrencyView(currencyRawValue: .constant("usd"))
+    }
 }

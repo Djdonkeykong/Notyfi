@@ -2,8 +2,8 @@ import SwiftUI
 import AuthenticationServices
 
 struct OnboardingAuthView: View {
-    let onBack: () -> Void
     @ObservedObject var authManager: AuthManager
+    @Environment(\.dismiss) private var dismiss
 
     @State private var showEmailSignUp = false
     @State private var errorMessage: String? = nil
@@ -12,7 +12,7 @@ struct OnboardingAuthView: View {
         VStack(spacing: 0) {
             // No progress bar on final step — auth is the "finish line"
             HStack {
-                OnboardingBackButton(action: onBack)
+                OnboardingBackButton(action: { dismiss() })
                 Spacer()
             }
             .padding(.horizontal, 20)
@@ -51,6 +51,7 @@ struct OnboardingAuthView: View {
                 .padding(.top, 16)
         }
         .background(NotyfiTheme.brandLight.ignoresSafeArea())
+        .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showEmailSignUp) {
             EmailSignUpView(authManager: authManager)
         }
@@ -79,6 +80,7 @@ struct OnboardingAuthView: View {
 
     private var appleSignInButton: some View {
         Button {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             signInWithApple()
         } label: {
             HStack(spacing: 10) {
@@ -269,5 +271,7 @@ struct EmailSignUpView: View {
 }
 
 #Preview {
-    OnboardingAuthView(onBack: {}, authManager: AuthManager())
+    NavigationStack {
+        OnboardingAuthView(authManager: AuthManager())
+    }
 }

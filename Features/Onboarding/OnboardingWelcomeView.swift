@@ -28,17 +28,10 @@ struct OnboardingWelcomeView: View {
     // MARK: - Subviews
 
     private var illustration: some View {
-        ZStack {
-            Circle()
-                .fill(.white)
-                .frame(width: 220, height: 220)
-                .shadow(color: NotyfiTheme.brandPrimary.opacity(0.10), radius: 40, x: 0, y: 12)
-
-            Image(systemName: "note.text")
-                .font(.system(size: 88, weight: .thin))
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(NotyfiTheme.brandPrimary)
-        }
+        Image("WelcomeLogo")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 90, height: 90)
     }
 
     private var headline: some View {
@@ -62,8 +55,13 @@ struct OnboardingWelcomeView: View {
             HStack(spacing: 4) {
                 Text("Already have an account?")
                     .foregroundStyle(NotyfiTheme.secondaryText)
-                Button("Sign in", action: onSignIn)
-                    .foregroundStyle(NotyfiTheme.brandPrimary)
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    onSignIn()
+                } label: {
+                    Text("Sign in")
+                }
+                .foregroundStyle(NotyfiTheme.brandPrimary)
             }
             .font(.notyfi(.subheadline))
         }

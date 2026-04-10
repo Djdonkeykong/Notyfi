@@ -7,134 +7,176 @@ struct OnboardingFlowView: View {
     @AppStorage("notyfi.onboarding.complete") private var isComplete = false
     @AppStorage(NotyfiCurrency.storageKey) private var currencyRawValue = NotyfiCurrencyPreference.auto.rawValue
 
-    @State private var stepIndex: Int = 0
-    @State private var goingForward: Bool = true
+    @State private var path: [OnboardingStep] = []
+    @State private var budgetAmountText: String = ""
 
-    // Resolved currency code for the budget step
+    private var currentStep: OnboardingStep? { path.last }
+
+    private var showChrome: Bool {
+        guard let step = currentStep else { return false }
+        return step != .auth
+    }
+
+    private var progressStep: Int {
+        switch currentStep {
+        case .howItWorks: return 1
+        case .currency: return 2
+        case .budget: return 3
+        case .notifications: return 4
+        default: return 0
+        }
+    }
+
+    private var continueTitle: String {
+        guard currentStep == .budget else { return "Continue" }
+        let normalized = budgetAmountText
+            .replacingOccurrences(of: ",", with: ".")
+            .trimmingCharacters(in: .whitespaces)
+        return Double(normalized) != nil ? "Set Budget" : "Continue"
+    }
+
+    private var showSkip: Bool {
+        currentStep == .budget || currentStep == .notifications
+    }
+
     private var selectedCurrencyCode: String {
         NotyfiCurrencyPreference(rawValue: currencyRawValue)?.currencyCode
             ?? NotyfiCurrency.deviceCode
     }
 
-    private enum Step: Int, CaseIterable {
-        case welcome        = 0
-        case howItWorks     = 1
-        case currency       = 2
-        case budget         = 3
-        case notifications  = 4
-        case auth           = 5
-    }
-
-    private var totalProgressSteps: Int { Step.allCases.count - 1 } // exclude welcome
-    private var currentProgressStep: Int { max(0, stepIndex) }      // welcome = 0 progress
-
     var body: some View {
-        ZStack {
-            currentStepView
-                .id(stepIndex)
-                .transition(slideTransition)
-        }
-        .animation(.easeInOut(duration: 0.28), value: stepIndex)
-        .onChange(of: authManager.isAuthenticated) { _, authenticated in
-            if authenticated {
-                isComplete = true
+        NavigationStack(path: $path) {
+            OnboardingWelcomeView(
+                onGetStarted: { path.append(.howItWorks) },
+                onSignIn: { path = [.auth] }
+            )
+            .navigationDestination(for: OnboardingStep.self) { step in
+                destination(for: step)
             }
         }
-    }
-
-    // MARK: - Step routing
-
-    @ViewBuilder
-    private var currentStepView: some View {
-        switch Step(rawValue: stepIndex) ?? .welcome {
-        case .welcome:
-            OnboardingWelcomeView(
-                onGetStarted: { advance() },
-                onSignIn: { jumpTo(.auth) }
-            )
-
-        case .howItWorks:
-            OnboardingHowItWorksView(
-                step: currentProgressStep,
-                totalSteps: totalProgressSteps,
-                onNext: { advance() },
-                onBack: { back() }
-            )
-
-        case .currency:
-            OnboardingCurrencyView(
-                step: currentProgressStep,
-                totalSteps: totalProgressSteps,
-                onNext: { preference in
-                    currencyRawValue = preference.rawValue
-                    advance()
-                },
-                onBack: { back() }
-            )
-
-        case .budget:
-            OnboardingBudgetView(
-                step: currentProgressStep,
-                totalSteps: totalProgressSteps,
-                currencyCode: selectedCurrencyCode,
-                onNext: { amount in
-                    if let amount {
-                        store.setMonthlySpendingLimit(amount)
-                    }
-                    advance()
-                },
-                onBack: { back() }
-            )
-
-        case .notifications:
-            OnboardingNotificationsView(
-                step: currentProgressStep,
-                totalSteps: totalProgressSteps,
-                onNext: { advance() },
-                onBack: { back() }
-            )
-
-        case .auth:
-            OnboardingAuthView(
-                onBack: { back() },
-                authManager: authManager
-            )
+        // Chrome overlays live outside NavigationStack — they never push or pop
+        .overlay(alignment: .top) {
+            if showChrome {
+                topChrome
+                    .transition(.opacity)
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if showChrome {
+                bottomChrome
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.22), value: showChrome)
+        .onChange(of: authManager.isAuthenticated) { _, authenticated in
+            if authenticated { isComplete = true }
         }
     }
 
-    // MARK: - Navigation
+    // MARK: - Floating chrome
 
-    private func advance() {
-        let next = stepIndex + 1
-        guard next < Step.allCases.count else { return }
-        goingForward = true
-        stepIndex = next
+    private var topChrome: some View {
+        HStack(spacing: 12) {
+            OnboardingBackButton { path.removeLast() }
+            OnboardingProgressBar(current: progressStep, total: 4)
+            Color.clear.frame(width: 40, height: 40)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .padding(.bottom, 24)
+        .background {
+            LinearGradient(
+                colors: [NotyfiTheme.brandLight, NotyfiTheme.brandLight.opacity(0)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea(edges: .top)
+        }
     }
 
-    private func back() {
-        guard stepIndex > 0 else { return }
-        goingForward = false
-        stepIndex -= 1
+    private var bottomChrome: some View {
+        VStack(spacing: 14) {
+            OnboardingPrimaryButton(title: continueTitle) {
+                handleContinue()
+            }
+            if showSkip {
+                OnboardingSkipButton { handleSkip() }
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 24)
+        .padding(.bottom, 40)
+        .background {
+            LinearGradient(
+                colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea(edges: .bottom)
+        }
     }
 
-    private func jumpTo(_ step: Step) {
-        goingForward = step.rawValue > stepIndex
-        stepIndex = step.rawValue
+    // MARK: - Destinations
+
+    @ViewBuilder
+    private func destination(for step: OnboardingStep) -> some View {
+        switch step {
+        case .howItWorks:
+            OnboardingHowItWorksView()
+        case .currency:
+            OnboardingCurrencyView(currencyRawValue: $currencyRawValue)
+        case .budget:
+            OnboardingBudgetView(currencyCode: selectedCurrencyCode, amountText: $budgetAmountText)
+        case .notifications:
+            OnboardingNotificationsView()
+        case .auth:
+            OnboardingAuthView(authManager: authManager)
+        }
     }
 
-    // MARK: - Transition
+    // MARK: - Actions
 
-    private var slideTransition: AnyTransition {
-        goingForward
-            ? .asymmetric(
-                insertion: .move(edge: .trailing),
-                removal: .move(edge: .leading)
-              )
-            : .asymmetric(
-                insertion: .move(edge: .leading),
-                removal: .move(edge: .trailing)
-              )
+    private func handleContinue() {
+        switch currentStep {
+        case .howItWorks:
+            path.append(.currency)
+        case .currency:
+            path.append(.budget)
+        case .budget:
+            let normalized = budgetAmountText
+                .replacingOccurrences(of: ",", with: ".")
+                .trimmingCharacters(in: .whitespaces)
+            if let amount = Double(normalized) {
+                store.setMonthlySpendingLimit(amount)
+            }
+            budgetAmountText = ""
+            path.append(.notifications)
+        case .notifications:
+            path.append(.auth)
+        default:
+            break
+        }
     }
+
+    private func handleSkip() {
+        switch currentStep {
+        case .budget:
+            budgetAmountText = ""
+            path.append(.notifications)
+        case .notifications:
+            path.append(.auth)
+        default:
+            break
+        }
+    }
+}
+
+enum OnboardingStep: Hashable {
+    case howItWorks
+    case currency
+    case budget
+    case notifications
+    case auth
 }
 
 #Preview {
