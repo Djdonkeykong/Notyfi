@@ -27,7 +27,7 @@ struct OnboardingCurrencyView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                LottieView(animation: .named("mascot-money"))
+                LottieView(animation: .fromAsset("mascot-money"))
                     .playing(loopMode: .loop)
                     .frame(maxWidth: .infinity)
                     .frame(height: 260)

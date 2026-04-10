@@ -29,7 +29,7 @@ struct OnboardingWelcomeView: View {
     // MARK: - Subviews
 
     private var illustration: some View {
-        LottieView(animation: .named("mascot-welcome"))
+        LottieView(animation: .fromAsset("mascot-welcome"))
             .playing(loopMode: .loop)
             .frame(width: 390, height: 390)
     }

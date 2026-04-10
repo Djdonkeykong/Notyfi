@@ -9,7 +9,7 @@ struct OnboardingNotificationsView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                LottieView(animation: .named("mascot-reminder"))
+                LottieView(animation: .fromAsset("mascot-reminder"))
                     .playing(loopMode: .loop)
                     .frame(maxWidth: .infinity)
                     .frame(height: 260)
