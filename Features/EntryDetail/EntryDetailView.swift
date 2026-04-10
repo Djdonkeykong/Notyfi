@@ -167,7 +167,7 @@ struct EntryDetailView: View {
                     .foregroundStyle(NotyfiTheme.secondaryText)
 
                 Text(viewModel.displayTitle)
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
+                    .font(.system(size: 34, weight: .bold, design: .default))
                     .foregroundStyle(.primary.opacity(0.92))
                     .lineLimit(2)
                     .minimumScaleFactor(0.8)
@@ -201,7 +201,7 @@ struct EntryDetailView: View {
                         .font(.system(size: 24))
 
                     Text(viewModel.formattedAmount)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(.system(size: 28, weight: .bold, design: .default))
                         .foregroundStyle(viewModel.amountColor)
                         .monospacedDigit()
 

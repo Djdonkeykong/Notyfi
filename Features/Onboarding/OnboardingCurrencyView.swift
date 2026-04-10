@@ -86,7 +86,7 @@ struct OnboardingCurrencyView: View {
         switch symbol.count {
         case 1:  return .notyfi(.title3, weight: .semibold)   // $, €, £, ¥
         case 2:  return .notyfi(.body, weight: .semibold)     // A$, S$, NZ$-style
-        default: return .system(size: 12, weight: .bold, design: .rounded) // NOK, SEK, CHF …
+        default: return .system(size: 12, weight: .bold, design: .default) // NOK, SEK, CHF …
         }
     }
 

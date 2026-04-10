@@ -97,7 +97,7 @@ struct DatePickerSheetView: View {
                     Button(action: toggleMonthChooser) {
                         HStack(spacing: 6) {
                             Text(monthTitle)
-                                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                                .font(.system(size: 17, weight: .semibold, design: .default))
                             Image(systemName: isMonthChooserPresented ? "chevron.up" : "chevron.down")
                                 .font(.system(size: 12, weight: .semibold))
                         }
@@ -124,7 +124,7 @@ struct DatePickerSheetView: View {
                         HStack {
                             ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                                 Text(symbol)
-                                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                                    .font(.system(size: 15, weight: .medium, design: .default))
                                     .foregroundStyle(NotyfiTheme.secondaryText)
                                     .frame(maxWidth: .infinity)
                             }
@@ -142,7 +142,7 @@ struct DatePickerSheetView: View {
                                         selection = date
                                     }) {
                                         Text("\(day)")
-                                            .font(.system(size: 18, weight: calendar.isDate(date, inSameDayAs: selection) ? .semibold : .regular, design: .rounded))
+                                            .font(.system(size: 18, weight: calendar.isDate(date, inSameDayAs: selection) ? .semibold : .regular, design: .default))
                                             .foregroundStyle(dayColor(for: date))
                                             .frame(width: dayCellSize, height: dayCellSize)
                                             .background {
@@ -275,7 +275,7 @@ struct DatePickerSheetView: View {
                 Spacer()
 
                 Text("\(chooserYear)")
-                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .font(.system(size: 20, weight: .semibold, design: .default))
                     .foregroundStyle(.primary.opacity(0.96))
 
                 Spacer()
@@ -292,7 +292,7 @@ struct DatePickerSheetView: View {
                         jumpToMonth(monthIndex: index)
                     }) {
                         Text(symbol)
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.system(size: 15, weight: .semibold, design: .default))
                             .foregroundStyle(monthButtonTextColor(for: index))
                             .frame(maxWidth: .infinity)
                             .frame(height: 42)
@@ -363,7 +363,7 @@ private struct CalendarPillButton: View {
     var body: some View {
         Button(action: action) {
             Text(title.notyfiLocalized)
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.system(size: 15, weight: .semibold, design: .default))
                 .foregroundStyle(foregroundStyle)
                 .frame(width: width, height: height)
                 .background {

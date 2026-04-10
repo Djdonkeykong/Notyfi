@@ -52,7 +52,7 @@ struct OnboardingWidgetView: View {
             .padding(.bottom, 12)
 
             Text("$1,240")
-                .font(.system(size: 38, weight: .bold, design: .rounded))
+                .font(.system(size: 38, weight: .bold, design: .default))
                 .foregroundStyle(.primary)
                 .padding(.bottom, 2)
 

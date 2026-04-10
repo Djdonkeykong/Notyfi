@@ -51,7 +51,7 @@ struct CircleChevronButton: View {
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(.primary)
                 .frame(width: 40, height: 40)
-                .background(.thickMaterial, in: Circle())
+                .background(NotyfiTheme.circleButtonBackground, in: Circle())
         }
         .buttonStyle(.plain)
     }

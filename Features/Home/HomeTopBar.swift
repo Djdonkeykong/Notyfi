@@ -31,7 +31,7 @@ struct HomeTopBar: View {
             }) {
                 SoftCapsule(horizontalPadding: 20, verticalPadding: 12) {
                     Text(selectedDate.notyfiDayTitle())
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .font(.system(size: 16, weight: .semibold, design: .default))
                         .foregroundStyle(.primary.opacity(0.84))
                 }
             }

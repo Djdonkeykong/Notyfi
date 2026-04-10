@@ -1277,7 +1277,7 @@ private struct JournalLineAccessoryView: View {
                     .lineLimit(1)
 
                 Text(trailingSecondary ?? " ")
-                    .font(.system(size: 10.5, weight: .regular, design: .rounded))
+                    .font(.system(size: 10.5, weight: .regular, design: .default))
                     .foregroundStyle(NotyfiTheme.tertiaryText)
                     .multilineTextAlignment(.trailing)
                     .lineLimit(1)
@@ -1300,7 +1300,7 @@ private struct JournalLineAccessoryView: View {
                 }
 
                 Text(feedback.secondaryText ?? " ")
-                    .font(.system(size: 10.5, weight: .regular, design: .rounded))
+                    .font(.system(size: 10.5, weight: .regular, design: .default))
                     .foregroundStyle(NotyfiTheme.tertiaryText)
                     .multilineTextAlignment(.trailing)
                     .lineLimit(1)

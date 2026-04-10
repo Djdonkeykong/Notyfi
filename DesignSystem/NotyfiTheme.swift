@@ -42,6 +42,10 @@ enum NotyfiTheme {
         dark: UIColor.white.withAlphaComponent(0.36)
     )
     static let accent = Color(red: 0.93, green: 0.72, blue: 0.51)
+    static let circleButtonBackground = adaptiveColor(
+        light: UIColor(red: 0.82, green: 0.82, blue: 0.84, alpha: 1),
+        dark: UIColor(red: 0.28, green: 0.28, blue: 0.30, alpha: 1)
+    )
     static let brandBlue = Color(red: 0.02, green: 0.38, blue: 0.96)
     static let brandPrimary = Color(red: 0, green: 0, blue: 254.0 / 255.0)
     static let brandLight = Color(red: 242.0 / 255.0, green: 243.0 / 255.0, blue: 245.0 / 255.0)
@@ -60,6 +64,6 @@ enum NotyfiTheme {
 
 extension Font {
     static func notyfi(_ style: TextStyle, weight: Weight = .regular) -> Font {
-        .system(style, design: .rounded, weight: weight)
+        .system(style, design: .default, weight: weight)
     }
 }

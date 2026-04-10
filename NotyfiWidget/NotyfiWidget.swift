@@ -67,17 +67,17 @@ struct NotyfiWidgetEntryView: View {
     private var smallWidget: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Notyfi")
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.system(size: 14, weight: .semibold, design: .default))
                 .foregroundStyle(.secondary)
 
             if entry.snapshot.hasBudget {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Left".notyfiLocalized)
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .font(.system(size: 12, weight: .medium, design: .default))
                         .foregroundStyle(.secondary)
 
                     Text(entry.snapshot.budgetLeft.formattedCurrency(code: entry.snapshot.currencyCode))
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .font(.system(size: 24, weight: .bold, design: .default))
                         .foregroundStyle(entry.snapshot.budgetLeft >= 0 ? Color.green : Color.red)
                         .minimumScaleFactor(0.72)
                         .lineLimit(1)
@@ -86,11 +86,11 @@ struct NotyfiWidgetEntryView: View {
             } else {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("This month".notyfiLocalized)
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .font(.system(size: 12, weight: .medium, design: .default))
                         .foregroundStyle(.secondary)
 
                     Text(entry.snapshot.monthSpent.formattedCurrency(code: entry.snapshot.currencyCode))
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .font(.system(size: 24, weight: .bold, design: .default))
                         .foregroundStyle(.primary)
                         .minimumScaleFactor(0.72)
                         .lineLimit(1)
@@ -120,13 +120,13 @@ struct NotyfiWidgetEntryView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Text("Notyfi")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(.system(size: 14, weight: .semibold, design: .default))
                     .foregroundStyle(.secondary)
 
                 Spacer()
 
                 Text(entry.snapshot.generatedAt, style: .date)
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .font(.system(size: 11, weight: .medium, design: .default))
                     .foregroundStyle(.secondary)
             }
 
@@ -154,7 +154,7 @@ struct NotyfiWidgetEntryView: View {
 
             if !entry.snapshot.hasEntries {
                 Text("Start logging in Notyfi to fill this widget.".notyfiLocalized)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .font(.system(size: 12, weight: .medium, design: .default))
                     .foregroundStyle(.secondary)
             }
         }
@@ -184,11 +184,11 @@ private struct WidgetMetricColumn: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title.notyfiLocalized)
-                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .font(.system(size: 11, weight: .medium, design: .default))
                 .foregroundStyle(.secondary)
 
             Text(value)
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .font(.system(size: 12, weight: .semibold, design: .default))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.72)
@@ -206,11 +206,11 @@ private struct WidgetStatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title.notyfiLocalized)
-                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .font(.system(size: 11, weight: .medium, design: .default))
                 .foregroundStyle(.secondary)
 
             Text(value)
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.system(size: 16, weight: .bold, design: .default))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.72)

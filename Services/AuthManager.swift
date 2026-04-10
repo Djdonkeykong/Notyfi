@@ -9,7 +9,10 @@ import UIKit
 @MainActor
 final class AuthManager: ObservableObject {
     @Published private(set) var isAuthenticated: Bool = false
+    @Published private(set) var isReady: Bool = false
     @Published private(set) var isLoading: Bool = false
+    @Published private(set) var userEmail: String? = nil
+    @Published private(set) var userDisplayName: String? = nil
 
     // Set by signUpWithEmail when Supabase requires email confirmation.
     // UI can read this to show a "check your inbox" message instead of an error.
@@ -24,6 +27,10 @@ final class AuthManager: ObservableObject {
             for await (_, session) in SupabaseService.client.auth.authStateChanges {
                 guard let self else { return }
                 self.isAuthenticated = session != nil
+                self.isReady = true
+                self.userEmail = session?.user.email
+                self.userDisplayName = session?.user.userMetadata["full_name"]?.stringValue
+                    ?? session?.user.userMetadata["name"]?.stringValue
             }
         }
     }

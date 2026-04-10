@@ -68,6 +68,7 @@ struct OnboardingWelcomeView: View {
                     Text("Sign in")
                 }
                 .foregroundStyle(NotyfiTheme.brandPrimary)
+                .fontWeight(.semibold)
             }
             .font(.notyfi(.subheadline))
         }

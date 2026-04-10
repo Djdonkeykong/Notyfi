@@ -7,6 +7,9 @@ struct OnboardingAuthView: View {
 
     @State private var showEmailSignUp = false
     @State private var errorMessage: String? = nil
+    @State private var loadingProvider: AuthProvider? = nil
+
+    private enum AuthProvider { case apple, google, email }
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -39,7 +42,7 @@ struct OnboardingAuthView: View {
                 }
                 .padding(.horizontal, 24)
             }
-            .contentMargins(.top, 72, for: .scrollContent)
+            .contentMargins(.top, 32, for: .scrollContent)
             .contentMargins(.bottom, 80, for: .scrollContent)
             .scrollBounceBehavior(.always)
             .scrollIndicators(.hidden)
@@ -86,33 +89,44 @@ struct OnboardingAuthView: View {
 
             OnboardingPrimaryButton(
                 title: "Use email instead",
-                isLoading: false
+                isLoading: loadingProvider == .email
             ) {
                 showEmailSignUp = true
             }
+            .disabled(isAnyLoading)
         }
     }
+
+    private var isAnyLoading: Bool { loadingProvider != nil }
 
     private var appleSignInButton: some View {
         Button {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             signInWithApple()
         } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "apple.logo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 21, height: 21)
-                Text("Continue with Apple")
-                    .font(.notyfi(.body, weight: .semibold))
+            ZStack {
+                if loadingProvider == .apple {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .tint(.white)
+                } else {
+                    HStack(spacing: 10) {
+                        Image(systemName: "apple.logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 21, height: 21)
+                        Text("Continue with Apple")
+                            .font(.notyfi(.body, weight: .semibold))
+                    }
+                    .foregroundStyle(.white)
+                }
             }
-            .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 56)
             .background(.black)
             .clipShape(Capsule())
         }
-        .disabled(authManager.isLoading)
+        .disabled(isAnyLoading)
     }
 
     private var googleSignInButton: some View {
@@ -120,14 +134,22 @@ struct OnboardingAuthView: View {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             signInWithGoogle()
         } label: {
-            HStack(spacing: 10) {
-                Image("GoogleGLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 21, height: 21)
-                Text("Continue with Google")
-                    .font(.notyfi(.body, weight: .semibold))
-                    .foregroundStyle(Color.black)
+            ZStack {
+                if loadingProvider == .google {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .tint(.black)
+                } else {
+                    HStack(spacing: 10) {
+                        Image("GoogleGLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 21, height: 21)
+                        Text("Continue with Google")
+                            .font(.notyfi(.body, weight: .semibold))
+                            .foregroundStyle(Color.black)
+                    }
+                }
             }
             .frame(maxWidth: .infinity)
             .frame(height: 56)
@@ -136,7 +158,7 @@ struct OnboardingAuthView: View {
             .overlay(Capsule().stroke(Color.primary.opacity(0.14), lineWidth: 1))
             .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
         }
-        .disabled(authManager.isLoading)
+        .disabled(isAnyLoading)
     }
 
     private var divider: some View {
@@ -157,6 +179,7 @@ struct OnboardingAuthView: View {
 
     private func signInWithGoogle() {
         errorMessage = nil
+        loadingProvider = .google
         Task {
             do {
                 try await authManager.signInWithGoogle()
@@ -165,11 +188,13 @@ struct OnboardingAuthView: View {
             } catch {
                 errorMessage = error.localizedDescription
             }
+            loadingProvider = nil
         }
     }
 
     private func signInWithApple() {
         errorMessage = nil
+        loadingProvider = .apple
         Task {
             do {
                 try await authManager.signInWithApple()
@@ -178,6 +203,7 @@ struct OnboardingAuthView: View {
             } catch {
                 errorMessage = error.localizedDescription
             }
+            loadingProvider = nil
         }
     }
 }

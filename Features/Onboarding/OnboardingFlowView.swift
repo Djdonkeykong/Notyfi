@@ -84,7 +84,11 @@ struct OnboardingFlowView: View {
         // edge. Non-interactive so taps pass through to content beneath.
         .overlay(alignment: .top) {
             LinearGradient(
-                colors: [NotyfiTheme.brandLight, NotyfiTheme.brandLight.opacity(0)],
+                stops: [
+                    .init(color: NotyfiTheme.brandLight, location: 0),
+                    .init(color: NotyfiTheme.brandLight, location: 0.30),
+                    .init(color: NotyfiTheme.brandLight.opacity(0), location: 1)
+                ],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -333,7 +337,6 @@ struct OnboardingFlowView: View {
                 .trimmingCharacters(in: .whitespaces)
             guard let amount = Double(normalized), amount > 0 else { return }
             store.setMonthlySpendingLimit(amount)
-            budgetAmountText = ""
             navigate(to: .categories)
         case .categories:
             navigate(to: .allocate)

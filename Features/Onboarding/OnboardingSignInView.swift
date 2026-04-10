@@ -3,31 +3,29 @@ import AuthenticationServices
 
 struct OnboardingSignInView: View {
     @ObservedObject var authManager: AuthManager
-    let onBack: () -> Void
+    var onBack: (() -> Void)? = nil
     var onSignUp: (() -> Void)? = nil
 
     @State private var showEmailSignIn = false
     @State private var errorMessage: String? = nil
+    @State private var loadingProvider: AuthProvider? = nil
+
+    private enum AuthProvider { case apple, google, email }
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                OnboardingBackButton(action: onBack)
+        ZStack(alignment: .topLeading) {
+            VStack(spacing: 0) {
                 Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .padding(.bottom, 8)
 
-            ScrollView(showsIndicators: false) {
+                Image("mascot-welcome")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 300, height: 300)
+                    .frame(maxWidth: .infinity)
+
+                Spacer().frame(height: 36)
+
                 VStack(alignment: .leading, spacing: 0) {
-                    Image("mascot-welcome")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 300, height: 300)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 36)
-
                     Text("Welcome back")
                         .font(.notyfi(.title2, weight: .bold))
                         .padding(.bottom, 10)
@@ -44,31 +42,52 @@ struct OnboardingSignInView: View {
                             .padding(.top, 8)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 24)
-            }
 
-            Spacer(minLength: 0)
+                Spacer()
 
-            VStack(spacing: 12) {
-                appleSignInButton
-                googleSignInButton
-                emailSignInButton
+                VStack(spacing: 12) {
+                    appleSignInButton
+                    googleSignInButton
+                    emailSignInButton
 
-                HStack(spacing: 4) {
-                    Text("Don't have an account?")
-                        .foregroundStyle(NotyfiTheme.secondaryText)
-                    Button("Sign up") {
-                        onSignUp?()
+                    HStack(spacing: 4) {
+                        Text("Don't have an account?")
+                            .foregroundStyle(NotyfiTheme.secondaryText)
+                        Button("Sign up") {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            onSignUp?()
+                        }
+                        .foregroundStyle(NotyfiTheme.brandPrimary)
+                        .fontWeight(.semibold)
                     }
-                    .foregroundStyle(NotyfiTheme.brandPrimary)
-                    .fontWeight(.semibold)
+                    .font(.notyfi(.subheadline))
+                    .padding(.top, 16)
                 }
-                .font(.notyfi(.subheadline))
+                .padding(.horizontal, 24)
+                .padding(.bottom, 40)
                 .padding(.top, 16)
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 40)
-            .padding(.top, 16)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if let onBack {
+                HStack {
+                    OnboardingBackButton(action: onBack)
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .background {
+                    LinearGradient(
+                        colors: [NotyfiTheme.brandLight, NotyfiTheme.brandLight.opacity(0)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea(edges: .top)
+                    .frame(height: 80)
+                }
+            }
         }
         .background(NotyfiTheme.brandLight.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
@@ -77,26 +96,36 @@ struct OnboardingSignInView: View {
         }
     }
 
+    private var isAnyLoading: Bool { loadingProvider != nil }
+
     private var appleSignInButton: some View {
         Button {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             signInWithApple()
         } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "apple.logo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 21, height: 21)
-                Text("Continue with Apple")
-                    .font(.notyfi(.body, weight: .semibold))
+            ZStack {
+                if loadingProvider == .apple {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .tint(.white)
+                } else {
+                    HStack(spacing: 10) {
+                        Image(systemName: "apple.logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 21, height: 21)
+                        Text("Continue with Apple")
+                            .font(.notyfi(.body, weight: .semibold))
+                    }
+                    .foregroundStyle(.white)
+                }
             }
-            .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 56)
             .background(.black)
             .clipShape(Capsule())
         }
-        .disabled(authManager.isLoading)
+        .disabled(isAnyLoading)
     }
 
     private var googleSignInButton: some View {
@@ -104,14 +133,22 @@ struct OnboardingSignInView: View {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             signInWithGoogle()
         } label: {
-            HStack(spacing: 10) {
-                Image("GoogleGLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 21, height: 21)
-                Text("Continue with Google")
-                    .font(.notyfi(.body, weight: .semibold))
-                    .foregroundStyle(Color.black)
+            ZStack {
+                if loadingProvider == .google {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .tint(.black)
+                } else {
+                    HStack(spacing: 10) {
+                        Image("GoogleGLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 21, height: 21)
+                        Text("Continue with Google")
+                            .font(.notyfi(.body, weight: .semibold))
+                            .foregroundStyle(Color.black)
+                    }
+                }
             }
             .frame(maxWidth: .infinity)
             .frame(height: 56)
@@ -120,17 +157,18 @@ struct OnboardingSignInView: View {
             .overlay(Capsule().stroke(Color.primary.opacity(0.14), lineWidth: 1))
             .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
         }
-        .disabled(authManager.isLoading)
+        .disabled(isAnyLoading)
     }
 
     private var emailSignInButton: some View {
-        OnboardingPrimaryButton(title: "Continue with Email", isLoading: authManager.isLoading) {
+        OnboardingPrimaryButton(title: "Continue with Email", isLoading: loadingProvider == .email) {
             showEmailSignIn = true
         }
     }
 
     private func signInWithGoogle() {
         errorMessage = nil
+        loadingProvider = .google
         Task {
             do {
                 try await authManager.signInWithGoogle()
@@ -139,11 +177,13 @@ struct OnboardingSignInView: View {
             } catch {
                 errorMessage = error.localizedDescription
             }
+            loadingProvider = nil
         }
     }
 
     private func signInWithApple() {
         errorMessage = nil
+        loadingProvider = .apple
         Task {
             do {
                 try await authManager.signInWithApple()
@@ -152,6 +192,7 @@ struct OnboardingSignInView: View {
             } catch {
                 errorMessage = error.localizedDescription
             }
+            loadingProvider = nil
         }
     }
 }

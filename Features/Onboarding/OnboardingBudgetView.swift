@@ -105,7 +105,7 @@ private struct BudgetInputSheet: View {
                     .keyboardType(.decimalPad)
                     .focused($focused)
                     .multilineTextAlignment(.center)
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .font(.system(size: 48, weight: .bold, design: .default))
                     .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity)
 

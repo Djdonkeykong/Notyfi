@@ -9,15 +9,28 @@ struct AppRootView: View {
 
     var body: some View {
         Group {
-            if !hasCompletedOnboarding {
+            if !authManager.isReady {
+                splashScreen
+            } else if !hasCompletedOnboarding {
                 OnboardingFlowView(store: store, authManager: authManager)
             } else if !authManager.isAuthenticated {
-                OnboardingSignInView(authManager: authManager, onBack: {})
+                OnboardingSignInView(authManager: authManager)
             } else {
                 HomeView(store: store, authManager: authManager)
             }
         }
         .preferredColorScheme(appearanceMode.colorScheme)
+    }
+
+    private var splashScreen: some View {
+        ZStack {
+            Color(red: 0.0, green: 0.0, blue: 0.996)
+                .ignoresSafeArea()
+            Image("LaunchScreenLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 260, height: 260)
+        }
     }
 
     private var appearanceMode: NotyfiAppearanceMode {

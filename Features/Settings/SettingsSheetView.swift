@@ -4,6 +4,7 @@ struct SettingsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: SettingsViewModel
     @ObservedObject var authManager: AuthManager
+    @AppStorage("notyfi.onboarding.complete") private var hasCompletedOnboarding = false
     @State private var isClearLogConfirmationPresented = false
     @State private var isSignOutConfirmationPresented = false
     @State private var isDeleteAccountConfirmationPresented = false
@@ -15,6 +16,27 @@ struct SettingsSheetView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
                     header
+
+                    SectionHeader(title: "Account")
+                    SettingsCard {
+                        VStack(spacing: 0) {
+                            if let name = authManager.userDisplayName, !name.isEmpty {
+                                SettingsValueRow(
+                                    icon: "person",
+                                    title: "Name",
+                                    value: name
+                                )
+                                Divider()
+                            }
+                            if let email = authManager.userEmail, !email.isEmpty {
+                                SettingsValueRow(
+                                    icon: "envelope",
+                                    title: "Email",
+                                    value: email
+                                )
+                            }
+                        }
+                    }
 
                     SectionHeader(title: "Preferences")
                     SettingsCard {
@@ -144,7 +166,6 @@ struct SettingsSheetView: View {
                         }
                     }
 
-                    SectionHeader(title: "Account")
                     SettingsCard {
                         VStack(spacing: 0) {
                             SettingsActionRow(
@@ -154,9 +175,7 @@ struct SettingsSheetView: View {
                                 showsChevron: false,
                                 action: { isSignOutConfirmationPresented = true }
                             )
-
                             Divider()
-
                             SettingsActionRow(
                                 icon: "person.crop.circle.badge.minus",
                                 title: "Delete Account",
@@ -167,24 +186,11 @@ struct SettingsSheetView: View {
                         }
                     }
 
-                    SectionHeader(title: "About")
-                    SettingsCard {
-                        VStack(spacing: 0) {
-                            SettingsValueRow(
-                                icon: "shippingbox",
-                                title: "Version",
-                                value: viewModel.versionText
-                            )
-
-                            Divider()
-
-                            SettingsValueRow(
-                                icon: "checkmark.shield",
-                                title: "Build",
-                                value: "Journal-first".notyfiLocalized
-                            )
-                        }
-                    }
+                    Text("Notyfi \(viewModel.versionText)")
+                        .font(.notyfi(.caption))
+                        .foregroundStyle(NotyfiTheme.tertiaryText)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.top, 4)
                 }
                 .padding(.horizontal, 20)
                 .safeAreaPadding(.top, 14)
@@ -212,6 +218,7 @@ struct SettingsSheetView: View {
         ) {
             Button("Sign Out".notyfiLocalized, role: .destructive) {
                 authManager.signOut()
+                hasCompletedOnboarding = false
                 dismiss()
             }
             Button("Cancel".notyfiLocalized, role: .cancel) {}
