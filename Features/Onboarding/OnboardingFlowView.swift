@@ -53,7 +53,7 @@ struct OnboardingFlowView: View {
     // Whether a given step shows chrome (back + progress + continue)
     private func hasChrome(_ step: OnboardingStep) -> Bool {
         switch step {
-        case .welcome, .auth: return false
+        case .welcome, .auth, .signIn: return false
         default: return true
         }
     }
@@ -101,7 +101,7 @@ struct OnboardingFlowView: View {
         case .welcome:
             OnboardingWelcomeView(
                 onGetStarted: { navigate(to: .howItWorks) },
-                onSignIn: { navigate(to: .auth) }
+                onSignIn: { navigate(to: .signIn) }
             )
         case .howItWorks:
             OnboardingHowItWorksView()
@@ -119,6 +119,8 @@ struct OnboardingFlowView: View {
             OnboardingWidgetView()
         case .auth:
             OnboardingAuthView(authManager: authManager, onBack: { goBack() })
+        case .signIn:
+            OnboardingSignInView(authManager: authManager, onBack: { goBack() })
         }
     }
 
@@ -280,7 +282,8 @@ enum OnboardingStep: Hashable {
     case beDetailed
     case inputMethods
     case widget
-    case auth
+    case auth     // "Save Your Progress" — end of onboarding
+    case signIn   // "Welcome back" — from welcome page sign-in link
 }
 
 #Preview {

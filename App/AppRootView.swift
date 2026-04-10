@@ -12,7 +12,7 @@ struct AppRootView: View {
             if !hasCompletedOnboarding {
                 OnboardingFlowView(store: store, authManager: authManager)
             } else if !authManager.isAuthenticated {
-                OnboardingAuthView(authManager: authManager, onBack: {})
+                OnboardingSignInView(authManager: authManager, onBack: {})
             } else {
                 HomeView(store: store, authManager: authManager)
             }

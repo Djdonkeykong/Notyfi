@@ -25,11 +25,11 @@ struct OnboardingAuthView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 36)
 
-                    Text("Save Your Data")
+                    Text("Save Your Progress")
                         .font(.notyfi(.title, weight: .bold))
                         .padding(.bottom, 10)
 
-                    Text("Create an account to back up your entries, sync across devices, and never lose your data.")
+                    Text("Create an account to sync your data across devices and never lose your progress.")
                         .font(.notyfi(.body))
                         .foregroundStyle(NotyfiTheme.secondaryText)
                         .lineSpacing(3)
@@ -176,11 +176,16 @@ struct EmailSignUpView: View {
 
     @State private var email = ""
     @State private var password = ""
-    @State private var isSignIn = false
+    @State private var isSignIn: Bool
     @State private var errorMessage: String? = nil
     @FocusState private var focusedField: Field?
 
     enum Field { case email, password }
+
+    init(authManager: AuthManager, initialIsSignIn: Bool = false) {
+        self.authManager = authManager
+        self._isSignIn = State(initialValue: initialIsSignIn)
+    }
 
     var body: some View {
         NavigationStack {
