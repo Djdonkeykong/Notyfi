@@ -93,7 +93,7 @@ struct OnboardingFlowView: View {
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .frame(height: 80)
+            .frame(height: 120)
             .ignoresSafeArea(edges: .top)
             .allowsHitTesting(false)
         }
