@@ -43,8 +43,8 @@ enum NotyfiTheme {
     )
     static let accent = Color(red: 0.93, green: 0.72, blue: 0.51)
     static let circleButtonBackground = adaptiveColor(
-        light: UIColor(red: 0.82, green: 0.82, blue: 0.84, alpha: 1),
-        dark: UIColor(red: 0.28, green: 0.28, blue: 0.30, alpha: 1)
+        light: UIColor(red: 0.88, green: 0.88, blue: 0.90, alpha: 1),
+        dark: UIColor(red: 0.34, green: 0.34, blue: 0.36, alpha: 1)
     )
     static let brandBlue = Color(red: 0.02, green: 0.38, blue: 0.96)
     static let brandPrimary = Color(red: 0, green: 0, blue: 254.0 / 255.0)

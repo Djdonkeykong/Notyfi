@@ -246,10 +246,6 @@ struct SettingsSheetView: View {
                 Text("Settings".notyfiLocalized)
                     .font(.notyfi(.title3, weight: .semibold))
                     .foregroundStyle(.primary.opacity(0.84))
-
-                Text("Keep things simple for now. More controls will arrive as the app grows.".notyfiLocalized)
-                    .font(.notyfi(.footnote))
-                    .foregroundStyle(NotyfiTheme.secondaryText)
             }
 
             Spacer()
@@ -486,7 +482,9 @@ private struct SettingsValueRow: View {
             Text(value)
                 .font(.notyfi(.subheadline))
                 .foregroundStyle(NotyfiTheme.secondaryText)
-                .multilineTextAlignment(.trailing)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: 180, alignment: .trailing)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)

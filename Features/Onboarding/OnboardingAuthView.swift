@@ -3,7 +3,6 @@ import AuthenticationServices
 
 struct OnboardingAuthView: View {
     @ObservedObject var authManager: AuthManager
-    let onBack: () -> Void
 
     @State private var showEmailSignUp = false
     @State private var errorMessage: String? = nil
@@ -12,58 +11,39 @@ struct OnboardingAuthView: View {
     private enum AuthProvider { case apple, google, email }
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    illustration
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 36)
-                        .padding(.bottom, 28)
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                illustration
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 36)
+                    .padding(.bottom, 12)
 
-                    Text("Save your progress")
-                        .font(.notyfi(.title2, weight: .bold))
-                        .padding(.bottom, 10)
+                Text("Save your progress")
+                    .font(.notyfi(.title2, weight: .bold))
+                    .padding(.bottom, 10)
 
-                    Text("Create an account to sync your data across devices and never lose your progress.")
-                        .font(.notyfi(.body))
-                        .foregroundStyle(NotyfiTheme.secondaryText)
-                        .lineSpacing(3)
-                        .padding(.bottom, 8)
+                Text("Create an account to sync your data across devices and never lose your progress.")
+                    .font(.notyfi(.body))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .lineSpacing(3)
+                    .padding(.bottom, 8)
 
-                    if let error = errorMessage {
-                        Text(error)
-                            .font(.notyfi(.caption))
-                            .foregroundStyle(.red)
-                            .padding(.top, 6)
-                    }
-
-                    authButtons
-                        .padding(.top, 32)
+                if let error = errorMessage {
+                    Text(error)
+                        .font(.notyfi(.caption))
+                        .foregroundStyle(.red)
+                        .padding(.top, 6)
                 }
-                .padding(.horizontal, 24)
-            }
-            .contentMargins(.top, 32, for: .scrollContent)
-            .contentMargins(.bottom, 80, for: .scrollContent)
-            .scrollBounceBehavior(.always)
-            .scrollIndicators(.hidden)
 
-            // Floating back button — mirrors the flow's topChrome pattern
-            HStack {
-                OnboardingBackButton(action: { onBack() })
-                Spacer()
+                authButtons
+                    .padding(.top, 32)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .background {
-                LinearGradient(
-                    colors: [NotyfiTheme.brandLight, NotyfiTheme.brandLight.opacity(0)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea(edges: .top)
-                .frame(height: 80)
-            }
+            .padding(.horizontal, 24)
         }
+        .contentMargins(.top, 16, for: .scrollContent)
+        .contentMargins(.bottom, 80, for: .scrollContent)
+        .scrollBounceBehavior(.always)
+        .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showEmailSignUp) {
@@ -77,7 +57,7 @@ struct OnboardingAuthView: View {
         Image("mascot-save")
             .resizable()
             .scaledToFit()
-            .frame(width: 300, height: 300)
+            .frame(width: 360, height: 360)
     }
 
     private var authButtons: some View {
@@ -243,7 +223,7 @@ struct EmailSignUpView: View {
 
                     VStack(spacing: 12) {
                         inputField(label: "Email", text: $email, field: .email,
-                                   keyboard: .emailAddress, contentType: .emailAddress)
+                                   keyboard: .emailAddress, contentType: .emailAddress, maxLength: 254)
                         inputField(label: "Password", text: $password, field: .password,
                                    isSecure: true, contentType: isSignIn ? .password : .newPassword)
                     }
@@ -292,7 +272,8 @@ struct EmailSignUpView: View {
         field: Field,
         isSecure: Bool = false,
         keyboard: UIKeyboardType = .default,
-        contentType: UITextContentType
+        contentType: UITextContentType,
+        maxLength: Int? = nil
     ) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label)
@@ -310,6 +291,11 @@ struct EmailSignUpView: View {
             }
             .textContentType(contentType)
             .focused($focusedField, equals: field)
+            .onChange(of: text.wrappedValue) { _, newValue in
+                if let max = maxLength, newValue.count > max {
+                    text.wrappedValue = String(newValue.prefix(max))
+                }
+            }
             .padding(16)
             .background(.white)
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -355,5 +341,5 @@ struct EmailSignUpView: View {
 
 
 #Preview {
-    OnboardingAuthView(authManager: AuthManager(), onBack: {})
+    OnboardingAuthView(authManager: AuthManager())
 }
