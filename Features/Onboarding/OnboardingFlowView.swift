@@ -38,11 +38,6 @@ struct OnboardingFlowView: View {
         return Double(normalized) != nil ? "Set Budget" : "Continue"
     }
 
-    private var showSkip: Bool {
-        currentStep == .budget || currentStep == .notifications
-            || currentStep == .beDetailed || currentStep == .inputMethods || currentStep == .widget
-    }
-
     private var selectedCurrencyCode: String {
         NotyfiCurrencyPreference(rawValue: currencyRawValue)?.currencyCode
             ?? NotyfiCurrency.deviceCode
@@ -99,13 +94,8 @@ struct OnboardingFlowView: View {
     }
 
     private var bottomChrome: some View {
-        VStack(spacing: 14) {
-            OnboardingPrimaryButton(title: continueTitle) {
-                handleContinue()
-            }
-            if showSkip {
-                OnboardingSkipButton { handleSkip() }
-            }
+        OnboardingPrimaryButton(title: continueTitle) {
+            handleContinue()
         }
         .padding(.horizontal, 24)
         .padding(.top, 24)
@@ -174,23 +164,7 @@ struct OnboardingFlowView: View {
         }
     }
 
-    private func handleSkip() {
-        switch currentStep {
-        case .budget:
-            budgetAmountText = ""
-            path.append(.notifications)
-        case .notifications:
-            path.append(.beDetailed)
-        case .beDetailed:
-            path.append(.inputMethods)
-        case .inputMethods:
-            path.append(.widget)
-        case .widget:
-            path.append(.auth)
-        default:
-            break
-        }
-    }
+
 }
 
 enum OnboardingStep: Hashable {
