@@ -45,7 +45,6 @@ struct OnboardingCurrencyView: View {
         .contentMargins(.bottom, 120, for: .scrollContent)
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
-        .background(NotyfiTheme.brandLight.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .onChange(of: selected) { _, newValue in
             currencyRawValue = newValue.rawValue

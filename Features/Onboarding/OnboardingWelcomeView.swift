@@ -22,7 +22,6 @@ struct OnboardingWelcomeView: View {
                 .padding(.bottom, 40)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(NotyfiTheme.brandLight.ignoresSafeArea())
     }
 
     // MARK: - Subviews

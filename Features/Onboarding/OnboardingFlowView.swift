@@ -44,13 +44,18 @@ struct OnboardingFlowView: View {
     }
 
     var body: some View {
-        NavigationStack(path: $path) {
-            OnboardingWelcomeView(
-                onGetStarted: { path.append(.howItWorks) },
-                onSignIn: { path = [.auth] }
-            )
-            .navigationDestination(for: OnboardingStep.self) { step in
-                destination(for: step)
+        ZStack {
+            // Static background — never participates in push/pop animation.
+            NotyfiTheme.brandLight.ignoresSafeArea()
+
+            NavigationStack(path: $path) {
+                OnboardingWelcomeView(
+                    onGetStarted: { path.append(.howItWorks) },
+                    onSignIn: { path = [.auth] }
+                )
+                .navigationDestination(for: OnboardingStep.self) { step in
+                    destination(for: step)
+                }
             }
         }
         // Chrome overlays live outside NavigationStack — they never push or pop.
