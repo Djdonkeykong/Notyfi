@@ -8,9 +8,13 @@ struct OnboardingFlowView: View {
     @AppStorage(NotyfiCurrency.storageKey) private var currencyRawValue = NotyfiCurrencyPreference.auto.rawValue
 
     @State private var currentStep: OnboardingStep = .welcome
+    @State private var outgoingStep: OnboardingStep? = nil
     @State private var stepHistory: [OnboardingStep] = []
     @State private var budgetAmountText: String = ""
     @State private var isGoingBack: Bool = false
+    // Fractional offsets: 0 = on screen, -1 = off left, +1 = off right
+    @State private var incomingOffset: CGFloat = 0
+    @State private var outgoingOffset: CGFloat = 0
 
     private var showChrome: Bool {
         switch currentStep {
@@ -46,16 +50,23 @@ struct OnboardingFlowView: View {
     }
 
     var body: some View {
-        ZStack {
-            // Truly static — never participates in any transition.
-            NotyfiTheme.brandLight.ignoresSafeArea()
+        GeometryReader { geo in
+            ZStack(alignment: .top) {
+                // Static — never moves regardless of any transition.
+                NotyfiTheme.brandLight.ignoresSafeArea()
 
-            currentContent
-                .id(currentStep)
-                .transition(.asymmetric(
-                    insertion: .move(edge: isGoingBack ? .leading : .trailing),
-                    removal: .move(edge: isGoingBack ? .trailing : .leading)
-                ))
+                // Outgoing view slides out while the incoming slides in.
+                if let outgoing = outgoingStep {
+                    stepContent(for: outgoing)
+                        .offset(x: outgoingOffset * geo.size.width)
+                        .zIndex(isGoingBack ? 1 : 0)
+                }
+
+                stepContent(for: currentStep)
+                    .offset(x: incomingOffset * geo.size.width)
+                    .zIndex(isGoingBack ? 0 : 1)
+            }
+            .clipped()
         }
         .overlay(alignment: .top) {
             if showChrome {
@@ -75,11 +86,11 @@ struct OnboardingFlowView: View {
         }
     }
 
-    // MARK: - Content
+    // MARK: - Step Content
 
     @ViewBuilder
-    private var currentContent: some View {
-        switch currentStep {
+    private func stepContent(for step: OnboardingStep) -> some View {
+        switch step {
         case .welcome:
             OnboardingWelcomeView(
                 onGetStarted: { navigate(to: .howItWorks) },
@@ -131,7 +142,7 @@ struct OnboardingFlowView: View {
         }
         .padding(.horizontal, 24)
         .padding(.top, 24)
-        .padding(.bottom, 40)
+        .padding(.bottom, 16)
         .background {
             LinearGradient(
                 colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
@@ -146,17 +157,37 @@ struct OnboardingFlowView: View {
 
     private func navigate(to step: OnboardingStep) {
         stepHistory.append(currentStep)
+        outgoingStep = currentStep
+        currentStep = step
+        isGoingBack = false
+        outgoingOffset = 0
+        incomingOffset = 1     // incoming starts off to the right
+
         withAnimation(.spring(response: 0.38, dampingFraction: 0.96)) {
-            isGoingBack = false
-            currentStep = step
+            outgoingOffset = -1  // outgoing exits to the left
+            incomingOffset = 0   // incoming lands at center
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+            outgoingStep = nil
         }
     }
 
     private func goBack() {
         guard let prev = stepHistory.popLast() else { return }
+        outgoingStep = currentStep
+        currentStep = prev
+        isGoingBack = true
+        outgoingOffset = 0
+        incomingOffset = -1    // incoming starts off to the left
+
         withAnimation(.spring(response: 0.38, dampingFraction: 0.96)) {
-            isGoingBack = true
-            currentStep = prev
+            outgoingOffset = 1   // outgoing exits to the right
+            incomingOffset = 0   // incoming lands at center
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+            outgoingStep = nil
         }
     }
 
