@@ -1,4 +1,5 @@
 import SwiftUI
+import Lottie
 
 struct OnboardingWelcomeView: View {
     let onGetStarted: () -> Void
@@ -28,7 +29,8 @@ struct OnboardingWelcomeView: View {
     // MARK: - Subviews
 
     private var illustration: some View {
-        LottieRepresentable(assetName: "mascot-welcome")
+        LottieView(animation: .fromAsset("mascot-welcome"))
+            .playing(loopMode: .loop)
             .frame(width: 390, height: 390)
     }
 

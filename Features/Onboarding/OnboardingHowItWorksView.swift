@@ -1,10 +1,12 @@
 import SwiftUI
+import Lottie
 
 struct OnboardingHowItWorksView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                LottieRepresentable(assetName: "mascot-writing")
+                LottieView(animation: .fromAsset("mascot-writing"))
+                    .playing(loopMode: .loop)
                     .frame(maxWidth: .infinity)
                     .frame(height: 260)
                     .padding(.vertical, 24)
@@ -19,7 +21,8 @@ struct OnboardingHowItWorksView: View {
                     .lineSpacing(3)
                     .padding(.bottom, 24)
 
-                LottieRepresentable(assetName: "how-it-works")
+                LottieView(animation: .fromAsset("how-it-works"))
+                    .playing(loopMode: .loop)
                     .frame(maxWidth: .infinity)
                     .frame(height: 260)
             }

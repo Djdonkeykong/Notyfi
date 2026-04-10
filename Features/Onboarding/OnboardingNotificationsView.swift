@@ -1,5 +1,6 @@
 import SwiftUI
 import UserNotifications
+import Lottie
 
 struct OnboardingNotificationsView: View {
     @State private var isEnabled: Bool = false
@@ -8,7 +9,8 @@ struct OnboardingNotificationsView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                LottieRepresentable(assetName: "mascot-reminder")
+                LottieView(animation: .fromAsset("mascot-reminder"))
+                    .playing(loopMode: .loop)
                     .frame(maxWidth: .infinity)
                     .frame(height: 260)
                     .padding(.vertical, 24)
