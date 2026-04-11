@@ -293,3 +293,22 @@
 "Please enter your email." = "Syota sahkopostiosoitteesi.";
 "Check your inbox" = "Tarkista postilaatikkosi";
 "We sent a reset link to \(email). Follow it to set a new password." = "Lahetimme nollauslinkin osoitteeseen \(email). Seuraa sita asettaaksesi uuden salasanan.";
+
+// OTP auth flow
+"Continue with email" = "Jatka sahkopostilla";
+"We'll send a 6-digit code to sign you in or create your account." = "Lahetamme sinulle 6-numeroisen koodin kirjautumista tai tilin luomista varten.";
+"Send code" = "Laheta koodi";
+"Enter the 6-digit code we sent to \(email)." = "Syota 6-numeroinen koodi, jonka lahetimme osoitteeseen \(email).";
+"Verify" = "Vahvista";
+"Didn't get it?" = "Eiko tullut perille?";
+"Resend" = "Laheta uudelleen";
+"Change email" = "Vaihda sahkoposti";
+
+// Categories & limits
+"Pick the categories that apply to you. You can always add or edit these later." = "Valitse sinulle sopivat kategoriat. Voit aina lisata tai muokata naita myohemmin.";
+"Tap to set limit" = "Napauta asettaaksesi rajan";
+"Set Limit" = "Aseta raja";
+"per month for \(category.title)" = "kuukaudessa kategorialle \(category.title)";
+
+// Widget onboarding
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Lisaa Notyfi-widget seurataksesi menojasi — joka paiva.";

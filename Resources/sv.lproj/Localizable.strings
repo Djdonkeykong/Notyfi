@@ -293,3 +293,22 @@
 "Please enter your email." = "Ange din e-postadress.";
 "Check your inbox" = "Kolla din inkorg";
 "We sent a reset link to \(email). Follow it to set a new password." = "Vi skickade en aterstallningslank till \(email). Folj den for att ange ett nytt losenord.";
+
+// OTP auth flow
+"Continue with email" = "Fortsatt med e-post";
+"We'll send a 6-digit code to sign you in or create your account." = "Vi skickar en 6-siffrig kod for att logga in eller skapa ditt konto.";
+"Send code" = "Skicka kod";
+"Enter the 6-digit code we sent to \(email)." = "Ange den 6-siffriga koden vi skickade till \(email).";
+"Verify" = "Verifiera";
+"Didn't get it?" = "Fick du den inte?";
+"Resend" = "Skicka igen";
+"Change email" = "Andra e-post";
+
+// Categories & limits
+"Pick the categories that apply to you. You can always add or edit these later." = "Valj de kategorier som galler dig. Du kan alltid lagga till eller redigera dessa senare.";
+"Tap to set limit" = "Tryck for att ange grans";
+"Set Limit" = "Ange grans";
+"per month for \(category.title)" = "per manad for \(category.title)";
+
+// Widget onboarding
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Lagg till Notyfi-widgeten for att halla koll pa dina utgifter — varje dag.";

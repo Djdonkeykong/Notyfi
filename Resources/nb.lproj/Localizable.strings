@@ -293,3 +293,22 @@
 "Please enter your email." = "Skriv inn e-postadressen din.";
 "Check your inbox" = "Sjekk innboksen din";
 "We sent a reset link to \(email). Follow it to set a new password." = "Vi sendte en tilbakestillingslenke til \(email). Folg den for a angi et nytt passord.";
+
+// OTP auth flow
+"Continue with email" = "Fortsett med e-post";
+"We'll send a 6-digit code to sign you in or create your account." = "Vi sender deg en 6-sifret kode for å logge deg inn eller opprette kontoen din.";
+"Send code" = "Send kode";
+"Enter the 6-digit code we sent to \(email)." = "Skriv inn den 6-sifrede koden vi sendte til \(email).";
+"Verify" = "Bekreft";
+"Didn't get it?" = "Fikk du den ikke?";
+"Resend" = "Send på nytt";
+"Change email" = "Endre e-post";
+
+// Categories & limits
+"Pick the categories that apply to you. You can always add or edit these later." = "Velg kategoriene som gjelder for deg. Du kan alltid legge til eller redigere disse senere.";
+"Tap to set limit" = "Trykk for å angi grense";
+"Set Limit" = "Angi grense";
+"per month for \(category.title)" = "per måned for \(category.title)";
+
+// Widget onboarding
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Legg til Notyfi-widgeten for å holde oversikt over forbruket ditt — hver eneste dag.";

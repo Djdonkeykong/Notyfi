@@ -293,3 +293,22 @@
 "Please enter your email." = "Por favor, introduce tu correo electronico.";
 "Check your inbox" = "Revisa tu bandeja de entrada";
 "We sent a reset link to \(email). Follow it to set a new password." = "Enviamos un enlace a \(email). Siguelo para establecer una nueva contrasena.";
+
+// OTP auth flow
+"Continue with email" = "Continuar con correo electronico";
+"We'll send a 6-digit code to sign you in or create your account." = "Te enviaremos un codigo de 6 digitos para iniciar sesion o crear tu cuenta.";
+"Send code" = "Enviar codigo";
+"Enter the 6-digit code we sent to \(email)." = "Introduce el codigo de 6 digitos que enviamos a \(email).";
+"Verify" = "Verificar";
+"Didn't get it?" = "No lo recibiste?";
+"Resend" = "Reenviar";
+"Change email" = "Cambiar correo";
+
+// Categories & limits
+"Pick the categories that apply to you. You can always add or edit these later." = "Elige las categorias que se apliquen a ti. Siempre puedes anadirlas o editarlas mas tarde.";
+"Tap to set limit" = "Toca para establecer limite";
+"Set Limit" = "Establecer limite";
+"per month for \(category.title)" = "al mes para \(category.title)";
+
+// Widget onboarding
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Anade el widget de Notyfi para estar al tanto de tus gastos — cada dia.";
