@@ -67,28 +67,57 @@ struct OnboardingAllocateView: View {
     }
 
     private var categoryRows: some View {
-        VStack(alignment: .leading, spacing: 28) {
-            ForEach(activeGroups, id: \.title) { group in
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(group.title.notyfiLocalized)
-                        .font(.notyfi(.subheadline, weight: .bold))
-                        .foregroundStyle(group.color)
+        Group {
+            if activeGroups.isEmpty {
+                emptyState
+            } else {
+                VStack(alignment: .leading, spacing: 28) {
+                    ForEach(activeGroups, id: \.title) { group in
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(group.title.notyfiLocalized)
+                                .font(.notyfi(.subheadline, weight: .bold))
+                                .foregroundStyle(group.color)
 
-                    VStack(spacing: 10) {
-                        ForEach(group.categories) { category in
-                            AllocateRow(
-                                category: category,
-                                currencyCode: currencyCode,
-                                text: categoryBudgetTexts[category] ?? ""
-                            ) {
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                editingCategory = category
+                            VStack(spacing: 10) {
+                                ForEach(group.categories) { category in
+                                    AllocateRow(
+                                        category: category,
+                                        currencyCode: currencyCode,
+                                        text: categoryBudgetTexts[category] ?? ""
+                                    ) {
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        editingCategory = category
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 12) {
+            Image("mascot-budget")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 120)
+                .padding(.bottom, 4)
+
+            Text("No categories selected".notyfiLocalized)
+                .font(.notyfi(.title3, weight: .semibold))
+                .foregroundStyle(.primary)
+
+            Text("Go back and select some categories to set spending limits. You can always do this later in the app.".notyfiLocalized)
+                .font(.notyfi(.body))
+                .foregroundStyle(NotyfiTheme.secondaryText)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 24)
+        .padding(.horizontal, 8)
     }
 }
 

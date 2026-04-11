@@ -341,3 +341,5 @@
 "widget.days.last" = "Laatste dag van de maand";
 "widget.days.one" = "1 dag over";
 "widget.days.many" = "%d dagen over";
+"No categories selected" = "Geen categorieën geselecteerd";
+"Go back and select some categories to set spending limits. You can always do this later in the app." = "Ga terug en selecteer categorieën om uitgavenlimieten in te stellen. Je kunt dit altijd later in de app doen.";

@@ -341,3 +341,5 @@
 "widget.days.last" = "Dernier jour du mois";
 "widget.days.one" = "1 jour restant";
 "widget.days.many" = "%d jours restants";
+"No categories selected" = "Aucune catégorie sélectionnée";
+"Go back and select some categories to set spending limits. You can always do this later in the app." = "Revenez en arrière et sélectionnez des catégories pour définir des limites de dépenses. Vous pouvez toujours le faire plus tard dans l'app.";
