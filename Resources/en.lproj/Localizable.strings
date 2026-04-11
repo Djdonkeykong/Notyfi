@@ -331,3 +331,12 @@
 "Please enter your email." = "Please enter your email.";
 "Check your inbox" = "Check your inbox";
 "We sent a reset link to \(email). Follow it to set a new password." = "We sent a reset link to \(email). Follow it to set a new password.";
+
+// Widget
+"spent this month" = "spent this month";
+"Left" = "Left";
+"Monthly Overview" = "Monthly Overview";
+"See your monthly spend and budget at a glance." = "See your monthly spend and budget at a glance.";
+"widget.days.last" = "Last day of month";
+"widget.days.one" = "1 day left";
+"widget.days.many" = "%d days left";

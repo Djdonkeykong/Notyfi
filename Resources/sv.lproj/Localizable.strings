@@ -332,3 +332,12 @@
 "Freq Regular" = "Regelbundet";
 "Freq Often" = "Ofta";
 "Freq Max" = "Max";
+
+// Widget
+"spent this month" = "spenderat den här månaden";
+"Left" = "Kvar";
+"Monthly Overview" = "Månadsöversikt";
+"See your monthly spend and budget at a glance." = "Se månadsutgifter och budget på en gång.";
+"widget.days.last" = "Sista dagen i månaden";
+"widget.days.one" = "1 dag kvar";
+"widget.days.many" = "%d dagar kvar";

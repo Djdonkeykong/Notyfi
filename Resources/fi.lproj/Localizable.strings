@@ -332,3 +332,12 @@
 "Freq Regular" = "Säännöllinen";
 "Freq Often" = "Usein";
 "Freq Max" = "Max";
+
+// Widget
+"spent this month" = "käytetty tässä kuussa";
+"Left" = "Jäljellä";
+"Monthly Overview" = "Kuukausikatsaus";
+"See your monthly spend and budget at a glance." = "Näe kuukausittaiset kulut ja budjetti yhdellä silmäyksellä.";
+"widget.days.last" = "Kuukauden viimeinen päivä";
+"widget.days.one" = "1 päivä jäljellä";
+"widget.days.many" = "%d päivää jäljellä";

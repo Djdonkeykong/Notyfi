@@ -332,3 +332,12 @@
 "Freq Regular" = "Normaal";
 "Freq Often" = "Vaak";
 "Freq Max" = "Max";
+
+// Widget
+"spent this month" = "uitgegeven deze maand";
+"Left" = "Resterend";
+"Monthly Overview" = "Maandoverzicht";
+"See your monthly spend and budget at a glance." = "Bekijk je maandelijkse uitgaven en budget in één oogopslag.";
+"widget.days.last" = "Laatste dag van de maand";
+"widget.days.one" = "1 dag over";
+"widget.days.many" = "%d dagen over";

@@ -223,9 +223,9 @@ private struct LockRectangularView: View {
         guard let range = calendar.range(of: .day, in: .month, for: now) else { return "" }
         let remaining = max(0, range.count - calendar.component(.day, from: now))
         switch remaining {
-        case 0:  return "Last day of month"
-        case 1:  return "1 day left"
-        default: return "\(remaining) days left"
+        case 0:  return "widget.days.last".notyfiLocalized
+        case 1:  return "widget.days.one".notyfiLocalized
+        default: return String(format: "widget.days.many".notyfiLocalized, remaining)
         }
     }
 

@@ -332,3 +332,12 @@
 "Freq Regular" = "Regelmæssigt";
 "Freq Often" = "Ofte";
 "Freq Max" = "Maks";
+
+// Widget
+"spent this month" = "brugt denne måned";
+"Left" = "Tilbage";
+"Monthly Overview" = "Månedsoversigt";
+"See your monthly spend and budget at a glance." = "Se månedlige udgifter og budget på et øjeblik.";
+"widget.days.last" = "Sidste dag i måneden";
+"widget.days.one" = "1 dag tilbage";
+"widget.days.many" = "%d dage tilbage";

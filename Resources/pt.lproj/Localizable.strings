@@ -332,3 +332,12 @@
 "Freq Regular" = "Regular";
 "Freq Often" = "Frequente";
 "Freq Max" = "Max";
+
+// Widget
+"spent this month" = "gasto este mês";
+"Left" = "Restante";
+"Monthly Overview" = "Visão geral mensal";
+"See your monthly spend and budget at a glance." = "Veja seus gastos e orçamento mensais rapidamente.";
+"widget.days.last" = "Último dia do mês";
+"widget.days.one" = "1 dia restante";
+"widget.days.many" = "%d dias restantes";
