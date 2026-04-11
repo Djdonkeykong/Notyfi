@@ -147,7 +147,7 @@ private extension HomeView {
                     .presentationBackground(NotyfiTheme.background.opacity(0.98))
                     .presentationCornerRadius(34)
             }
-            .fullScreenCover(isPresented: $isCameraPresented) {
+            .sheet(isPresented: $isCameraPresented) {
                 CameraCaptureView(
                     sourceType: cameraSourceType,
                     onImagePicked: handleCapturedImage
@@ -336,8 +336,8 @@ private extension HomeView {
     }
 
     func presentCamera(sourceType: UIImagePickerController.SourceType) {
+        cameraSourceType = sourceType
         presentAfterEditorSettles {
-            cameraSourceType = sourceType
             isCameraPresented = true
         }
     }
