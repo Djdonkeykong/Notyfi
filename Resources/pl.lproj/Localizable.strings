@@ -283,3 +283,18 @@
 "/mo" = "/mies.";
 "Skip for now" = "Pomin na razie";
 "Follow System" = "Podazaj za systemem";
+
+// Forgot password
+"Forgot?" = "Forgot?";
+"Reset password" = "Reset password";
+"Enter your email and we'll send you a reset link." = "Enter your email and we'll send you a reset link.";
+"Please enter your email." = "Please enter your email.";
+"Check your inbox" = "Check your inbox";
+"We sent a reset link to \(email). Follow it to set a new password." = "We sent a reset link to \(email). Follow it to set a new password.";
+
+"Forgot?" = "Zapomniales?";
+"Reset password" = "Zresetuj haslo";
+"Enter your email and we'll send you a reset link." = "Podaj swoj e-mail, a wyslesmy Ci link do resetowania.";
+"Please enter your email." = "Prosimy podac adres e-mail.";
+"Check your inbox" = "Sprawdz swoja skrzynke";
+"We sent a reset link to \(email). Follow it to set a new password." = "Wyslalismy link resetujacy na adres \(email). Kliknij go, aby ustawic nowe haslo.";

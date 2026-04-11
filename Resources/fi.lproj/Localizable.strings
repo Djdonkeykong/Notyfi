@@ -283,3 +283,18 @@
 "/mo" = "/kk";
 "Skip for now" = "Ohita toistaiseksi";
 "Follow System" = "Seuraa järjestelmää";
+
+// Forgot password
+"Forgot?" = "Forgot?";
+"Reset password" = "Reset password";
+"Enter your email and we'll send you a reset link." = "Enter your email and we'll send you a reset link.";
+"Please enter your email." = "Please enter your email.";
+"Check your inbox" = "Check your inbox";
+"We sent a reset link to \(email). Follow it to set a new password." = "We sent a reset link to \(email). Follow it to set a new password.";
+
+"Forgot?" = "Unohditko?";
+"Reset password" = "Nollaa salasana";
+"Enter your email and we'll send you a reset link." = "Syota sahkopostiosoitteesi ja lahetamme sinulle nollauslinkin.";
+"Please enter your email." = "Syota sahkopostiosoitteesi.";
+"Check your inbox" = "Tarkista postilaatikkosi";
+"We sent a reset link to \(email). Follow it to set a new password." = "Lahetimme nollauslinkin osoitteeseen \(email). Seuraa sita asettaaksesi uuden salasanan.";

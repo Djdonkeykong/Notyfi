@@ -283,3 +283,18 @@
 "/mo" = "/mnd.";
 "Skip for now" = "Nu overslaan";
 "Follow System" = "Systeem volgen";
+
+// Forgot password
+"Forgot?" = "Forgot?";
+"Reset password" = "Reset password";
+"Enter your email and we'll send you a reset link." = "Enter your email and we'll send you a reset link.";
+"Please enter your email." = "Please enter your email.";
+"Check your inbox" = "Check your inbox";
+"We sent a reset link to \(email). Follow it to set a new password." = "We sent a reset link to \(email). Follow it to set a new password.";
+
+"Forgot?" = "Vergeten?";
+"Reset password" = "Wachtwoord resetten";
+"Enter your email and we'll send you a reset link." = "Voer je e-mail in en we sturen je een resetlink.";
+"Please enter your email." = "Voer je e-mailadres in.";
+"Check your inbox" = "Controleer je inbox";
+"We sent a reset link to \(email). Follow it to set a new password." = "We hebben een resetlink gestuurd naar \(email). Volg deze om een nieuw wachtwoord in te stellen.";

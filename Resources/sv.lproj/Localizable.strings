@@ -283,3 +283,18 @@
 "/mo" = "/man.";
 "Skip for now" = "Hoppa over for nu";
 "Follow System" = "Folj system";
+
+// Forgot password
+"Forgot?" = "Forgot?";
+"Reset password" = "Reset password";
+"Enter your email and we'll send you a reset link." = "Enter your email and we'll send you a reset link.";
+"Please enter your email." = "Please enter your email.";
+"Check your inbox" = "Check your inbox";
+"We sent a reset link to \(email). Follow it to set a new password." = "We sent a reset link to \(email). Follow it to set a new password.";
+
+"Forgot?" = "Glomt?";
+"Reset password" = "Aterstall losenord";
+"Enter your email and we'll send you a reset link." = "Ange din e-post sa skickar vi en aterStallningslank.";
+"Please enter your email." = "Ange din e-postadress.";
+"Check your inbox" = "Kolla din inkorg";
+"We sent a reset link to \(email). Follow it to set a new password." = "Vi skickade en aterstallningslank till \(email). Folj den for att ange ett nytt losenord.";

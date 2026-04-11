@@ -283,3 +283,18 @@
 "/mo" = "/md.";
 "Skip for now" = "Spring over for nu";
 "Follow System" = "Følg system";
+
+// Forgot password
+"Forgot?" = "Forgot?";
+"Reset password" = "Reset password";
+"Enter your email and we'll send you a reset link." = "Enter your email and we'll send you a reset link.";
+"Please enter your email." = "Please enter your email.";
+"Check your inbox" = "Check your inbox";
+"We sent a reset link to \(email). Follow it to set a new password." = "We sent a reset link to \(email). Follow it to set a new password.";
+
+"Forgot?" = "Glemt?";
+"Reset password" = "Nulstil adgangskode";
+"Enter your email and we'll send you a reset link." = "Indtast din e-mail, og vi sender dig et nulstillingslink.";
+"Please enter your email." = "Indtast venligst din e-mail.";
+"Check your inbox" = "Tjek din indbakke";
+"We sent a reset link to \(email). Follow it to set a new password." = "Vi sendte et nulstillingslink til \(email). Klik pa det for at angive en ny adgangskode.";
