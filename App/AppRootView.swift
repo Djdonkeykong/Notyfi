@@ -26,7 +26,7 @@ struct AppRootView: View {
     }
 
     private var splashScreen: some View {
-        Color(red: 0.996, green: 0.855, blue: 0.863)
+        Color(red: 0.949, green: 0.949, blue: 0.976)
             .ignoresSafeArea()
     }
 

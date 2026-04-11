@@ -39,21 +39,21 @@ struct OnboardingWelcomeView: View {
 
     // MARK: - Subviews
 
+    private var resolvedLanguage: NotyfiLanguage {
+        if languageManager.current != .system { return languageManager.current }
+        let code = Locale.preferredLanguages.first.flatMap { Locale(identifier: $0).language.languageCode?.identifier } ?? "en"
+        return NotyfiLanguage(rawValue: code) ?? .english
+    }
+
     private var languagePill: some View {
         Button {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             showLanguagePicker = true
         } label: {
             HStack(spacing: 6) {
-                if languageManager.current == .system {
-                    Image(systemName: "globe")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(NotyfiTheme.secondaryText)
-                } else {
-                    Text(languageManager.current.flag)
-                        .font(.system(size: 14))
-                }
-                Text(languageManager.current.shortLabel)
+                Text(resolvedLanguage.flag)
+                    .font(.system(size: 14))
+                Text(resolvedLanguage.shortLabel)
                     .font(.notyfi(.subheadline, weight: .medium))
                     .foregroundStyle(.primary.opacity(0.75))
             }
@@ -76,7 +76,7 @@ struct OnboardingWelcomeView: View {
         Image("mascot-welcome")
             .resizable()
             .scaledToFit()
-            .frame(width: 300, height: 300)
+            .frame(width: 150, height: 150)
     }
 
     private var headline: some View {

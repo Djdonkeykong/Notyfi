@@ -21,9 +21,7 @@ struct OnboardingBudgetView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Image("mascot-budget")
-                    .resizable()
-                    .scaledToFit()
+                Color.clear
                     .frame(maxWidth: .infinity)
                     .frame(height: 260)
                     .padding(.vertical, 24)

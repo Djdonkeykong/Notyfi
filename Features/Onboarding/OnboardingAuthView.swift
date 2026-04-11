@@ -83,9 +83,7 @@ struct OnboardingAuthView: View {
     // MARK: - Subviews
 
     private var illustration: some View {
-        Image("mascot-save")
-            .resizable()
-            .scaledToFit()
+        Color.clear
             .frame(width: 288, height: 288)
     }
 
@@ -273,7 +271,9 @@ struct EmailSignUpView: View {
                             errorMessage = nil
                         }
                         .foregroundStyle(NotyfiTheme.brandPrimary)
+                        .fontWeight(.semibold)
                     }
+                    .padding(.top, 24)
                     .font(.notyfi(.subheadline))
                     .frame(maxWidth: .infinity, alignment: .center)
                 }

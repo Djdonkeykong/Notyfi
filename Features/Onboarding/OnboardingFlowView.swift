@@ -28,6 +28,11 @@ struct OnboardingFlowView: View {
     @State private var chromeVisible: Bool = false
     @State private var chromeOffset: CGFloat = 0
 
+    // Global gradients are shown with a delay when entering chrome pages so they
+    // don't overlap content (e.g. language pill) on non-chrome pages sliding out.
+    // They hide immediately when leaving chrome pages.
+    @State private var gradientsVisible: Bool = false
+
     // Captured from GeometryReader so overlays can use it
     @State private var viewWidth: CGFloat = 390
 
@@ -80,10 +85,12 @@ struct OnboardingFlowView: View {
                 .onAppear { viewWidth = geo.size.width }
             }
         }
-        // Gradient fades — only shown on steps that have chrome (not welcome/sign-in).
+        // Gradient fades — only shown on chrome steps. Hidden immediately when leaving
+        // chrome pages, but shown with a delay when entering them so non-chrome content
+        // (e.g. language pill) isn't covered while sliding out.
         // Non-interactive so taps pass through to content beneath.
         .overlay(alignment: .top) {
-            if chromeVisible {
+            if gradientsVisible {
                 LinearGradient(
                     stops: [
                         .init(color: NotyfiTheme.brandLight, location: 0),
@@ -96,10 +103,11 @@ struct OnboardingFlowView: View {
                 .frame(height: 160)
                 .ignoresSafeArea(edges: .top)
                 .allowsHitTesting(false)
+                .transition(.opacity)
             }
         }
         .overlay(alignment: .bottom) {
-            if chromeVisible {
+            if gradientsVisible {
                 LinearGradient(
                     colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
                     startPoint: .top,
@@ -108,6 +116,7 @@ struct OnboardingFlowView: View {
                 .frame(height: 60)
                 .ignoresSafeArea(edges: .bottom)
                 .allowsHitTesting(false)
+                .transition(.opacity)
             }
         }
         // Chrome elements sit on top of the gradient fades
@@ -267,6 +276,16 @@ struct OnboardingFlowView: View {
             else if wasChrome && !willBeChrome { chromeOffset = -1 }
         }
 
+        // Show gradients after the slide animation completes (non-chrome -> chrome),
+        // or hide them immediately (chrome -> non-chrome) so outgoing content isn't covered.
+        if !wasChrome && willBeChrome {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                gradientsVisible = true
+            }
+        } else if wasChrome && !willBeChrome {
+            gradientsVisible = false
+        }
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             chromeVisible = willBeChrome
         }
@@ -322,6 +341,16 @@ struct OnboardingFlowView: View {
             }
             if !wasChrome && willBeChrome { chromeOffset = 0 }
             else if wasChrome && !willBeChrome { chromeOffset = 1 }
+        }
+
+        // Hide gradients immediately when returning to non-chrome pages (back button unobstructed),
+        // show with delay when pushing into chrome pages.
+        if wasChrome && !willBeChrome {
+            gradientsVisible = false
+        } else if !wasChrome && willBeChrome {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                gradientsVisible = true
+            }
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
