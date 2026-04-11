@@ -10,3 +10,7 @@
 "spent this month" = "spenderat den har manaden";
 "this month" = "den har manaden";
 "See your monthly spend and budget at a glance." = "Se manatliga utgifter och budget i ett ogonkast.";
+"Monthly Overview" = "Månadsöversikt";
+"widget.days.last" = "Sista dagen i månaden";
+"widget.days.one" = "1 dag kvar";
+"widget.days.many" = "%d dagar kvar";

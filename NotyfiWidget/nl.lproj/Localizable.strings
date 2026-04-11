@@ -10,3 +10,7 @@
 "spent this month" = "deze maand uitgegeven";
 "this month" = "deze maand";
 "See your monthly spend and budget at a glance." = "Bekijk maandelijkse uitgaven en budget in een oogopslag.";
+"Monthly Overview" = "Maandoverzicht";
+"widget.days.last" = "Laatste dag van de maand";
+"widget.days.one" = "1 dag over";
+"widget.days.many" = "%d dagen over";

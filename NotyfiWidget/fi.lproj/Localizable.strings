@@ -10,3 +10,7 @@
 "spent this month" = "kaytetty tassa kuussa";
 "this month" = "tassa kuussa";
 "See your monthly spend and budget at a glance." = "Katso kuukausittaiset menot ja budjetti yhdella silmayksella.";
+"Monthly Overview" = "Kuukausikatsaus";
+"widget.days.last" = "Kuukauden viimeinen päivä";
+"widget.days.one" = "1 päivä jäljellä";
+"widget.days.many" = "%d päivää jäljellä";

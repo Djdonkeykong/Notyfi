@@ -10,3 +10,7 @@
 "Start logging in Notyfi to fill this widget." = "Start logging in Notyfi to fill this widget.";
 "Notyfi overview" = "Notyfi overview";
 "See your monthly spend, net, and today at a glance." = "See your monthly spend, net, and today at a glance.";
+"Monthly Overview" = "Monthly Overview";
+"widget.days.last" = "Last day of month";
+"widget.days.one" = "1 day left";
+"widget.days.many" = "%d days left";

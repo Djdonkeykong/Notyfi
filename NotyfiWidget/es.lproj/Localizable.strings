@@ -10,3 +10,7 @@
 "spent this month" = "gastado este mes";
 "this month" = "este mes";
 "See your monthly spend and budget at a glance." = "Ve tus gastos mensuales y presupuesto de un vistazo.";
+"Monthly Overview" = "Resumen mensual";
+"widget.days.last" = "Último día del mes";
+"widget.days.one" = "1 día restante";
+"widget.days.many" = "%d días restantes";
