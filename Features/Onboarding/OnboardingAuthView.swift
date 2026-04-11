@@ -48,6 +48,20 @@ struct OnboardingAuthView: View {
             .scrollIndicators(.hidden)
             .toolbar(.hidden, for: .navigationBar)
 
+            LinearGradient(
+                stops: [
+                    .init(color: NotyfiTheme.brandLight, location: 0),
+                    .init(color: NotyfiTheme.brandLight, location: 0.30),
+                    .init(color: NotyfiTheme.brandLight.opacity(0), location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 120)
+            .frame(maxWidth: .infinity)
+            .ignoresSafeArea(edges: .top)
+            .allowsHitTesting(false)
+
             if let onBack {
                 HStack {
                     OnboardingBackButton(action: onBack)
@@ -55,15 +69,6 @@ struct OnboardingAuthView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
-                .background {
-                    LinearGradient(
-                        colors: [NotyfiTheme.brandLight, NotyfiTheme.brandLight.opacity(0)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .ignoresSafeArea(edges: .top)
-                    .frame(height: 80)
-                }
             }
         }
         .background(NotyfiTheme.brandLight.ignoresSafeArea())

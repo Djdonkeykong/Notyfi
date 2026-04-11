@@ -80,31 +80,35 @@ struct OnboardingFlowView: View {
                 .onAppear { viewWidth = geo.size.width }
             }
         }
-        // Always-present gradient fades — gives every page the soft top/bottom
-        // edge. Non-interactive so taps pass through to content beneath.
+        // Gradient fades — only shown on steps that have chrome (not welcome/sign-in).
+        // Non-interactive so taps pass through to content beneath.
         .overlay(alignment: .top) {
-            LinearGradient(
-                stops: [
-                    .init(color: NotyfiTheme.brandLight, location: 0),
-                    .init(color: NotyfiTheme.brandLight, location: 0.30),
-                    .init(color: NotyfiTheme.brandLight.opacity(0), location: 1)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 160)
-            .ignoresSafeArea(edges: .top)
-            .allowsHitTesting(false)
+            if chromeVisible {
+                LinearGradient(
+                    stops: [
+                        .init(color: NotyfiTheme.brandLight, location: 0),
+                        .init(color: NotyfiTheme.brandLight, location: 0.30),
+                        .init(color: NotyfiTheme.brandLight.opacity(0), location: 1)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 160)
+                .ignoresSafeArea(edges: .top)
+                .allowsHitTesting(false)
+            }
         }
         .overlay(alignment: .bottom) {
-            LinearGradient(
-                colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 60)
-            .ignoresSafeArea(edges: .bottom)
-            .allowsHitTesting(false)
+            if chromeVisible {
+                LinearGradient(
+                    colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 60)
+                .ignoresSafeArea(edges: .bottom)
+                .allowsHitTesting(false)
+            }
         }
         // Chrome elements sit on top of the gradient fades
         .overlay(alignment: .top) {

@@ -1,4 +1,4 @@
-"Today" = "Vandaag";
+﻿"Today" = "Vandaag";
 "Yesterday" = "Gisteren";
 "Start typing your money notes..." = "Begin met het typen van je geldnotities...";
 "Start with a note" = "Begin met een notitie";
@@ -42,7 +42,7 @@
 "Month" = "Maand";
 "Net" = "Netto";
 "Balance" = "Saldo";
-"Top categories" = "TopcategorieÃƒÆ’Ã‚Â«n";
+"Top categories" = "TopcategorieÃÃ‚Â«n";
 "Start adding notes to see where your money goes." = "Begin met notities toevoegen om te zien waar je geld naartoe gaat.";
 "Top category insight format" = "%@ voert deze maand de uitgaven aan met %d%%.";
 "No notes yet this month." = "Nog geen notities deze maand.";
@@ -70,7 +70,7 @@
 "Plan" = "Plan";
 "Money plan" = "Budgetplan";
 "Monthly spending cap" = "Maandelijks uitgavenplafond";
-"One gentle limit for the whole month" = "EÃƒÆ’Ã‚Â©n rustige limiet voor de hele maand";
+"One gentle limit for the whole month" = "EÃÃ‚Â©n rustige limiet voor de hele maand";
 "Savings target" = "Spaardoel";
 "How much you want to keep after expenses" = "Hoeveel je wilt overhouden na uitgaven";
 "Category guides" = "Categorierichtlijnen";
@@ -80,7 +80,7 @@
 "Cap" = "Limiet";
 "0" = "0";
 "Use suggested cap %@" = "Gebruik voorgestelde limiet %@";
-"Start with one monthly cap, then add category guides only where they help." = "Begin met ÃƒÆ’Ã‚Â©ÃƒÆ’Ã‚Â©n maandelijkse limiet en voeg alleen categorierichtlijnen toe waar ze helpen.";
+"Start with one monthly cap, then add category guides only where they help." = "Begin met ÃÃ‚Â©ÃÃ‚Â©n maandelijkse limiet en voeg alleen categorierichtlijnen toe waar ze helpen.";
 "Spent %@ over %@ tracked days." = "%@ uitgegeven over %@ geregistreerde dagen.";
 "left" = "over";
 "over" = "over";
@@ -190,8 +190,8 @@
 "Transfer" = "Overboeking";
 "Recurring bill" = "Terugkerende rekening";
 "Attachment from Files" = "Bijlage uit Bestanden";
-"Add one manual expense entry." = "Voeg ÃƒÂ©ÃƒÂ©n handmatige uitgave toe.";
-"Add one manual income entry." = "Voeg ÃƒÂ©ÃƒÂ©n handmatige inkomenspost toe.";
+"Add one manual expense entry." = "Voeg één handmatige uitgave toe.";
+"Add one manual income entry." = "Voeg één handmatige inkomenspost toe.";
 "Start a transfer entry and adjust the direction." = "Start een overboeking en pas de richting aan.";
 "Create a bill entry you can fill in quickly." = "Maak een rekening aan die je snel kunt invullen.";
 "Import an image or PDF from Files." = "Importeer een afbeelding of pdf uit Bestanden.";

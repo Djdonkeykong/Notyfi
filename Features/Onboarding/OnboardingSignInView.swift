@@ -78,15 +78,6 @@ struct OnboardingSignInView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
-                .background {
-                    LinearGradient(
-                        colors: [NotyfiTheme.brandLight, NotyfiTheme.brandLight.opacity(0)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .ignoresSafeArea(edges: .top)
-                    .frame(height: 80)
-                }
             }
         }
         .background(NotyfiTheme.brandLight.ignoresSafeArea())

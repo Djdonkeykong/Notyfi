@@ -46,7 +46,7 @@ struct LanguagePickerSheet: View {
 
     private var languageCard: some View {
         VStack(spacing: 0) {
-            ForEach(Array(NotyfiLanguage.allCases.enumerated()), id: \.element.id) { index, language in
+            ForEach(Array(NotyfiLanguage.allCases.filter { $0 != .system }.enumerated()), id: \.element.id) { index, language in
                 if index > 0 {
                     Divider()
                 }

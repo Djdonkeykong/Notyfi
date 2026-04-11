@@ -26,14 +26,8 @@ struct AppRootView: View {
     }
 
     private var splashScreen: some View {
-        ZStack {
-            Color(red: 0.0, green: 0.0, blue: 0.996)
-                .ignoresSafeArea()
-            Image("LaunchScreenLogo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 260, height: 260)
-        }
+        Color(red: 0.996, green: 0.855, blue: 0.863)
+            .ignoresSafeArea()
     }
 
     private var appearanceMode: NotyfiAppearanceMode {
