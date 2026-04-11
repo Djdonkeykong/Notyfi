@@ -35,11 +35,6 @@ struct OnboardingCategoriesView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Color.clear
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 260)
-                    .padding(.vertical, 24)
-
                 Text("What do you spend on?".notyfiLocalized)
                     .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)

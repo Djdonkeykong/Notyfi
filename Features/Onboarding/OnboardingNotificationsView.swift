@@ -30,7 +30,7 @@ struct OnboardingNotificationsView: View {
                 if isEnabled {
                     frequencyCard
                         .padding(.top, 12)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        .transition(.opacity)
                 }
             }
             .padding(.horizontal, 24)
@@ -84,17 +84,22 @@ struct OnboardingNotificationsView: View {
     }
 
     private var frequencyCard: some View {
-        VStack(spacing: 20) {
-            ReminderFrequencySlider(selection: $frequency)
-                .onChange(of: frequency) { _, newValue in
-                    Task { await NotyfiReminderManager.shared.updateFrequency(newValue) }
+        ReminderFrequencySlider(selection: $frequency)
+            .onChange(of: frequency) { _, newValue in
+                Task { await NotyfiReminderManager.shared.updateFrequency(newValue) }
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 20)
+            .background {
+                if #available(iOS 26, *) {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .glassEffect()
+                } else {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(.white.opacity(0.6))
+                        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
                 }
-        }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 20)
-        .background(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+            }
     }
 
     private func requestPermission() {

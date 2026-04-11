@@ -312,3 +312,23 @@
 
 // Widget onboarding
 "Add the Notyfi widget to stay on top of your spending — every single day." = "Tilfoj Notyfi-widgetten for at holde styr pa dine udgifter — hver dag.";
+
+// Category group titles
+"Essentials" = "Grundlæggende";
+"Food & Drink" = "Mad & drikke";
+"Lifestyle" = "Livsstil";
+
+// Be detailed examples
+"example.food.vague" = "mad";
+"example.food.specific" = "Chipotle burrito bowl 12.50";
+"example.drinks.vague" = "drikke";
+"example.drinks.specific" = "Starbucks oat milk latte 5.80";
+"example.sub.vague" = "abonnement";
+"example.sub.specific" = "Spotify monthly 9.99";
+
+// Reminder frequency slider
+"Freq Subtle" = "Subtil";
+"Freq Light" = "Let";
+"Freq Regular" = "Regelmæssigt";
+"Freq Often" = "Ofte";
+"Freq Max" = "Maks";

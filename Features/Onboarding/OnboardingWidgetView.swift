@@ -50,12 +50,13 @@ struct OnboardingWidgetView: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 0) {
                 title
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 40)
 
                 previewImage
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 32)
 
                 screenToggle
+                    .padding(.horizontal, 32)
                     .padding(.bottom, 28)
 
                 stepsList
@@ -131,14 +132,18 @@ struct OnboardingWidgetView: View {
         }
         .padding(4)
         .background {
-            Capsule()
-                .fill(.white)
-                .overlay {
-                    Capsule()
-                        .stroke(Color.primary.opacity(0.08), lineWidth: 1)
-                }
+            if #available(iOS 26, *) {
+                Capsule()
+                    .glassEffect()
+            } else {
+                Capsule()
+                    .fill(.white.opacity(0.3))
+                    .overlay {
+                        Capsule()
+                            .stroke(Color.primary.opacity(0.18), lineWidth: 1.5)
+                    }
+            }
         }
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 
     private var stepsList: some View {

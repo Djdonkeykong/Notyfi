@@ -191,14 +191,26 @@ struct StatsSheetView: View {
         .onChange(of: savingsTargetText) { _, newValue in
             viewModel.setMonthlySavingsTarget(parsedAmount(from: newValue))
         }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
+        .safeAreaInset(edge: .bottom) {
+            if focusedField != nil {
+                HStack {
+                    Spacer()
 
-                Button("Done".notyfiLocalized) {
-                    focusedField = nil
+                    Button("Done".notyfiLocalized) {
+                        focusedField = nil
+                    }
+                    .font(.notyfi(.subheadline, weight: .semibold))
+                    .foregroundStyle(.primary.opacity(0.82))
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 13)
+                    .background {
+                        Capsule()
+                            .fill(NotyfiTheme.elevatedSurface)
+                            .shadow(color: NotyfiTheme.shadow, radius: 10, x: 0, y: 4)
+                    }
                 }
-                .font(.notyfi(.footnote, weight: .semibold))
+                .padding(.horizontal, 20)
+                .padding(.bottom, 14)
             }
         }
     }

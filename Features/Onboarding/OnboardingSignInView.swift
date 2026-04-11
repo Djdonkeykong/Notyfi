@@ -20,7 +20,7 @@ struct OnboardingSignInView: View {
                 Image("mascot-welcome")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 180, height: 180)
+                    .frame(width: 216, height: 216)
                     .frame(maxWidth: .infinity)
 
                 Spacer().frame(height: 36)

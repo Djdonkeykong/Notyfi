@@ -108,26 +108,6 @@ private struct BudgetInputSheet: View {
                     .font(.system(size: 48, weight: .bold, design: .default))
                     .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button {
-                                focused = false
-                            } label: {
-                                Text("Done".notyfiLocalized)
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(NotyfiTheme.brandPrimary)
-                                    .padding(.horizontal, 22)
-                                    .padding(.vertical, 9)
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                            .fill(.white)
-                                            .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: -2)
-                                    }
-                            }
-                            .padding(.bottom, 10)
-                        }
-                    }
 
                 Text("per month".notyfiLocalized)
                     .font(.notyfi(.subheadline))

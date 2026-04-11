@@ -30,11 +30,6 @@ struct OnboardingAllocateView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Color.clear
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 260)
-                    .padding(.vertical, 24)
-
                 Text("Set category limits".notyfiLocalized)
                     .font(.notyfi(.title2, weight: .bold))
                     .padding(.bottom, 10)
@@ -170,26 +165,6 @@ private struct AllocateLimitSheet: View {
                     .multilineTextAlignment(.center)
                     .font(.system(size: 48, weight: .bold, design: .default))
                     .foregroundStyle(.primary)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button {
-                                focused = false
-                            } label: {
-                                Text("Done".notyfiLocalized)
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(NotyfiTheme.brandPrimary)
-                                    .padding(.horizontal, 22)
-                                    .padding(.vertical, 9)
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                            .fill(.white)
-                                            .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: -2)
-                                    }
-                            }
-                            .padding(.bottom, 10)
-                        }
-                    }
                     .frame(maxWidth: .infinity)
 
                 Text("per month for \(category.title)".notyfiLocalized)

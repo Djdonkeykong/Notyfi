@@ -76,7 +76,7 @@ struct OnboardingWelcomeView: View {
         Image("mascot-welcome")
             .resizable()
             .scaledToFit()
-            .frame(width: 180, height: 180)
+            .frame(width: 216, height: 216)
     }
 
     private var headline: some View {

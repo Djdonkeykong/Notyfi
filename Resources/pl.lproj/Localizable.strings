@@ -312,3 +312,23 @@
 
 // Widget onboarding
 "Add the Notyfi widget to stay on top of your spending — every single day." = "Dodaj widget Notyfi, aby byc na biezaco ze swoimi wydatkami — kazdego dnia.";
+
+// Category group titles
+"Essentials" = "Podstawowe";
+"Food & Drink" = "Jedzenie i napoje";
+"Lifestyle" = "Styl zycia";
+
+// Be detailed examples
+"example.food.vague" = "jedzenie";
+"example.food.specific" = "Chipotle burrito bowl 12.50";
+"example.drinks.vague" = "napoje";
+"example.drinks.specific" = "Starbucks oat milk latte 5.80";
+"example.sub.vague" = "subskrypcja";
+"example.sub.specific" = "Spotify monthly 9.99";
+
+// Reminder frequency slider
+"Freq Subtle" = "Subtelny";
+"Freq Light" = "Lekki";
+"Freq Regular" = "Regularny";
+"Freq Often" = "Czesto";
+"Freq Max" = "Max";

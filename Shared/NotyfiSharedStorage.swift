@@ -48,11 +48,11 @@ enum ReminderFrequency: Int, CaseIterable {
 
     var label: String {
         switch self {
-        case .subtle:  return "Subtle"
-        case .light:   return "Light"
-        case .regular: return "Regular"
-        case .often:   return "Often"
-        case .max:     return "Max"
+        case .subtle:  return "Freq Subtle".notyfiLocalized
+        case .light:   return "Freq Light".notyfiLocalized
+        case .regular: return "Freq Regular".notyfiLocalized
+        case .often:   return "Freq Often".notyfiLocalized
+        case .max:     return "Freq Max".notyfiLocalized
         }
     }
 

@@ -83,6 +83,7 @@ targets:
       - path: NotyfiWidget
       - path: Shared
       - path: Core/Extensions/Double+Currency.swift
+      - path: Resources/Assets.xcassets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.djdonkeykong.notely.widget

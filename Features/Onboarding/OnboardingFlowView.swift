@@ -10,7 +10,7 @@ struct OnboardingFlowView: View {
     @State private var currentStep: OnboardingStep = .welcome
     @State private var stepHistory: [OnboardingStep] = []
     @State private var budgetAmountText: String = ""
-    @State private var selectedCategories: Set<ExpenseCategory> = Set(ExpenseCategory.allCases.filter { $0 != .uncategorized })
+    @State private var selectedCategories: Set<ExpenseCategory> = []
     @State private var categoryBudgetTexts: [ExpenseCategory: String] = [:]
 
     // Two persistent rendering slots. The active slot's view is never recreated

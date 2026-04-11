@@ -25,21 +25,21 @@ struct OnboardingBeDetailedView: View {
                     .lineSpacing(3)
                     .padding(.bottom, 28)
 
-                VStack(spacing: 12) {
-                    DetailComparisonCard(
-                        vagueText: "food",
-                        specificText: "Chipotle burrito bowl 12.50",
-                        specificCategory: "Food & Drink"
+                VStack(spacing: 10) {
+                    DetailComparisonRow(
+                        vagueText: "example.food.vague".notyfiLocalized,
+                        specificText: "example.food.specific".notyfiLocalized,
+                        categoryText: "Food & Drink".notyfiLocalized
                     )
-                    DetailComparisonCard(
-                        vagueText: "drinks",
-                        specificText: "Starbucks oat milk latte 5.80",
-                        specificCategory: "Coffee"
+                    DetailComparisonRow(
+                        vagueText: "example.drinks.vague".notyfiLocalized,
+                        specificText: "example.drinks.specific".notyfiLocalized,
+                        categoryText: "Coffee".notyfiLocalized
                     )
-                    DetailComparisonCard(
-                        vagueText: "subscription",
-                        specificText: "Spotify monthly 9.99",
-                        specificCategory: "Subscriptions"
+                    DetailComparisonRow(
+                        vagueText: "example.sub.vague".notyfiLocalized,
+                        specificText: "example.sub.specific".notyfiLocalized,
+                        categoryText: "Entertainment".notyfiLocalized
                     )
                 }
             }
@@ -54,63 +54,60 @@ struct OnboardingBeDetailedView: View {
     }
 }
 
-private struct DetailComparisonCard: View {
+private struct DetailComparisonRow: View {
     let vagueText: String
     let specificText: String
-    let specificCategory: String
+    let categoryText: String
 
     var body: some View {
-        HStack(alignment: .top, spacing: 0) {
-            // Vague side
-            VStack(alignment: .leading, spacing: 8) {
+        HStack(alignment: .center, spacing: 10) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("\"\(vagueText)\"")
                     .font(.notyfi(.subheadline, weight: .medium))
-                    .foregroundStyle(.primary)
-                HStack(spacing: 6) {
+                    .foregroundStyle(.primary.opacity(0.72))
+
+                HStack(spacing: 5) {
                     Circle()
-                        .stroke(Color.orange.opacity(0.8), lineWidth: 2)
-                        .frame(width: 13, height: 13)
+                        .stroke(Color.orange.opacity(0.8), lineWidth: 1.5)
+                        .frame(width: 10, height: 10)
                     Text("Unclear".notyfiLocalized)
-                        .font(.notyfi(.caption))
+                        .font(.notyfi(.caption2, weight: .medium))
                         .foregroundStyle(.secondary)
                 }
             }
-            .padding(16)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.primary.opacity(0.04))
+            .background(Color.primary.opacity(0.05))
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
             Image(systemName: "arrow.right")
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(Color.secondary.opacity(0.4))
-                .frame(width: 32)
-                .padding(.top, 20)
+                .foregroundStyle(Color.secondary.opacity(0.35))
+                .frame(width: 18)
 
-            // Specific side
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("\"\(specificText)\"")
                     .font(.notyfi(.caption, weight: .medium))
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
-                HStack(spacing: 6) {
+
+                HStack(spacing: 5) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 12))
+                        .font(.system(size: 11))
                         .foregroundStyle(.green)
-                    Text(specificCategory)
-                        .font(.notyfi(.caption))
+                    Text(categoryText)
+                        .font(.notyfi(.caption2, weight: .medium))
                         .foregroundStyle(.green)
                 }
             }
-            .padding(16)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.green.opacity(0.07))
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
-        .padding(4)
-        .background(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
 }
 

@@ -74,20 +74,16 @@ private struct SmallWidgetView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 110, height: 110)
-                .shadow(color: .black.opacity(0.25), radius: 10, x: 4, y: -4)
+                .shadow(color: .black.opacity(0.10), radius: 8, x: 2, y: -2)
                 .offset(x: -22, y: 28)
 
             VStack(alignment: .leading, spacing: 0) {
-                Text("Notyfi")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.7))
-
                 Spacer()
 
                 // Main number
                 Text(spendAmount)
                     .font(.system(size: 28, weight: .bold, design: .default))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                     .minimumScaleFactor(0.6)
                     .lineLimit(1)
                     .monospacedDigit()
@@ -95,14 +91,14 @@ private struct SmallWidgetView: View {
                 if let budget = budgetString {
                     Text("of \(budget)")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(.primary.opacity(0.55))
                         .monospacedDigit()
                         .padding(.top, 1)
                 }
 
                 Text("spent this month".notyfiLocalized)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.55))
+                    .foregroundStyle(.secondary)
                     .padding(.top, 1)
 
                 // Budget bar
@@ -111,12 +107,14 @@ private struct SmallWidgetView: View {
                         .frame(height: 4)
                         .padding(.top, 10)
                 }
+
+                Spacer()
             }
             .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         }
         .containerBackground(for: .widget) {
-            Color(red: 22/255, green: 45/255, blue: 249/255)
+            Color(red: 242/255, green: 242/255, blue: 249/255)
         }
     }
 
@@ -152,21 +150,15 @@ private struct MediumWidgetView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 180, height: 180)
-                .shadow(color: .black.opacity(0.30), radius: 16, x: -4, y: 6)
+                .shadow(color: .black.opacity(0.10), radius: 10, x: -2, y: 4)
                 .offset(x: 44, y: 10)  // pushed right so only left portion is visible
 
-            HStack(alignment: .bottom, spacing: 0) {
+            HStack(alignment: .center, spacing: 0) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("Notyfi")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.65))
-
-                    Spacer()
-
                     // Big number
                     Text(spendAmount)
                         .font(.system(size: 36, weight: .bold, design: .default))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                         .minimumScaleFactor(0.6)
                         .lineLimit(1)
                         .monospacedDigit()
@@ -174,14 +166,14 @@ private struct MediumWidgetView: View {
                     if let budget = budgetString {
                         Text("of \(budget)")
                             .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.7))
+                            .foregroundStyle(.primary.opacity(0.55))
                             .monospacedDigit()
                             .padding(.top, 2)
                     }
 
                     Text("spent this month".notyfiLocalized)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.55))
+                        .foregroundStyle(.secondary)
                         .padding(.top, 1)
 
                     // Stat row
@@ -215,7 +207,7 @@ private struct MediumWidgetView: View {
             }
         }
         .containerBackground(for: .widget) {
-            Color(red: 22/255, green: 45/255, blue: 249/255)
+            Color(red: 242/255, green: 242/255, blue: 249/255)
         }
     }
 }
@@ -225,47 +217,34 @@ private struct MediumWidgetView: View {
 private struct LockRectangularView: View {
     let snapshot: NotyfiFinanceSnapshot
 
-    private var budgetProgress: Double {
-        guard snapshot.hasBudget, snapshot.monthlyBudgetLimit > 0 else { return 0 }
-        return min(snapshot.monthSpent / snapshot.monthlyBudgetLimit, 1.0)
+    private var daysLeftString: String {
+        let calendar = Calendar.current
+        let now = Date()
+        guard let range = calendar.range(of: .day, in: .month, for: now) else { return "" }
+        let remaining = max(0, range.count - calendar.component(.day, from: now))
+        switch remaining {
+        case 0:  return "Last day of month"
+        case 1:  return "1 day left"
+        default: return "\(remaining) days left"
+        }
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 5) {
-                Image("app-mascot-clean")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 14, height: 14)
-                Text("Notyfi")
-                    .font(.system(size: 11, weight: .semibold))
-                    .widgetAccentable()
-            }
-            .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 1) {
+            Text("This month".notyfiLocalized)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.secondary)
 
             Text(snapshot.monthSpent.formattedCurrency(code: snapshot.currencyCode))
-                .font(.system(size: 17, weight: .bold, design: .default))
+                .font(.system(size: 18, weight: .bold, design: .default))
                 .minimumScaleFactor(0.7)
                 .lineLimit(1)
                 .monospacedDigit()
                 .widgetAccentable()
 
-            if snapshot.hasBudget {
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(.secondary.opacity(0.3)).frame(height: 3)
-                        Capsule()
-                            .fill(.primary)
-                            .frame(width: geo.size.width * budgetProgress, height: 3)
-                    }
-                }
-                .frame(height: 3)
-                .padding(.top, 2)
-            } else {
-                Text("this month".notyfiLocalized)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
+            Text(daysLeftString)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.secondary)
         }
         .containerBackground(for: .widget) { Color.clear }
     }
@@ -282,25 +261,22 @@ private struct LockCircularView: View {
     }
 
     var body: some View {
-        ZStack {
-            if snapshot.hasBudget {
-                ProgressView(value: budgetProgress)
-                    .progressViewStyle(.circular)
-                    .tint(.white)
-            }
-
+        Gauge(value: snapshot.hasBudget ? budgetProgress : 0) {
+            EmptyView()
+        } currentValueLabel: {
             VStack(spacing: 0) {
                 Text(snapshot.monthSpent.formattedCurrency(code: snapshot.currencyCode))
-                    .font(.system(size: 13, weight: .bold, design: .default))
-                    .minimumScaleFactor(0.6)
+                    .font(.system(size: 11, weight: .bold, design: .default))
+                    .minimumScaleFactor(0.4)
                     .lineLimit(1)
                     .monospacedDigit()
-                    .widgetAccentable()
-                Text("spent".notyfiLocalized)
-                    .font(.system(size: 9, weight: .medium))
+                Text(snapshot.currencyCode)
+                    .font(.system(size: 7, weight: .medium))
                     .foregroundStyle(.secondary)
             }
         }
+        .gaugeStyle(.accessoryCircular)
+        .widgetAccentable()
         .containerBackground(for: .widget) { Color.clear }
     }
 }
@@ -338,9 +314,9 @@ private struct WidgetProgressBar: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(.white.opacity(0.2))
+                    .fill(.primary.opacity(0.1))
                 Capsule()
-                    .fill(.white.opacity(0.85))
+                    .fill(.primary.opacity(0.55))
                     .frame(width: geo.size.width * max(0.03, progress))
             }
         }
@@ -355,10 +331,10 @@ private struct WidgetStatPill: View {
         VStack(alignment: .leading, spacing: 1) {
             Text(label)
                 .font(.system(size: 9, weight: .medium))
-                .foregroundStyle(.white.opacity(0.55))
+                .foregroundStyle(.secondary)
             Text(value)
                 .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
                 .monospacedDigit()
                 .minimumScaleFactor(0.8)
                 .lineLimit(1)
@@ -376,7 +352,7 @@ struct NotyfiWidget: Widget {
         StaticConfiguration(kind: kind, provider: NotyfiWidgetProvider()) { entry in
             NotyfiWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("Notyfi overview".notyfiLocalized)
+        .configurationDisplayName("Monthly Overview".notyfiLocalized)
         .description("See your monthly spend and budget at a glance.".notyfiLocalized)
         .supportedFamilies([
             .systemSmall,

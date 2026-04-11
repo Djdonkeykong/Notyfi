@@ -45,7 +45,7 @@ private struct NotyfiMark: View {
         Image("HomeBrandMark")
             .resizable()
             .scaledToFit()
-            .frame(width: 43, height: 43)
+            .frame(height: 43)
     }
 }
 
