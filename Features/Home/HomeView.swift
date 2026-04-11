@@ -46,6 +46,18 @@ struct HomeView: View {
                 decoratedHomeContent(inlineTopBarContent)
             }
         }
+        .overlay {
+            if isImportingPhoto {
+                ZStack {
+                    Color.black.opacity(0.45)
+                        .ignoresSafeArea()
+
+                    PhotoImportOverlay()
+                        .padding(.horizontal, 24)
+                }
+                .transition(.opacity)
+            }
+        }
     }
 }
 
@@ -244,16 +256,6 @@ private extension HomeView {
                 )
             }
 
-            if isImportingPhoto {
-                ZStack {
-                    Color.black.opacity(0.18)
-                        .ignoresSafeArea()
-
-                    PhotoImportOverlay()
-                        .padding(.horizontal, 24)
-                }
-                .transition(.opacity)
-            }
         }
     }
 
@@ -503,17 +505,35 @@ private extension HomeView {
 
         Task { @MainActor in
             do {
-                _ = try await viewModel.importEntries(
-                    from: imageData,
-                    mimeType: "image/jpeg"
-                )
+                try await withThrowingTaskGroup(of: Int.self) { group in
+                    group.addTask {
+                        try await self.viewModel.importEntries(
+                            from: imageData,
+                            mimeType: "image/jpeg"
+                        )
+                    }
+                    group.addTask {
+                        try await Task.sleep(for: .seconds(30))
+                        throw PhotoImportError.timeout
+                    }
+                    _ = try await group.next()
+                    group.cancelAll()
+                }
                 isImportingPhoto = false
+            } catch PhotoImportError.timeout {
+                isImportingPhoto = false
+                photoImportAlert = PhotoImportAlert(
+                    title: "Taking too long",
+                    message: "The image couldn't be processed in time. Please try again."
+                )
             } catch {
                 isImportingPhoto = false
                 photoImportAlert = makePhotoImportAlert(for: error)
             }
         }
     }
+
+    private enum PhotoImportError: Error { case timeout }
 
     func preparedImportImageData(from fileURL: URL) throws -> Data? {
         let didAccessSecurityScope = fileURL.startAccessingSecurityScopedResource()
@@ -1004,6 +1024,7 @@ private struct DayJournalPage: View {
                     }
 
                     journalAccessoryOverlay(isAccessoryTapEnabled: !scrollDisabled)
+                        .animation(nil, value: lineFrames)
                 }
                 .padding(.top, contentTopInset)
                 .padding(.horizontal, 20)
@@ -1027,8 +1048,12 @@ private struct DayJournalPage: View {
                     for: journalText,
                     cachedFrames: lineFramesByDate[dayKey]
                 )
-                lineFrames = resolvedFrames
-                lineFramesByDate[dayKey] = resolvedFrames
+                var t = Transaction()
+                t.disablesAnimations = true
+                withTransaction(t) {
+                    lineFrames = resolvedFrames
+                    lineFramesByDate[dayKey] = resolvedFrames
+                }
                 contentHeight = max(
                     resolvedFrames.last.map { $0.minY + $0.height } ?? 0,
                     minimumEditorHeight
