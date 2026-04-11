@@ -923,6 +923,12 @@ private struct DayJournalPage: View {
     let onBlankSpaceTap: () -> Void
     let scrollDisabled: Bool
 
+    @AppStorage(NotyfiCurrency.storageKey) private var currencyRaw = NotyfiCurrencyPreference.auto.rawValue
+
+    private var currencyCode: String {
+        NotyfiCurrencyPreference(rawValue: currencyRaw)?.currencyCode ?? NotyfiCurrency.deviceCode
+    }
+
     @State private var contentHeight: CGFloat
     @State private var lineFrames: [JournalTextLineFrame]
 
@@ -1015,7 +1021,7 @@ private struct DayJournalPage: View {
                                 .font(.notyfi(.body))
                                 .foregroundStyle(NotyfiTheme.tertiaryText)
 
-                            Text("Coffee 49 kr".notyfiLocalized)
+                            Text("Coffee \(NotyfiCurrency.coffeePlaceholderAmount(for: currencyCode).formattedCurrency(code: currencyCode))")
                                 .font(.notyfi(.footnote))
                                 .foregroundStyle(NotyfiTheme.tertiaryText.opacity(0.72))
                         }

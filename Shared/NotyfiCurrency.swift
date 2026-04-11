@@ -111,6 +111,17 @@ enum NotyfiCurrency {
         currentPreference(defaults: defaults).currencyCode
     }
 
+    /// A locally sensible coffee price for placeholder/example text.
+    static func coffeePlaceholderAmount(for code: String) -> Double {
+        switch code.uppercased() {
+        case "NOK", "SEK", "DKK": return 49
+        case "JPY":                return 500
+        case "PLN":                return 18
+        case "ISK":                return 600
+        default:                   return 5  // USD, EUR, GBP, CHF, CAD, AUD, NZD, SGD etc.
+        }
+    }
+
     static func displayName(for code: String) -> String {
         switch code.uppercased() {
         case "NOK":

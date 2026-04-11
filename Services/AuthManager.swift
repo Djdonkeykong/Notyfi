@@ -14,10 +14,6 @@ final class AuthManager: ObservableObject {
     @Published private(set) var userEmail: String? = nil
     @Published private(set) var userDisplayName: String? = nil
 
-    // Set by signUpWithEmail when Supabase requires email confirmation.
-    // UI can read this to show a "check your inbox" message instead of an error.
-    @Published private(set) var pendingEmailConfirmation: Bool = false
-
     private var authStateTask: Task<Void, Never>?
 
     init() {
@@ -75,49 +71,43 @@ final class AuthManager: ObservableObject {
             throw AuthError.googleSignInFailed
         }
 
+        let rawNonce = randomNonce()
+        let hashedNonce = sha256(rawNonce)
+
         do {
-            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: root)
+            let result = try await GIDSignIn.sharedInstance.signIn(
+                withPresenting: root,
+                hint: nil,
+                additionalScopes: nil,
+                nonce: hashedNonce
+            )
             guard let idToken = result.user.idToken?.tokenString else {
                 throw AuthError.missingIdentityToken
             }
             try await SupabaseService.client.auth.signInWithIdToken(
-                credentials: .init(provider: .google, idToken: idToken)
+                credentials: .init(provider: .google, idToken: idToken, nonce: rawNonce)
             )
         } catch let error as GIDSignInError where error.code == .canceled {
             throw AuthError.googleSignInCancelled
         }
     }
 
-    // MARK: - Email
+    // MARK: - Email OTP
 
-    func signUpWithEmail(_ email: String, password: String) async throws {
+    func sendOTP(email: String) async throws {
         isLoading = true
         defer { isLoading = false }
-        pendingEmailConfirmation = false
-
-        let response = try await SupabaseService.client.auth.signUp(
-            email: email,
-            password: password
-        )
-
-        // If session is nil the user needs to confirm their email first.
-        if response.session == nil {
-            pendingEmailConfirmation = true
-        }
+        try await SupabaseService.client.auth.signInWithOTP(email: email)
     }
 
-    func signInWithEmail(_ email: String, password: String) async throws {
+    func verifyOTP(email: String, token: String) async throws {
         isLoading = true
         defer { isLoading = false }
-
-        try await SupabaseService.client.auth.signIn(
+        try await SupabaseService.client.auth.verifyOTP(
             email: email,
-            password: password
+            token: token,
+            type: .email
         )
-    }
-
-    func resetPassword(email: String) async throws {
-        try await SupabaseService.client.auth.resetPasswordForEmail(email)
     }
 
     // MARK: - Sign Out

@@ -8,34 +8,17 @@ struct NotyfiWidgetEntry: TimelineEntry {
 
 struct NotyfiWidgetProvider: TimelineProvider {
     func placeholder(in context: Context) -> NotyfiWidgetEntry {
-        NotyfiWidgetEntry(
-            date: .now,
-            snapshot: .empty
-        )
+        NotyfiWidgetEntry(date: .now, snapshot: .empty)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (NotyfiWidgetEntry) -> Void) {
-        completion(
-            NotyfiWidgetEntry(
-                date: .now,
-                snapshot: loadSnapshot()
-            )
-        )
+        completion(NotyfiWidgetEntry(date: .now, snapshot: loadSnapshot()))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<NotyfiWidgetEntry>) -> Void) {
-        let entry = NotyfiWidgetEntry(
-            date: .now,
-            snapshot: loadSnapshot()
-        )
-        let nextRefresh = Calendar.current.date(byAdding: .minute, value: 30, to: .now) ?? .now.addingTimeInterval(1800)
-
-        completion(
-            Timeline(
-                entries: [entry],
-                policy: .after(nextRefresh)
-            )
-        )
+        let entry = NotyfiWidgetEntry(date: .now, snapshot: loadSnapshot())
+        let next = Calendar.current.date(byAdding: .minute, value: 30, to: .now) ?? .now.addingTimeInterval(1800)
+        completion(Timeline(entries: [entry], policy: .after(next)))
     }
 
     private func loadSnapshot() -> NotyfiFinanceSnapshot {
@@ -43,13 +26,12 @@ struct NotyfiWidgetProvider: TimelineProvider {
         guard
             let data = defaults.data(forKey: NotyfiSharedStorage.financeSnapshotKey),
             let snapshot = try? JSONDecoder().decode(NotyfiFinanceSnapshot.self, from: data)
-        else {
-            return .empty
-        }
-
+        else { return .empty }
         return snapshot
     }
 }
+
+// MARK: - Entry View
 
 struct NotyfiWidgetEntryView: View {
     @Environment(\.widgetFamily) private var family
@@ -58,173 +40,333 @@ struct NotyfiWidgetEntryView: View {
     var body: some View {
         switch family {
         case .systemMedium:
-            mediumWidget
+            MediumWidgetView(snapshot: entry.snapshot)
+        case .accessoryRectangular:
+            LockRectangularView(snapshot: entry.snapshot)
+        case .accessoryCircular:
+            LockCircularView(snapshot: entry.snapshot)
+        case .accessoryInline:
+            LockInlineView(snapshot: entry.snapshot)
         default:
-            smallWidget
+            SmallWidgetView(snapshot: entry.snapshot)
         }
     }
+}
 
-    private var smallWidget: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Notyfi")
-                .font(.system(size: 14, weight: .semibold, design: .default))
-                .foregroundStyle(.secondary)
+// MARK: - Small Widget
 
-            if entry.snapshot.hasBudget {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Left".notyfiLocalized)
-                        .font(.system(size: 12, weight: .medium, design: .default))
-                        .foregroundStyle(.secondary)
+private struct SmallWidgetView: View {
+    let snapshot: NotyfiFinanceSnapshot
 
-                    Text(entry.snapshot.budgetLeft.formattedCurrency(code: entry.snapshot.currencyCode))
-                        .font(.system(size: 24, weight: .bold, design: .default))
-                        .foregroundStyle(entry.snapshot.budgetLeft >= 0 ? Color.green : Color.red)
-                        .minimumScaleFactor(0.72)
-                        .lineLimit(1)
-                        .monospacedDigit()
-                }
-            } else {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("This month".notyfiLocalized)
-                        .font(.system(size: 12, weight: .medium, design: .default))
-                        .foregroundStyle(.secondary)
-
-                    Text(entry.snapshot.monthSpent.formattedCurrency(code: entry.snapshot.currencyCode))
-                        .font(.system(size: 24, weight: .bold, design: .default))
-                        .foregroundStyle(.primary)
-                        .minimumScaleFactor(0.72)
-                        .lineLimit(1)
-                        .monospacedDigit()
-                }
-            }
-
-            Divider()
-
-            HStack(spacing: 8) {
-                WidgetMetricColumn(
-                    title: "Today",
-                    value: entry.snapshot.todaySpent.formattedCurrency(code: entry.snapshot.currencyCode)
-                )
-
-                WidgetMetricColumn(
-                    title: "Net",
-                    value: signedCurrency(entry.snapshot.monthNet, currencyCode: entry.snapshot.currencyCode)
-                )
-            }
-        }
-        .padding(16)
-        .containerBackground(.fill.tertiary, for: .widget)
+    private var spendAmount: String {
+        snapshot.monthSpent.formattedCurrency(code: snapshot.currencyCode)
     }
 
-    private var mediumWidget: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
+    private var budgetProgress: Double {
+        guard snapshot.hasBudget, snapshot.monthlyBudgetLimit > 0 else { return 0 }
+        return min(snapshot.monthSpent / snapshot.monthlyBudgetLimit, 1.0)
+    }
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            // Mascot peeking in from bottom-left
+            Image("app-mascot-clean")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 110, height: 110)
+                .shadow(color: .black.opacity(0.25), radius: 10, x: 4, y: -4)
+                .offset(x: -22, y: 28)
+
+            VStack(alignment: .leading, spacing: 0) {
                 Text("Notyfi")
-                    .font(.system(size: 14, weight: .semibold, design: .default))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.7))
 
                 Spacer()
 
-                Text(entry.snapshot.generatedAt, style: .date)
-                    .font(.system(size: 11, weight: .medium, design: .default))
-                    .foregroundStyle(.secondary)
+                // Main number
+                Text(spendAmount)
+                    .font(.system(size: 28, weight: .bold, design: .default))
+                    .foregroundStyle(.white)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                    .monospacedDigit()
+
+                if let budget = budgetString {
+                    Text("of \(budget)")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.7))
+                        .monospacedDigit()
+                        .padding(.top, 1)
+                }
+
+                Text("spent this month".notyfiLocalized)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.55))
+                    .padding(.top, 1)
+
+                // Budget bar
+                if snapshot.hasBudget {
+                    WidgetProgressBar(progress: budgetProgress)
+                        .frame(height: 4)
+                        .padding(.top, 10)
+                }
             }
-
-            HStack(spacing: 12) {
-                WidgetStatCard(
-                    title: entry.snapshot.hasBudget ? "Left" : "Spend",
-                    value: entry.snapshot.hasBudget
-                        ? entry.snapshot.budgetLeft.formattedCurrency(code: entry.snapshot.currencyCode)
-                        : entry.snapshot.monthSpent.formattedCurrency(code: entry.snapshot.currencyCode),
-                    tint: entry.snapshot.hasBudget && entry.snapshot.budgetLeft < 0 ? Color.red : Color.blue
-                )
-
-                WidgetStatCard(
-                    title: "Net",
-                    value: signedCurrency(entry.snapshot.monthNet, currencyCode: entry.snapshot.currencyCode),
-                    tint: entry.snapshot.monthNet >= 0 ? Color.green : Color.red
-                )
-
-                WidgetStatCard(
-                    title: "Today",
-                    value: entry.snapshot.todaySpent.formattedCurrency(code: entry.snapshot.currencyCode),
-                    tint: Color.orange
-                )
-            }
-
-            if !entry.snapshot.hasEntries {
-                Text("Start logging in Notyfi to fill this widget.".notyfiLocalized)
-                    .font(.system(size: 12, weight: .medium, design: .default))
-                    .foregroundStyle(.secondary)
-            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(16)
-        .containerBackground(.fill.tertiary, for: .widget)
+        .containerBackground(for: .widget) {
+            Color(red: 22/255, green: 45/255, blue: 249/255)
+        }
     }
 
-    private func signedCurrency(_ amount: Double, currencyCode: String) -> String {
-        let formattedAmount = abs(amount).formattedCurrency(code: currencyCode)
-
-        if amount > 0 {
-            return "+\(formattedAmount)"
-        }
-
-        if amount < 0 {
-            return "-\(formattedAmount)"
-        }
-
-        return formattedAmount
+    private var budgetString: String? {
+        guard snapshot.hasBudget else { return nil }
+        return snapshot.monthlyBudgetLimit.formattedCurrency(code: snapshot.currencyCode)
     }
 }
 
-private struct WidgetMetricColumn: View {
-    let title: String
+// MARK: - Medium Widget
+
+private struct MediumWidgetView: View {
+    let snapshot: NotyfiFinanceSnapshot
+
+    private var spendAmount: String {
+        snapshot.monthSpent.formattedCurrency(code: snapshot.currencyCode)
+    }
+
+    private var budgetString: String? {
+        guard snapshot.hasBudget else { return nil }
+        return snapshot.monthlyBudgetLimit.formattedCurrency(code: snapshot.currencyCode)
+    }
+
+    private var budgetProgress: Double {
+        guard snapshot.hasBudget, snapshot.monthlyBudgetLimit > 0 else { return 0 }
+        return min(snapshot.monthSpent / snapshot.monthlyBudgetLimit, 1.0)
+    }
+
+    var body: some View {
+        ZStack(alignment: .trailing) {
+            // Mascot — peeks in from the right like the app icon
+            Image("app-mascot-clean")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 180, height: 180)
+                .shadow(color: .black.opacity(0.30), radius: 16, x: -4, y: 6)
+                .offset(x: 44, y: 10)  // pushed right so only left portion is visible
+
+            HStack(alignment: .bottom, spacing: 0) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Notyfi")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.65))
+
+                    Spacer()
+
+                    // Big number
+                    Text(spendAmount)
+                        .font(.system(size: 36, weight: .bold, design: .default))
+                        .foregroundStyle(.white)
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(1)
+                        .monospacedDigit()
+
+                    if let budget = budgetString {
+                        Text("of \(budget)")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.7))
+                            .monospacedDigit()
+                            .padding(.top, 2)
+                    }
+
+                    Text("spent this month".notyfiLocalized)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.55))
+                        .padding(.top, 1)
+
+                    // Stat row
+                    HStack(spacing: 14) {
+                        WidgetStatPill(
+                            label: "Today".notyfiLocalized,
+                            value: snapshot.todaySpent.formattedCurrency(code: snapshot.currencyCode)
+                        )
+                        if snapshot.hasBudget {
+                            WidgetStatPill(
+                                label: "Left".notyfiLocalized,
+                                value: snapshot.budgetLeft.formattedCurrency(code: snapshot.currencyCode)
+                            )
+                        }
+                    }
+                    .padding(.top, 8)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Spacer()
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        }
+        .overlay(alignment: .bottom) {
+            if snapshot.hasBudget {
+                WidgetProgressBar(progress: budgetProgress)
+                    .frame(height: 4)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 14)
+            }
+        }
+        .containerBackground(for: .widget) {
+            Color(red: 22/255, green: 45/255, blue: 249/255)
+        }
+    }
+}
+
+// MARK: - Lock Screen: Rectangular
+
+private struct LockRectangularView: View {
+    let snapshot: NotyfiFinanceSnapshot
+
+    private var budgetProgress: Double {
+        guard snapshot.hasBudget, snapshot.monthlyBudgetLimit > 0 else { return 0 }
+        return min(snapshot.monthSpent / snapshot.monthlyBudgetLimit, 1.0)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 5) {
+                Image("app-mascot-clean")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 14, height: 14)
+                Text("Notyfi")
+                    .font(.system(size: 11, weight: .semibold))
+                    .widgetAccentable()
+            }
+            .foregroundStyle(.secondary)
+
+            Text(snapshot.monthSpent.formattedCurrency(code: snapshot.currencyCode))
+                .font(.system(size: 17, weight: .bold, design: .default))
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
+                .monospacedDigit()
+                .widgetAccentable()
+
+            if snapshot.hasBudget {
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(.secondary.opacity(0.3)).frame(height: 3)
+                        Capsule()
+                            .fill(.primary)
+                            .frame(width: geo.size.width * budgetProgress, height: 3)
+                    }
+                }
+                .frame(height: 3)
+                .padding(.top, 2)
+            } else {
+                Text("this month".notyfiLocalized)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .containerBackground(for: .widget) { Color.clear }
+    }
+}
+
+// MARK: - Lock Screen: Circular
+
+private struct LockCircularView: View {
+    let snapshot: NotyfiFinanceSnapshot
+
+    private var budgetProgress: Double {
+        guard snapshot.hasBudget, snapshot.monthlyBudgetLimit > 0 else { return 0 }
+        return min(snapshot.monthSpent / snapshot.monthlyBudgetLimit, 1.0)
+    }
+
+    var body: some View {
+        ZStack {
+            if snapshot.hasBudget {
+                ProgressView(value: budgetProgress)
+                    .progressViewStyle(.circular)
+                    .tint(.white)
+            }
+
+            VStack(spacing: 0) {
+                Text(snapshot.monthSpent.formattedCurrency(code: snapshot.currencyCode))
+                    .font(.system(size: 13, weight: .bold, design: .default))
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                    .monospacedDigit()
+                    .widgetAccentable()
+                Text("spent".notyfiLocalized)
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .containerBackground(for: .widget) { Color.clear }
+    }
+}
+
+// MARK: - Lock Screen: Inline
+
+private struct LockInlineView: View {
+    let snapshot: NotyfiFinanceSnapshot
+
+    var body: some View {
+        if snapshot.hasBudget {
+            Label {
+                Text("\(snapshot.monthSpent.formattedCurrency(code: snapshot.currencyCode)) of \(snapshot.monthlyBudgetLimit.formattedCurrency(code: snapshot.currencyCode))")
+                    .monospacedDigit()
+            } icon: {
+                Image(systemName: "flame.fill")
+            }
+        } else {
+            Label {
+                Text(snapshot.monthSpent.formattedCurrency(code: snapshot.currencyCode))
+                    .monospacedDigit()
+            } icon: {
+                Image(systemName: "flame.fill")
+            }
+        }
+    }
+}
+
+// MARK: - Shared Components
+
+private struct WidgetProgressBar: View {
+    let progress: Double
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(.white.opacity(0.2))
+                Capsule()
+                    .fill(.white.opacity(0.85))
+                    .frame(width: geo.size.width * max(0.03, progress))
+            }
+        }
+    }
+}
+
+private struct WidgetStatPill: View {
+    let label: String
     let value: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title.notyfiLocalized)
-                .font(.system(size: 11, weight: .medium, design: .default))
-                .foregroundStyle(.secondary)
-
+        VStack(alignment: .leading, spacing: 1) {
+            Text(label)
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(.white.opacity(0.55))
             Text(value)
-                .font(.system(size: 12, weight: .semibold, design: .default))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(.white)
                 .monospacedDigit()
+                .minimumScaleFactor(0.8)
+                .lineLimit(1)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
-private struct WidgetStatCard: View {
-    let title: String
-    let value: String
-    let tint: Color
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title.notyfiLocalized)
-                .font(.system(size: 11, weight: .medium, design: .default))
-                .foregroundStyle(.secondary)
-
-            Text(value)
-                .font(.system(size: 16, weight: .bold, design: .default))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
-                .monospacedDigit()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 12)
-        .background {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(tint.opacity(0.12))
-        }
-    }
-}
+// MARK: - Widget
 
 @main
 struct NotyfiWidget: Widget {
@@ -235,12 +377,40 @@ struct NotyfiWidget: Widget {
             NotyfiWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Notyfi overview".notyfiLocalized)
-        .description("See your monthly spend, net, and today at a glance.".notyfiLocalized)
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .description("See your monthly spend and budget at a glance.".notyfiLocalized)
+        .supportedFamilies([
+            .systemSmall,
+            .systemMedium,
+            .accessoryCircular,
+            .accessoryRectangular,
+            .accessoryInline
+        ])
     }
 }
 
-#Preview(as: .systemSmall) {
+// MARK: - Previews
+
+#Preview("Small", as: .systemSmall) {
+    NotyfiWidget()
+} timeline: {
+    NotyfiWidgetEntry(
+        date: .now,
+        snapshot: NotyfiFinanceSnapshot(
+            generatedAt: .now,
+            currencyCode: "NOK",
+            todaySpent: 329,
+            monthSpent: 12_880,
+            monthIncome: 28_000,
+            monthNet: 15_120,
+            monthlyBudgetLimit: 15_000,
+            budgetLeft: 2_120,
+            hasBudget: true,
+            hasEntries: true
+        )
+    )
+}
+
+#Preview("Medium", as: .systemMedium) {
     NotyfiWidget()
 } timeline: {
     NotyfiWidgetEntry(

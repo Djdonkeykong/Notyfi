@@ -8,6 +8,11 @@ struct EntryDetailView: View {
     private let store: ExpenseJournalStore
     private let entryID: UUID
 
+    @AppStorage(NotyfiCurrency.storageKey) private var currencyRaw = NotyfiCurrencyPreference.auto.rawValue
+    private var currencyCode: String {
+        NotyfiCurrencyPreference(rawValue: currencyRaw)?.currencyCode ?? NotyfiCurrency.deviceCode
+    }
+
     init(entry: ExpenseEntry, store: ExpenseJournalStore, isNewEntryDraft: Bool = false) {
         _viewModel = StateObject(wrappedValue: EntryDetailViewModel(entry: entry, store: store))
         self.isNewEntryDraft = isNewEntryDraft
@@ -26,7 +31,7 @@ struct EntryDetailView: View {
                     SectionHeader(title: "Original Note")
                     detailCard {
                         VStack(alignment: .leading, spacing: 14) {
-                            TextField("Coffee 49 kr".notyfiLocalized, text: $viewModel.rawText, axis: .vertical)
+                            TextField("Coffee \(NotyfiCurrency.coffeePlaceholderAmount(for: currencyCode).formattedCurrency(code: currencyCode))", text: $viewModel.rawText, axis: .vertical)
                                 .lineLimit(3...6)
                                 .font(.notyfi(.title3, weight: .medium))
                                 .foregroundStyle(.primary.opacity(0.86))

@@ -71,6 +71,33 @@ final class NotyfiReminderManager {
         }
     }
 
+    func enableReminders(frequency: ReminderFrequency) async -> Bool {
+        do {
+            let granted = try await center.requestAuthorization(options: [.alert, .badge, .sound])
+            guard granted else { return false }
+
+            defaults.set(frequency.rawValue, forKey: NotyfiSharedStorage.reminderFrequencyKey)
+
+            let settings = NotyfiReminderSettings(isEnabled: true, hour: 20, minute: 0)
+            persist(settings)
+
+            await scheduleFrequencyReminders(frequency: frequency)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    func updateFrequency(_ frequency: ReminderFrequency) async {
+        defaults.set(frequency.rawValue, forKey: NotyfiSharedStorage.reminderFrequencyKey)
+        await scheduleFrequencyReminders(frequency: frequency)
+    }
+
+    func loadFrequency() -> ReminderFrequency {
+        let raw = defaults.object(forKey: NotyfiSharedStorage.reminderFrequencyKey) as? Int ?? ReminderFrequency.regular.rawValue
+        return ReminderFrequency(rawValue: raw) ?? .regular
+    }
+
     func disableReminder() async {
         center.removePendingNotificationRequests(withIdentifiers: [reminderIdentifier])
         let current = loadSettings()
@@ -97,6 +124,31 @@ final class NotyfiReminderManager {
         }
 
         await scheduleReminder(using: next)
+    }
+
+    private func scheduleFrequencyReminders(frequency: ReminderFrequency) async {
+        // Remove all existing frequency-based notifications
+        let ids = (0..<8).map { "notyfi.reminder.freq.\($0)" }
+        center.removePendingNotificationRequests(withIdentifiers: ids)
+
+        for (index, hour) in frequency.notificationHours.enumerated() {
+            let content = UNMutableNotificationContent()
+            content.title = "Log today's money notes".notyfiLocalized
+            content.body = "Open Notyfi and capture today's spending while it is still fresh.".notyfiLocalized
+            content.sound = .default
+
+            var components = DateComponents()
+            components.hour = hour
+            components.minute = 0
+
+            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+            let request = UNNotificationRequest(
+                identifier: "notyfi.reminder.freq.\(index)",
+                content: content,
+                trigger: trigger
+            )
+            try? await center.add(request)
+        }
     }
 
     private func scheduleReminder(using settings: NotyfiReminderSettings) async {

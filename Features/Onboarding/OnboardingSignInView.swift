@@ -20,7 +20,7 @@ struct OnboardingSignInView: View {
                 Image("mascot-welcome")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 150, height: 150)
+                    .frame(width: 180, height: 180)
                     .frame(maxWidth: .infinity)
 
                 Spacer().frame(height: 36)
@@ -83,8 +83,8 @@ struct OnboardingSignInView: View {
         .background(NotyfiTheme.brandLight.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showEmailSignIn) {
-            EmailSignUpView(authManager: authManager, initialIsSignIn: true)
-                .presentationDetents([.medium, .large])
+            EmailSignUpView(authManager: authManager)
+                .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
                 .presentationCornerRadius(26)
         }

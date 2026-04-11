@@ -10,9 +10,7 @@ struct OnboardingCurrencyView: View {
         if let stored, stored != .auto {
             _selected = State(initialValue: stored)
         } else {
-            let deviceCode = NotyfiCurrency.deviceCode.lowercased()
-            let device = NotyfiCurrencyPreference.allCases.first { $0.rawValue == deviceCode } ?? .usd
-            _selected = State(initialValue: device)
+            _selected = State(initialValue: .usd)
         }
     }
 
@@ -26,9 +24,11 @@ struct OnboardingCurrencyView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Color.clear
-                    .frame(maxWidth: .infinity)
+                Image("mascot-currency")
+                    .resizable()
+                    .scaledToFit()
                     .frame(height: 260)
+                    .frame(maxWidth: .infinity)
                     .padding(.vertical, 24)
 
                 Text("Pick your currency".notyfiLocalized)
@@ -60,6 +60,7 @@ struct OnboardingCurrencyView: View {
         VStack(spacing: 10) {
             ForEach(currencies) { currency in
                 OnboardingSelectionCard(isSelected: selected == currency) {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     selected = currency
                 } content: {
                     HStack(spacing: 14) {

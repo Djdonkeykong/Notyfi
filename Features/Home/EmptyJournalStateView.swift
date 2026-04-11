@@ -3,11 +3,19 @@ import SwiftUI
 struct EmptyJournalStateView: View {
     let selectedDate: Date
 
-    private let examples = [
-        "Coffee 49 kr".notyfiLocalized,
-        "Groceries 423 at Rema".notyfiLocalized,
-        "Train ticket 299".notyfiLocalized
-    ]
+    @AppStorage(NotyfiCurrency.storageKey) private var currencyRaw = NotyfiCurrencyPreference.auto.rawValue
+
+    private var currencyCode: String {
+        NotyfiCurrencyPreference(rawValue: currencyRaw)?.currencyCode ?? NotyfiCurrency.deviceCode
+    }
+
+    private var examples: [String] {
+        [
+            "Coffee \(NotyfiCurrency.coffeePlaceholderAmount(for: currencyCode).formattedCurrency(code: currencyCode))",
+            "Groceries 423 at Rema".notyfiLocalized,
+            "Train ticket 299".notyfiLocalized
+        ]
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {

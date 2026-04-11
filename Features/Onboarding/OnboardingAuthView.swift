@@ -74,7 +74,7 @@ struct OnboardingAuthView: View {
         .background(NotyfiTheme.brandLight.ignoresSafeArea())
         .sheet(isPresented: $showEmailSignUp) {
             EmailSignUpView(authManager: authManager)
-                .presentationDetents([.medium, .large])
+                .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
                 .presentationCornerRadius(26)
         }
@@ -83,8 +83,11 @@ struct OnboardingAuthView: View {
     // MARK: - Subviews
 
     private var illustration: some View {
-        Color.clear
-            .frame(width: 288, height: 288)
+        Image("mascot-auth")
+            .resizable()
+            .scaledToFit()
+            .frame(height: 260)
+            .frame(maxWidth: .infinity)
     }
 
     private var authButtons: some View {
@@ -215,24 +218,27 @@ struct OnboardingAuthView: View {
     }
 }
 
-// MARK: - Email Sign Up Sheet
+// MARK: - Email OTP Sheet
 
 struct EmailSignUpView: View {
     @ObservedObject var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
 
     @State private var email = ""
-    @State private var password = ""
-    @State private var isSignIn: Bool
+    @State private var otpCode = ""
+    @State private var step: Step = .email
     @State private var errorMessage: String? = nil
-    @State private var showForgotPassword = false
-    @FocusState private var focusedField: Field?
+    @State private var resendCooldown: Int = 0
+    @FocusState private var emailFocused: Bool
+    @FocusState private var otpFocused: Bool
 
-    enum Field { case email, password }
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
+    enum Step { case email, otp }
+
+    // Kept for API compatibility with callers that pass initialIsSignIn
     init(authManager: AuthManager, initialIsSignIn: Bool = false) {
         self.authManager = authManager
-        self._isSignIn = State(initialValue: initialIsSignIn)
     }
 
     var body: some View {
@@ -245,56 +251,26 @@ struct EmailSignUpView: View {
                     .padding(.top, 22)
                     .padding(.bottom, 28)
 
-                VStack(spacing: 14) {
-                    emailField
-                    passwordField
-
-                    if let error = errorMessage {
-                        Text(error)
-                            .font(.notyfi(.caption))
-                            .foregroundStyle(.red)
-                    }
-
-                    OnboardingPrimaryButton(
-                        title: isSignIn ? "Sign In" : "Create Account",
-                        isLoading: authManager.isLoading
-                    ) {
-                        submit()
-                    }
-                    .padding(.top, 4)
-
-                    HStack(spacing: 4) {
-                        Text(isSignIn ? "No account?".notyfiLocalized : "Already have one?".notyfiLocalized)
-                            .foregroundStyle(NotyfiTheme.secondaryText)
-                        Button(isSignIn ? "Sign up".notyfiLocalized : "Sign in".notyfiLocalized) {
-                            isSignIn.toggle()
-                            errorMessage = nil
-                        }
-                        .foregroundStyle(NotyfiTheme.brandPrimary)
-                        .fontWeight(.semibold)
-                    }
-                    .padding(.top, 24)
-                    .font(.notyfi(.subheadline))
-                    .frame(maxWidth: .infinity, alignment: .center)
+                if step == .email {
+                    emailStep
+                } else {
+                    otpStep
                 }
-                .padding(.horizontal, 20)
 
                 Spacer()
             }
         }
-        .sheet(isPresented: $showForgotPassword) {
-            ForgotPasswordSheet(authManager: authManager)
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.visible)
-                .presentationCornerRadius(26)
+        .onReceive(timer) { _ in
+            if resendCooldown > 0 { resendCooldown -= 1 }
         }
     }
 
     private var sheetHeader: some View {
         HStack(alignment: .top) {
-            Text(isSignIn ? "Sign in".notyfiLocalized : "Create account".notyfiLocalized)
+            Text(step == .email ? "Continue with email".notyfiLocalized : "Check your inbox".notyfiLocalized)
                 .font(.notyfi(.title3, weight: .semibold))
                 .foregroundStyle(.primary.opacity(0.84))
+                .animation(.none, value: step)
 
             Spacer()
 
@@ -312,151 +288,9 @@ struct EmailSignUpView: View {
         }
     }
 
-    private var emailField: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Email".notyfiLocalized)
-                .font(.notyfi(.caption, weight: .medium))
-                .foregroundStyle(NotyfiTheme.secondaryText)
-            TextField("", text: $email)
-                .keyboardType(.emailAddress)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .textContentType(.emailAddress)
-                .focused($focusedField, equals: .email)
-                .onChange(of: email) { _, newValue in
-                    if newValue.count > 254 { email = String(newValue.prefix(254)) }
-                }
-                .padding(16)
-                .background(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(
-                            focusedField == .email ? NotyfiTheme.brandPrimary : Color.primary.opacity(0.10),
-                            lineWidth: focusedField == .email ? 1.5 : 1
-                        )
-                }
-        }
-    }
-
-    private var passwordField: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text("Password".notyfiLocalized)
-                    .font(.notyfi(.caption, weight: .medium))
-                    .foregroundStyle(NotyfiTheme.secondaryText)
-                Spacer()
-                if isSignIn {
-                    Button("Forgot?".notyfiLocalized) {
-                        showForgotPassword = true
-                    }
-                    .font(.notyfi(.caption, weight: .semibold))
-                    .foregroundStyle(NotyfiTheme.brandPrimary)
-                }
-            }
-            SecureField("", text: $password)
-                .textContentType(isSignIn ? .password : .newPassword)
-                .focused($focusedField, equals: .password)
-                .padding(16)
-                .background(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(
-                            focusedField == .password ? NotyfiTheme.brandPrimary : Color.primary.opacity(0.10),
-                            lineWidth: focusedField == .password ? 1.5 : 1
-                        )
-                }
-        }
-    }
-
-    private func submit() {
-        errorMessage = nil
-        guard !email.isEmpty, !password.isEmpty else {
-            errorMessage = "Please fill in all fields.".notyfiLocalized
-            return
-        }
-        Task {
-            do {
-                if isSignIn {
-                    try await authManager.signInWithEmail(email, password: password)
-                    dismiss()
-                } else {
-                    try await authManager.signUpWithEmail(email, password: password)
-                    if authManager.pendingEmailConfirmation {
-                        errorMessage = "Check your inbox and confirm your email, then sign in.".notyfiLocalized
-                        isSignIn = true
-                    } else {
-                        dismiss()
-                    }
-                }
-            } catch let error as AuthError where error.isCancelled {
-                // Ignore cancellation silently
-            } catch {
-                errorMessage = error.localizedDescription
-            }
-        }
-    }
-}
-
-// MARK: - Forgot Password Sheet
-
-private struct ForgotPasswordSheet: View {
-    @ObservedObject var authManager: AuthManager
-    @Environment(\.dismiss) private var dismiss
-
-    @State private var email = ""
-    @State private var isSent = false
-    @State private var isLoading = false
-    @State private var errorMessage: String? = nil
-    @FocusState private var emailFocused: Bool
-
-    var body: some View {
-        ZStack {
-            NotyfiTheme.background.ignoresSafeArea()
-
-            VStack(alignment: .leading, spacing: 0) {
-                sheetHeader
-                    .padding(.horizontal, 20)
-                    .padding(.top, 22)
-                    .padding(.bottom, 28)
-
-                if isSent {
-                    sentConfirmation
-                } else {
-                    form
-                }
-
-                Spacer()
-            }
-        }
-    }
-
-    private var sheetHeader: some View {
-        HStack(alignment: .top) {
-            Text("Reset password".notyfiLocalized)
-                .font(.notyfi(.title3, weight: .semibold))
-                .foregroundStyle(.primary.opacity(0.84))
-
-            Spacer()
-
-            Button(action: { dismiss() }) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(NotyfiTheme.secondaryText)
-                    .frame(width: 38, height: 38)
-                    .background {
-                        Circle()
-                            .fill(NotyfiTheme.elevatedSurface)
-                    }
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    private var form: some View {
+    private var emailStep: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Enter your email and we'll send you a reset link.".notyfiLocalized)
+            Text("We'll send a 6-digit code to sign you in or create your account.".notyfiLocalized)
                 .font(.notyfi(.body))
                 .foregroundStyle(NotyfiTheme.secondaryText)
                 .lineSpacing(3)
@@ -471,6 +305,11 @@ private struct ForgotPasswordSheet: View {
                     .textInputAutocapitalization(.never)
                     .textContentType(.emailAddress)
                     .focused($emailFocused)
+                    .submitLabel(.go)
+                    .onSubmit { sendCode() }
+                    .onChange(of: email) { _, v in
+                        if v.count > 254 { email = String(v.prefix(254)) }
+                    }
                     .padding(16)
                     .background(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -489,49 +328,138 @@ private struct ForgotPasswordSheet: View {
                     .foregroundStyle(.red)
             }
 
-            OnboardingPrimaryButton(title: "Send Reset Link", isLoading: isLoading) {
-                sendReset()
+            OnboardingPrimaryButton(title: "Send code".notyfiLocalized, isLoading: authManager.isLoading) {
+                sendCode()
             }
         }
         .padding(.horizontal, 20)
+        .onAppear { emailFocused = true }
     }
 
-    private var sentConfirmation: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "envelope.badge.checkmark")
-                .font(.system(size: 44, weight: .light))
-                .foregroundStyle(NotyfiTheme.brandPrimary)
-                .padding(.bottom, 4)
-
-            Text("Check your inbox".notyfiLocalized)
-                .font(.notyfi(.title3, weight: .semibold))
-
-            Text("We sent a reset link to \(email). Follow it to set a new password.".notyfiLocalized)
+    private var otpStep: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Enter the 6-digit code we sent to \(email).".notyfiLocalized)
                 .font(.notyfi(.body))
                 .foregroundStyle(NotyfiTheme.secondaryText)
-                .multilineTextAlignment(.center)
                 .lineSpacing(3)
+
+            otpBoxes
+
+            if let error = errorMessage {
+                Text(error)
+                    .font(.notyfi(.caption))
+                    .foregroundStyle(.red)
+            }
+
+            OnboardingPrimaryButton(title: "Verify".notyfiLocalized, isLoading: authManager.isLoading) {
+                verify()
+            }
+            .disabled(otpCode.count < 6)
+
+            HStack(spacing: 4) {
+                Text("Didn't get it?".notyfiLocalized)
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                Button(resendCooldown > 0 ? "Resend in \(resendCooldown)s" : "Resend".notyfiLocalized) {
+                    guard resendCooldown == 0 else { return }
+                    sendCode(isResend: true)
+                }
+                .foregroundStyle(resendCooldown > 0 ? NotyfiTheme.secondaryText : NotyfiTheme.brandPrimary)
+                .fontWeight(.semibold)
+                .disabled(resendCooldown > 0)
+            }
+            .font(.notyfi(.subheadline))
+            .padding(.top, 8)
+
+            Button {
+                step = .email
+                otpCode = ""
+                errorMessage = nil
+            } label: {
+                Text("Change email".notyfiLocalized)
+                    .font(.notyfi(.subheadline))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+            }
         }
-        .frame(maxWidth: .infinity)
         .padding(.horizontal, 20)
+        .onAppear { otpFocused = true }
     }
 
-    private func sendReset() {
+    private var otpBoxes: some View {
+        ZStack {
+            // Hidden text field capturing input
+            TextField("", text: $otpCode)
+                .keyboardType(.numberPad)
+                .textContentType(.oneTimeCode)
+                .focused($otpFocused)
+                .frame(width: 1, height: 1)
+                .opacity(0.01)
+                .onChange(of: otpCode) { _, v in
+                    let filtered = v.filter { $0.isNumber }
+                    if filtered.count > 6 {
+                        otpCode = String(filtered.prefix(6))
+                    } else if filtered != v {
+                        otpCode = filtered
+                    }
+                    if otpCode.count == 6 { verify() }
+                }
+
+            HStack(spacing: 10) {
+                ForEach(0..<6, id: \.self) { index in
+                    let char: String = index < otpCode.count
+                        ? String(otpCode[otpCode.index(otpCode.startIndex, offsetBy: index)])
+                        : ""
+                    let isActive = index == otpCode.count
+
+                    Text(char)
+                        .font(.system(size: 22, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(
+                                    isActive ? NotyfiTheme.brandPrimary : Color.primary.opacity(0.10),
+                                    lineWidth: isActive ? 1.5 : 1
+                                )
+                        }
+                        .onTapGesture { otpFocused = true }
+                }
+            }
+        }
+    }
+
+    private func sendCode(isResend: Bool = false) {
         errorMessage = nil
         let trimmed = email.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else {
             errorMessage = "Please enter your email.".notyfiLocalized
             return
         }
-        isLoading = true
         Task {
             do {
-                try await authManager.resetPassword(email: trimmed)
-                isSent = true
+                try await authManager.sendOTP(email: trimmed)
+                otpCode = ""
+                resendCooldown = 30
+                withAnimation { step = .otp }
             } catch {
                 errorMessage = error.localizedDescription
             }
-            isLoading = false
+        }
+    }
+
+    private func verify() {
+        errorMessage = nil
+        guard otpCode.count == 6 else { return }
+        Task {
+            do {
+                try await authManager.verifyOTP(email: email, token: otpCode)
+                dismiss()
+            } catch {
+                errorMessage = error.localizedDescription
+                otpCode = ""
+            }
         }
     }
 }

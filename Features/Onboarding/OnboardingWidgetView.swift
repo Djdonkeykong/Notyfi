@@ -1,28 +1,64 @@
 import SwiftUI
 
 struct OnboardingWidgetView: View {
+    @State private var screen: WidgetScreen = .home
+
+    private enum WidgetScreen: CaseIterable {
+        case home, lock
+
+        var label: String {
+            switch self {
+            case .home: return "Home Screen"
+            case .lock: return "Lock Screen"
+            }
+        }
+
+        var imageName: String {
+            switch self {
+            case .home: return "widget-preview-home"
+            case .lock: return "widget-preview-lock"
+            }
+        }
+
+        var tint: Color {
+            switch self {
+            case .home: return NotyfiTheme.brandPrimary
+            case .lock: return NotyfiTheme.brandPrimary
+            }
+        }
+
+        var steps: [(Int, String)] {
+            switch self {
+            case .home:
+                return [
+                    (1, "Long press anywhere on your Home Screen"),
+                    (2, "Tap the \"+\" button in the top left corner"),
+                    (3, "Scroll down, tap Notyfi, then add a widget"),
+                    (4, "Tap the widget any time to open the app")
+                ]
+            case .lock:
+                return [
+                    (1, "Long press anywhere on your Lock Screen"),
+                    (2, "Tap \"Customize\" at the bottom, then \"Add widgets\""),
+                    (3, "Scroll down, tap Notyfi, then add a widget")
+                ]
+            }
+        }
+    }
+
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("Add the Notyfi widget".notyfiLocalized)
-                    .font(.notyfi(.title2, weight: .bold))
-                    .padding(.bottom, 10)
+            VStack(spacing: 0) {
+                title
+                    .padding(.bottom, 24)
 
-                Text("People who add the widget are far more consistent. Your spending is always one glance away.".notyfiLocalized)
-                    .font(.notyfi(.body))
-                    .foregroundStyle(NotyfiTheme.secondaryText)
-                    .lineSpacing(3)
+                previewImage
+                    .padding(.bottom, 20)
+
+                screenToggle
                     .padding(.bottom, 28)
 
-                mockWidget
-                    .padding(.bottom, 28)
-
-                VStack(spacing: 14) {
-                    WidgetStep(number: 1, text: "Long press anywhere on your Home Screen")
-                    WidgetStep(number: 2, text: "Tap the \"+\" button in the top left corner")
-                    WidgetStep(number: 3, text: "Search for \"Notyfi\" and choose a size")
-                    WidgetStep(number: 4, text: "Tap the widget any time to open the app")
-                }
+                stepsList
             }
             .padding(.horizontal, 24)
         }
@@ -34,49 +70,85 @@ struct OnboardingWidgetView: View {
         .toolbar(.hidden, for: .navigationBar)
     }
 
-    private var mockWidget: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 8) {
-                Image("WelcomeLogo")
+    private var title: some View {
+        Text("Add the Notyfi widget to stay on top of your spending — every single day.".notyfiLocalized)
+            .font(.notyfi(.title2, weight: .bold))
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+    }
+
+    private var previewImage: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(screen == .home
+                      ? Color(red: 0.82, green: 0.88, blue: 0.95)
+                      : Color(red: 0.88, green: 0.84, blue: 0.95))
+
+            if UIImage(named: screen.imageName) != nil {
+                Image(screen.imageName)
                     .resizable()
-                    .scaledToFit()
-                    .frame(width: 22, height: 22)
-                Text("Notyfi")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text("This month")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .scaledToFill()
+                    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            } else {
+                VStack(spacing: 8) {
+                    Image(systemName: "square.on.square.dashed")
+                        .font(.system(size: 36, weight: .light))
+                        .foregroundStyle(Color.primary.opacity(0.25))
+                    Text("Widget preview image\ncoming soon")
+                        .font(.notyfi(.caption))
+                        .foregroundStyle(Color.primary.opacity(0.30))
+                        .multilineTextAlignment(.center)
+                }
+                .padding(40)
             }
-            .padding(.bottom, 12)
-
-            Text("$1,240")
-                .font(.system(size: 38, weight: .bold, design: .default))
-                .foregroundStyle(.primary)
-                .padding(.bottom, 2)
-
-            Text("spent of $2,000 budget")
-                .font(.system(size: 13))
-                .foregroundStyle(.secondary)
-                .padding(.bottom, 16)
-
-            GeometryReader { geo in
-                Capsule()
-                    .fill(Color.primary.opacity(0.08))
-                    .overlay(alignment: .leading) {
-                        Capsule()
-                            .fill(NotyfiTheme.brandPrimary)
-                            .frame(width: geo.size.width * 0.62)
-                    }
-            }
-            .frame(height: 5)
         }
-        .padding(20)
+        .frame(maxWidth: .infinity)
+        .frame(height: 340)
+        .animation(.easeInOut(duration: 0.25), value: screen)
+    }
+
+    private var screenToggle: some View {
+        HStack(spacing: 0) {
+            ForEach(WidgetScreen.allCases, id: \.label) { option in
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    withAnimation(.easeInOut(duration: 0.2)) { screen = option }
+                } label: {
+                    Text(option.label.notyfiLocalized)
+                        .font(.notyfi(.subheadline, weight: .semibold))
+                        .foregroundStyle(screen == option ? .white : NotyfiTheme.brandPrimary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 42)
+                        .background {
+                            if screen == option {
+                                Capsule()
+                                    .fill(NotyfiTheme.brandPrimary)
+                            }
+                        }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(4)
+        .background {
+            Capsule()
+                .fill(.white)
+                .overlay {
+                    Capsule()
+                        .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                }
+        }
+        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+    }
+
+    private var stepsList: some View {
+        VStack(spacing: 16) {
+            ForEach(screen.steps, id: \.0) { number, text in
+                WidgetStep(number: number, text: text)
+            }
+        }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 6)
+        .animation(.easeInOut(duration: 0.2), value: screen)
     }
 }
 
