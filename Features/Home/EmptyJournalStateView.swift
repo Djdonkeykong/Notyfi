@@ -11,7 +11,7 @@ struct EmptyJournalStateView: View {
 
     private var examples: [String] {
         [
-            "Coffee \(NotyfiCurrency.coffeePlaceholderAmount(for: currencyCode).formattedCurrency(code: currencyCode))",
+            "\("Coffee".notyfiLocalized) \(NotyfiCurrency.coffeePlaceholderAmount(for: currencyCode).formattedCurrency(code: currencyCode))",
             "Groceries 423 at Rema".notyfiLocalized,
             "Train ticket 299".notyfiLocalized
         ]

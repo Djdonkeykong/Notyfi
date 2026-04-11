@@ -1021,7 +1021,7 @@ private struct DayJournalPage: View {
                                 .font(.notyfi(.body))
                                 .foregroundStyle(NotyfiTheme.tertiaryText)
 
-                            Text("Coffee \(NotyfiCurrency.coffeePlaceholderAmount(for: currencyCode).formattedCurrency(code: currencyCode))")
+                            Text("\("Coffee".notyfiLocalized) \(NotyfiCurrency.coffeePlaceholderAmount(for: currencyCode).formattedCurrency(code: currencyCode))")
                                 .font(.notyfi(.footnote))
                                 .foregroundStyle(NotyfiTheme.tertiaryText.opacity(0.72))
                         }

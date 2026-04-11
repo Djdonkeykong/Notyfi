@@ -31,7 +31,7 @@ struct EntryDetailView: View {
                     SectionHeader(title: "Original Note")
                     detailCard {
                         VStack(alignment: .leading, spacing: 14) {
-                            TextField("Coffee \(NotyfiCurrency.coffeePlaceholderAmount(for: currencyCode).formattedCurrency(code: currencyCode))", text: $viewModel.rawText, axis: .vertical)
+                            TextField("\("Coffee".notyfiLocalized) \(NotyfiCurrency.coffeePlaceholderAmount(for: currencyCode).formattedCurrency(code: currencyCode))", text: $viewModel.rawText, axis: .vertical)
                                 .lineLimit(3...6)
                                 .font(.notyfi(.title3, weight: .medium))
                                 .foregroundStyle(.primary.opacity(0.86))
@@ -46,7 +46,7 @@ struct EntryDetailView: View {
                             DetailTextField(
                                 title: "Title",
                                 text: $viewModel.title,
-                                placeholder: "Coffee"
+                                placeholder: "Coffee".notyfiLocalized
                             )
 
                             Divider()
