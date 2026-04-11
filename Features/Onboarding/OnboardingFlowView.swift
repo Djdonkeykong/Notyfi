@@ -45,7 +45,7 @@ struct OnboardingFlowView: View {
         }
     }
 
-    private var continueTitle: String { "Continue" }
+    private var continueTitle: String { "Continue".notyfiLocalized }
 
     private var selectedCurrencyCode: String {
         NotyfiCurrencyPreference(rawValue: currencyRawValue)?.currencyCode
