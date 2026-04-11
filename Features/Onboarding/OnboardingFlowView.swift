@@ -106,17 +106,6 @@ struct OnboardingFlowView: View {
             .ignoresSafeArea(edges: .bottom)
             .allowsHitTesting(false)
         }
-        // Back button for non-chrome steps that still need one (auth, signIn)
-        .overlay(alignment: .topLeading) {
-            if currentStep == .auth || currentStep == .signIn {
-                HStack {
-                    OnboardingBackButton { goBack() }
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-            }
-        }
         // Chrome elements sit on top of the gradient fades
         .overlay(alignment: .top) {
             if chromeVisible {
@@ -171,7 +160,7 @@ struct OnboardingFlowView: View {
         case .widget:
             OnboardingWidgetView()
         case .auth:
-            OnboardingAuthView(authManager: authManager)
+            OnboardingAuthView(authManager: authManager, onBack: { goBack() })
         case .signIn:
             OnboardingSignInView(authManager: authManager, onBack: { goBack() }, onSignUp: {
                 // Don't push .signIn onto history — back from howItWorks should

@@ -3,6 +3,7 @@ import AuthenticationServices
 
 struct OnboardingAuthView: View {
     @ObservedObject var authManager: AuthManager
+    var onBack: (() -> Void)? = nil
 
     @State private var showEmailSignUp = false
     @State private var errorMessage: String? = nil
@@ -11,41 +12,61 @@ struct OnboardingAuthView: View {
     private enum AuthProvider { case apple, google, email }
 
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                illustration
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 36)
-                    .padding(.bottom, 12)
+        ZStack(alignment: .topLeading) {
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    illustration
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 36)
+                        .padding(.bottom, 12)
 
-                Text("Save your progress".notyfiLocalized)
-                    .font(.notyfi(.title2, weight: .bold))
-                    .padding(.bottom, 10)
+                    Text("Save your progress".notyfiLocalized)
+                        .font(.notyfi(.title2, weight: .bold))
+                        .padding(.bottom, 10)
 
-                Text("Create an account to sync your data across devices and never lose your progress.".notyfiLocalized)
-                    .font(.notyfi(.body))
-                    .foregroundStyle(NotyfiTheme.secondaryText)
-                    .lineSpacing(3)
-                    .padding(.bottom, 8)
+                    Text("Create an account to sync your data across devices and never lose your progress.".notyfiLocalized)
+                        .font(.notyfi(.body))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                        .lineSpacing(3)
+                        .padding(.bottom, 8)
 
-                if let error = errorMessage {
-                    Text(error)
-                        .font(.notyfi(.caption))
-                        .foregroundStyle(.red)
-                        .padding(.top, 6)
+                    if let error = errorMessage {
+                        Text(error)
+                            .font(.notyfi(.caption))
+                            .foregroundStyle(.red)
+                            .padding(.top, 6)
+                    }
+
+                    authButtons
+                        .padding(.top, 32)
                 }
-
-                authButtons
-                    .padding(.top, 32)
+                .padding(.horizontal, 24)
             }
-            .padding(.horizontal, 24)
+            .contentMargins(.top, 16, for: .scrollContent)
+            .contentMargins(.bottom, 80, for: .scrollContent)
+            .scrollBounceBehavior(.always)
+            .scrollIndicators(.hidden)
+            .toolbar(.hidden, for: .navigationBar)
+
+            if let onBack {
+                HStack {
+                    OnboardingBackButton(action: onBack)
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .background {
+                    LinearGradient(
+                        colors: [NotyfiTheme.brandLight, NotyfiTheme.brandLight.opacity(0)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea(edges: .top)
+                    .frame(height: 80)
+                }
+            }
         }
-        .contentMargins(.top, 16, for: .scrollContent)
-        .contentMargins(.bottom, 80, for: .scrollContent)
-        .scrollBounceBehavior(.always)
-        .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight.ignoresSafeArea())
-        .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showEmailSignUp) {
             EmailSignUpView(authManager: authManager)
                 .presentationDetents([.medium, .large])
