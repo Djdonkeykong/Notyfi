@@ -2,8 +2,8 @@
 "Yesterday" = "Ieri";
 "Start typing your money notes..." = "Inizia a scrivere le tue note di denaro...";
 "Start with a note" = "Inizia con una nota";
-"Nothing logged format" = "Non câÃ¢â€šÂ¬Ã¢â€žÂ¢ÃÃ‚Â¨ ancora nulla registrato per %@. Scrivi in modo naturale e Notyfi organizzerÃÃ‚Â  tutto silenziosamente in background.";
-"Coffee 49 kr" = "CaffÃÃ‚Â¨ 49 kr";
+"Nothing logged format" = "Non cÃ¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÃƒâ€šÃ‚Â¨ ancora nulla registrato per %@. Scrivi in modo naturale e Notyfi organizzerÃƒÃƒâ€šÃ‚Â  tutto silenziosamente in background.";
+"Coffee 49 kr" = "CaffÃƒÃƒâ€šÃ‚Â¨ 49 kr";
 "Groceries 423 at Rema" = "Spesa 423 da Rema";
 "Train ticket 299" = "Biglietto del treno 299";
 
@@ -90,7 +90,7 @@
 "%@ over in %@" = "%@ oltre in %@";
 "Set a monthly budget" = "Imposta un budget mensile";
 "On pace this month" = "In linea questo mese";
-"Running a little hot" = "Un poâÃ¢â€šÂ¬Ã¢â€žÂ¢ alto";
+"Running a little hot" = "Un poÃ¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ alto";
 "Over budget" = "Oltre il budget";
 
 "Done" = "Fine";
@@ -111,16 +111,19 @@
 "Notifications" = "Notifiche";
 "Quiet reminders when you want them" = "Promemoria discreti quando li desideri";
 "Appearance" = "Aspetto";
+"Dictation language" = "Lingua dettatura";
+"App language" = "Lingua app";
+"Auto-detect" = "Rilevamento automatico";
 "System" = "Sistema";
 "Light" = "Chiaro";
 "Dark" = "Scuro";
 "AI Parsing" = "Analisi IA";
 "Always on" = "Sempre attivo";
-"Gentle Review Mode" = "ModalitÃÃ‚Â  di revisione delicata";
+"Gentle Review Mode" = "ModalitÃƒÃƒâ€šÃ‚Â  di revisione delicata";
 "Keep uncertain entries easy to confirm later" = "Mantieni le voci incerte facili da confermare in seguito";
 "Sync / Supabase" = "Sync / Supabase";
 "Sync" = "Sincronizzazione";
-"Stay local for now, with cloud sync ready later" = "Resta locale per ora, con la sincronizzazione cloud pronta piÃÃ‚Â¹ avanti";
+"Stay local for now, with cloud sync ready later" = "Resta locale per ora, con la sincronizzazione cloud pronta piÃƒÃƒâ€šÃ‚Â¹ avanti";
 "Connection" = "Connessione";
 "Supabase placeholder" = "Segnaposto Supabase";
 "Local only" = "Solo locale";
@@ -150,12 +153,12 @@
 "Reminders" = "Promemoria";
 "Privacy lock" = "Blocco privacy";
 "Export data" = "Esporta dati";
-"Keep things simple for now. More controls will arrive as the app grows." = "Mantieni le cose semplici per ora. Altri controlli arriveranno con la crescita dellâÃ¢â€šÂ¬Ã¢â€žÂ¢app.";
+"Keep things simple for now. More controls will arrive as the app grows." = "Mantieni le cose semplici per ora. Altri controlli arriveranno con la crescita dellÃ¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢app.";
 "Clear your entire log?" = "Cancellare tutto il registro?";
 "Cancel" = "Annulla";
 "This removes every saved entry from Notyfi." = "Questo rimuove tutte le voci salvate da Notyfi.";
 "Log today's money notes" = "Registra le note di denaro di oggi";
-"Open Notyfi and capture today's spending while it is still fresh." = "Apri Notyfi e registra le spese di oggi finchÃÃ‚Â© sono ancora fresche.";
+"Open Notyfi and capture today's spending while it is still fresh." = "Apri Notyfi e registra le spese di oggi finchÃƒÃƒâ€šÃ‚Â© sono ancora fresche.";
 "Norwegian Krone (NOK)" = "Corona norvegese (NOK)";
 "US Dollar (USD)" = "Dollaro statunitense (USD)";
 "Euro (EUR)" = "Euro (EUR)";
@@ -173,7 +176,7 @@
 "Original Note" = "Nota originale";
 "Entry Details" = "Dettagli della voce";
 "Title" = "Titolo";
-"Coffee" = "CaffÃÃ‚Â¨";
+"Coffee" = "CaffÃƒÃƒâ€šÃ‚Â¨";
 "Amount" = "Importo";
 "Type" = "Tipo";
 "Category" = "Categoria";
@@ -182,7 +185,7 @@
 "Notes & Review" = "Note e revisione";
 "Note" = "Nota";
 "Optional context" = "Contesto facoltativo";
-"Confidence" = "AffidabilitÃÃ‚Â ";
+"Confidence" = "AffidabilitÃƒÃƒâ€šÃ‚Â ";
 "Date" = "Data";
 "Untitled entry" = "Voce senza titolo";
 "Personal" = "Personale";
@@ -201,7 +204,7 @@
 "Unsupported file" = "File non supportato";
 "Use an image or PDF file for now." = "Per ora usa un file immagine o PDF.";
 "File import issue" = "Problema nell'importazione del file";
-"That file could not be prepared for AI parsing." = "Non è stato possibile preparare il file per l'analisi AI.";
+"That file could not be prepared for AI parsing." = "Non Ã¨ stato possibile preparare il file per l'analisi AI.";
 "Reading attachment" = "Lettura allegato";
 "Start with a money note..." = "Inizia con una nota sui soldi...";
 "AI parsing unavailable" = "AI parsing unavailable";
@@ -219,11 +222,11 @@
 
 // Onboarding & Auth
 "Welcome to Notyfi" = "Benvenuto su Notyfi";
-"The most frictionless way to track your spending." = "Il modo più semplice per tenere traccia delle tue spese.";
+"The most frictionless way to track your spending." = "Il modo piÃ¹ semplice per tenere traccia delle tue spese.";
 "Just write it down." = "Scrivilo e basta.";
 "Continue" = "Continua";
 "Get Started" = "Inizia";
-"Already have an account?" = "Hai già un account?";
+"Already have an account?" = "Hai giÃ  un account?";
 "Sign in" = "Accedi";
 "Welcome back" = "Bentornato";
 "Sign in to your account to pick up right where you left off." = "Accedi per riprendere da dove hai lasciato.";
@@ -240,22 +243,22 @@
 "Sign in to your Notyfi account." = "Accedi al tuo account Notyfi.";
 "Start tracking. Your data, always backed up." = "Inizia a tracciare. I tuoi dati, sempre salvati.";
 "No account?" = "Nessun account?";
-"Already have one?" = "Ne hai già uno?";
+"Already have one?" = "Ne hai giÃ  uno?";
 "Password" = "Password";
 "Sign In" = "Accedi";
 "Create Account" = "Crea account";
 "Please fill in all fields." = "Si prega di compilare tutti i campi.";
 "Check your inbox and confirm your email, then sign in." = "Controlla la tua casella di posta e conferma la tua email, poi accedi.";
 "Quick tip" = "Consiglio rapido";
-"The more detail,\nthe better it tracks" = "Più dettagli fornisci,\nmeglio traccerà";
+"The more detail,\nthe better it tracks" = "PiÃ¹ dettagli fornisci,\nmeglio traccerÃ ";
 "Specific entries get categorized more accurately and make your spending history actually useful." = "Le voci specifiche vengono categorizzate con maggiore precisione e rendono la tua cronologia delle spese davvero utile.";
 "Unclear" = "Non chiaro";
-"Notyfi will track your spending against it and warn you when you're getting close." = "Notyfi terrà traccia delle tue spese e ti avviserà quando ti avvicini al limite.";
+"Notyfi will track your spending against it and warn you when you're getting close." = "Notyfi terrÃ  traccia delle tue spese e ti avviserÃ  quando ti avvicini al limite.";
 "Tap to set amount" = "Tocca per impostare l'importo";
 "per month" = "al mese";
 "Set Budget" = "Imposta budget";
 "What do you spend on?" = "Per cosa spendi?";
-"Pick the categories that apply to you. Notyfi will use these to organize your entries." = "Scegli le categorie che ti riguardano. Notyfi le userà per organizzare le tue voci.";
+"Pick the categories that apply to you. Notyfi will use these to organize your entries." = "Scegli le categorie che ti riguardano. Notyfi le userÃ  per organizzare le tue voci.";
 "Pick your currency" = "Scegli la tua valuta";
 "Used to format your entries and budget. You can change this later." = "Usato per formattare le tue voci e il tuo budget. Puoi cambiarlo in seguito.";
 "Just write what you spent" = "Scrivi semplicemente cosa hai speso";
@@ -268,19 +271,19 @@
 "Speak it out" = "Dillo ad alta voce";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Di' quello che hai speso ad alta voce. Notyfi lo trascrive e lo analizza istantaneamente.";
 "Smart text" = "Testo intelligente";
-"Abbreviations, shorthand, even typos — the AI figures out what you mean." = "Abbreviazioni, stenografia, anche errori di battitura — l'AI capisce cosa intendi.";
+"Abbreviations, shorthand, even typos â€” the AI figures out what you mean." = "Abbreviazioni, stenografia, anche errori di battitura â€” l'AI capisce cosa intendi.";
 "Stay on track" = "Rimani in carreggiata";
-"Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Ricevi un promemoria quotidiano per registrare le tue spese. Le persone che usano i promemoria costruiscono l'abitudine 3 volte più velocemente.";
+"Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Ricevi un promemoria quotidiano per registrare le tue spese. Le persone che usano i promemoria costruiscono l'abitudine 3 volte piÃ¹ velocemente.";
 "Enable Notifications" = "Abilita notifiche";
 "Daily spending reminders" = "Promemoria quotidiani delle spese";
 "Add the Notyfi widget" = "Aggiungi il widget Notyfi";
-"People who add the widget are far more consistent. Your spending is always one glance away." = "Le persone che aggiungono il widget sono molto più costanti. Le tue spese sono sempre a portata di sguardo.";
+"People who add the widget are far more consistent. Your spending is always one glance away." = "Le persone che aggiungono il widget sono molto piÃ¹ costanti. Le tue spese sono sempre a portata di sguardo.";
 "Long press anywhere on your Home Screen" = "Tieni premuto ovunque sulla tua schermata Home";
 "Tap the \"+\" button in the top left corner" = "Tocca il pulsante \"+\" nell'angolo in alto a sinistra";
 "Search for \"Notyfi\" and choose a size" = "Cerca \"Notyfi\" e scegli una dimensione";
 "Tap the widget any time to open the app" = "Tocca il widget in qualsiasi momento per aprire l'app";
 "Set category limits" = "Imposta limiti di categoria";
-"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Aggiungi un limite mensile per ogni categoria. Salta quelle di cui non sei sicuro — puoi impostarle in seguito.";
+"Add a monthly limit for each category. Skip any you're not sure about â€” you can set these later." = "Aggiungi un limite mensile per ogni categoria. Salta quelle di cui non sei sicuro â€” puoi impostarle in seguito.";
 "/mo" = "/mese";
 "Skip for now" = "Salta per ora";
 "Follow System" = "Segui sistema";
@@ -311,7 +314,7 @@
 "per month for \(category.title)" = "al mese per \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending — every single day." = "Aggiungi il widget Notyfi per tenere sotto controllo le tue spese — ogni giorno.";
+"Add the Notyfi widget to stay on top of your spending â€” every single day." = "Aggiungi il widget Notyfi per tenere sotto controllo le tue spese â€” ogni giorno.";
 
 // Category group titles
 "Essentials" = "Essenziali";
@@ -345,7 +348,7 @@
 "Go back to choose categories, or skip for now." = "Torna indietro per scegliere le categorie, oppure salta per ora.";
 
 // Errors
-"error.auth.missingToken" = "Accesso fallito: token di identità mancante.";
+"error.auth.missingToken" = "Accesso fallito: token di identitÃ  mancante.";
 "error.auth.cancelled" = "Accesso annullato.";
 "error.auth.googleFailed" = "Accesso Google fallito. Riprova.";
 "error.photo.timeout.title" = "Ci vuole troppo tempo";
