@@ -38,15 +38,17 @@ struct OnboardingInputMethodsView: View {
                     Image("photo-card")
                         .resizable()
                         .scaledToFit()
+                        .frame(maxWidth: .infinity)
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 
                     Image("dictation-card")
                         .resizable()
                         .scaledToFit()
+                        .frame(maxWidth: .infinity)
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 12)
         }
         .contentMargins(.top, 72, for: .scrollContent)
         .contentMargins(.bottom, 160, for: .scrollContent)
