@@ -88,18 +88,7 @@ struct OnboardingNotificationsView: View {
             .onChange(of: frequency) { _, newValue in
                 Task { await NotyfiReminderManager.shared.updateFrequency(newValue) }
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 20)
-            .background {
-                if #available(iOS 26, *) {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .glassEffect()
-                } else {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(.white.opacity(0.6))
-                        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
-                }
-            }
+            .padding(.horizontal, 4)
     }
 
     private func requestPermission() {
@@ -151,16 +140,24 @@ private struct ReminderFrequencySlider: View {
                     }
 
                     // Thumb
-                    Circle()
-                        .fill(.white)
-                        .frame(width: thumbSize, height: thumbSize)
-                        .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 2)
-                        .overlay {
+                    Group {
+                        if #available(iOS 26, *) {
                             Circle()
-                                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                                .glassEffect()
+                                .frame(width: thumbSize, height: thumbSize)
+                        } else {
+                            Circle()
+                                .fill(.white)
+                                .frame(width: thumbSize, height: thumbSize)
+                                .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 2)
+                                .overlay {
+                                    Circle()
+                                        .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                                }
                         }
-                        .offset(x: thumbX)
-                        .animation(.interactiveSpring(response: 0.2, dampingFraction: 0.8), value: selection)
+                    }
+                    .offset(x: thumbX)
+                    .animation(.interactiveSpring(response: 0.2, dampingFraction: 0.8), value: selection)
                 }
                 .frame(height: thumbSize)
                 .contentShape(Rectangle())
