@@ -69,8 +69,6 @@ private struct SmallWidgetView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Spacer()
-
             // Main number
             Text(spendAmount)
                 .font(.system(size: 28, weight: .bold, design: .default))
@@ -95,7 +93,7 @@ private struct SmallWidgetView: View {
             Spacer()
         }
         .padding(14)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
             Image("widget-small")
                 .resizable()
