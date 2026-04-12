@@ -23,6 +23,13 @@ struct AppRootView: View {
         }
         .environmentObject(languageManager)
         .preferredColorScheme(appearanceMode.colorScheme)
+        .onAppear { syncOnboardingWithAuthState() }
+        .onChange(of: authManager.isReady) { _, _ in
+            syncOnboardingWithAuthState()
+        }
+        .onChange(of: authManager.isAuthenticated) { _, _ in
+            syncOnboardingWithAuthState()
+        }
     }
 
     private var splashScreen: some View {
@@ -32,6 +39,11 @@ struct AppRootView: View {
 
     private var appearanceMode: NotyfiAppearanceMode {
         NotyfiAppearanceMode(rawValue: appearanceModeRawValue) ?? .system
+    }
+
+    private func syncOnboardingWithAuthState() {
+        guard authManager.isReady, authManager.isAuthenticated, !hasCompletedOnboarding else { return }
+        hasCompletedOnboarding = true
     }
 }
 
