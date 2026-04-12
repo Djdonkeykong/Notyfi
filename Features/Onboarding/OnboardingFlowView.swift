@@ -405,7 +405,6 @@ enum OnboardingStep: Hashable {
     case categories
     case allocate
     case notifications
-    case beDetailed
     case inputMethods
     case widget
     case auth     // "Save your progress" — end of onboarding
