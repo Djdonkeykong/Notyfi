@@ -42,7 +42,7 @@ struct HomeTopBar: View {
 
 private struct NotyfiMark: View {
     var body: some View {
-        Image("HomeBrandMark")
+        Image("app-mascot-homeTab")
             .resizable()
             .scaledToFit()
             .frame(height: 43)

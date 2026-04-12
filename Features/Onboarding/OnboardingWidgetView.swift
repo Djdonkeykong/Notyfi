@@ -50,10 +50,10 @@ struct OnboardingWidgetView: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 0) {
                 title
-                    .padding(.bottom, 40)
+                    .padding(.bottom, 56)
 
                 previewImage
-                    .padding(.bottom, 32)
+                    .padding(.bottom, 48)
 
                 screenToggle
                     .padding(.horizontal, 32)
@@ -90,6 +90,8 @@ struct OnboardingWidgetView: View {
                     .resizable()
                     .scaledToFill()
                     .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                    .transition(.opacity)
+                    .id(screen.imageName)
             } else {
                 VStack(spacing: 8) {
                     Image(systemName: "square.on.square.dashed")
@@ -105,7 +107,7 @@ struct OnboardingWidgetView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: 340)
-        .animation(.easeInOut(duration: 0.25), value: screen)
+        .animation(.easeInOut(duration: 0.3), value: screen)
     }
 
     private var screenToggle: some View {
@@ -117,13 +119,18 @@ struct OnboardingWidgetView: View {
                 } label: {
                     Text(option.label.notyfiLocalized)
                         .font(.notyfi(.subheadline, weight: .semibold))
-                        .foregroundStyle(screen == option ? .white : NotyfiTheme.brandPrimary)
+                        .foregroundStyle(screen == option ? NotyfiTheme.brandPrimary : NotyfiTheme.brandPrimary.opacity(0.45))
                         .frame(maxWidth: .infinity)
                         .frame(height: 42)
                         .background {
                             if screen == option {
-                                Capsule()
-                                    .fill(NotyfiTheme.brandPrimary)
+                                if #available(iOS 26, *) {
+                                    Capsule()
+                                        .glassEffect()
+                                } else {
+                                    Capsule()
+                                        .fill(NotyfiTheme.brandPrimary)
+                                }
                             }
                         }
                 }
@@ -131,19 +138,6 @@ struct OnboardingWidgetView: View {
             }
         }
         .padding(4)
-        .background {
-            if #available(iOS 26, *) {
-                Capsule()
-                    .glassEffect()
-            } else {
-                Capsule()
-                    .fill(.white.opacity(0.3))
-                    .overlay {
-                        Capsule()
-                            .stroke(Color.primary.opacity(0.18), lineWidth: 1.5)
-                    }
-            }
-        }
     }
 
     private var stepsList: some View {
@@ -153,7 +147,6 @@ struct OnboardingWidgetView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .animation(.easeInOut(duration: 0.2), value: screen)
     }
 }
 
