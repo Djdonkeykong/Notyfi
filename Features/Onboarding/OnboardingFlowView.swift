@@ -44,9 +44,8 @@ struct OnboardingFlowView: View {
         case .categories: return 3
         case .allocate: return 4
         case .notifications: return 5
-        case .beDetailed: return 6
-        case .inputMethods: return 7
-        case .widget: return 8
+        case .inputMethods: return 6
+        case .widget: return 7
         default: return 0
         }
     }
@@ -167,8 +166,6 @@ struct OnboardingFlowView: View {
             )
         case .notifications:
             OnboardingNotificationsView()
-        case .beDetailed:
-            OnboardingBeDetailedView()
         case .inputMethods:
             OnboardingInputMethodsView()
         case .widget:
@@ -189,7 +186,7 @@ struct OnboardingFlowView: View {
     private var topChrome: some View {
         HStack(spacing: 12) {
             OnboardingBackButton { goBack() }
-            OnboardingProgressBar(current: progressStep, total: 8)
+            OnboardingProgressBar(current: progressStep, total: 7)
             Color.clear.frame(width: 40, height: 40)
         }
         .padding(.horizontal, 20)
@@ -389,8 +386,6 @@ struct OnboardingFlowView: View {
             }
             navigate(to: .notifications)
         case .notifications:
-            navigate(to: .beDetailed)
-        case .beDetailed:
             navigate(to: .inputMethods)
         case .inputMethods:
             navigate(to: .widget)

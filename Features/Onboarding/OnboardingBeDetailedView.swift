@@ -3,7 +3,7 @@ import SwiftUI
 struct OnboardingBeDetailedView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .center, spacing: 0) {
                 Text("Quick tip".notyfiLocalized)
                     .font(.notyfi(.footnote, weight: .semibold))
                     .foregroundStyle(NotyfiTheme.brandPrimary)
@@ -12,18 +12,20 @@ struct OnboardingBeDetailedView: View {
                     .background(NotyfiTheme.brandLight)
                     .clipShape(Capsule())
                     .overlay(Capsule().stroke(NotyfiTheme.brandPrimary.opacity(0.25), lineWidth: 1))
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.bottom, 18)
+                    .padding(.bottom, 20)
 
                 Text("The more detail,\nthe better it tracks".notyfiLocalized)
                     .font(.notyfi(.title2, weight: .bold))
-                    .padding(.bottom, 10)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.bottom, 12)
 
                 Text("Specific entries get categorized more accurately and make your spending history actually useful.".notyfiLocalized)
                     .font(.notyfi(.body))
                     .foregroundStyle(NotyfiTheme.secondaryText)
+                    .multilineTextAlignment(.center)
                     .lineSpacing(3)
-                    .padding(.bottom, 28)
+                    .padding(.bottom, 32)
 
                 VStack(spacing: 10) {
                     DetailComparisonRow(

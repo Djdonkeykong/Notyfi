@@ -68,53 +68,45 @@ private struct SmallWidgetView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            // Mascot peeking in from bottom-left
-            Image("app-mascot-clean")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 110, height: 110)
-                .shadow(color: .black.opacity(0.10), radius: 8, x: 2, y: -2)
-                .offset(x: -22, y: 28)
+        VStack(alignment: .leading, spacing: 0) {
+            Spacer()
 
-            VStack(alignment: .leading, spacing: 0) {
-                Spacer()
+            // Main number
+            Text(spendAmount)
+                .font(.system(size: 28, weight: .bold, design: .default))
+                .foregroundStyle(.black)
+                .minimumScaleFactor(0.6)
+                .lineLimit(1)
+                .monospacedDigit()
 
-                // Main number
-                Text(spendAmount)
-                    .font(.system(size: 28, weight: .bold, design: .default))
-                    .foregroundStyle(.primary)
-                    .minimumScaleFactor(0.6)
-                    .lineLimit(1)
+            if let budget = budgetString {
+                Text("of \(budget)")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.black.opacity(0.55))
                     .monospacedDigit()
-
-                if let budget = budgetString {
-                    Text("of \(budget)")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.primary.opacity(0.55))
-                        .monospacedDigit()
-                        .padding(.top, 1)
-                }
-
-                Text("spent this month".notyfiLocalized)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
                     .padding(.top, 1)
-
-                // Budget bar
-                if snapshot.hasBudget {
-                    WidgetProgressBar(progress: budgetProgress)
-                        .frame(height: 4)
-                        .padding(.top, 10)
-                }
-
-                Spacer()
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+
+            Text("spent this month".notyfiLocalized)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.black.opacity(0.5))
+                .padding(.top, 1)
+
+            // Budget bar
+            if snapshot.hasBudget {
+                WidgetProgressBar(progress: budgetProgress)
+                    .frame(height: 4)
+                    .padding(.top, 10)
+            }
+
+            Spacer()
         }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .containerBackground(for: .widget) {
-            Color(red: 242/255, green: 242/255, blue: 249/255)
+            Image("widget-small")
+                .resizable()
+                .scaledToFill()
         }
     }
 
@@ -144,70 +136,59 @@ private struct MediumWidgetView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .trailing) {
-            // Mascot — peeks in from the right like the app icon
-            Image("app-mascot-clean")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 180, height: 180)
-                .shadow(color: .black.opacity(0.10), radius: 10, x: -2, y: 4)
-                .offset(x: 44, y: 10)  // pushed right so only left portion is visible
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Big number
+                Text(spendAmount)
+                    .font(.system(size: 36, weight: .bold, design: .default))
+                    .foregroundStyle(.black)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                    .monospacedDigit()
 
-            HStack(alignment: .center, spacing: 0) {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Big number
-                    Text(spendAmount)
-                        .font(.system(size: 36, weight: .bold, design: .default))
-                        .foregroundStyle(.primary)
-                        .minimumScaleFactor(0.6)
-                        .lineLimit(1)
+                if let budget = budgetString {
+                    Text("of \(budget)")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.black.opacity(0.55))
                         .monospacedDigit()
-
-                    if let budget = budgetString {
-                        Text("of \(budget)")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.primary.opacity(0.55))
-                            .monospacedDigit()
-                            .padding(.top, 2)
-                    }
-
-                    Text("spent this month".notyfiLocalized)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 1)
-
-                    // Stat row
-                    HStack(spacing: 14) {
-                        WidgetStatPill(
-                            label: "Today".notyfiLocalized,
-                            value: snapshot.todaySpent.formattedCurrency(code: snapshot.currencyCode)
-                        )
-                        if snapshot.hasBudget {
-                            WidgetStatPill(
-                                label: "Left".notyfiLocalized,
-                                value: snapshot.budgetLeft.formattedCurrency(code: snapshot.currencyCode)
-                            )
-                        }
-                    }
-                    .padding(.top, 8)
+                        .padding(.top, 2)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
 
-                Spacer()
+                Text("spent this month".notyfiLocalized)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.black.opacity(0.5))
+                    .padding(.top, 1)
+
+                // Stat row
+                HStack(spacing: 14) {
+                    WidgetStatPill(
+                        label: "Today".notyfiLocalized,
+                        value: snapshot.todaySpent.formattedCurrency(code: snapshot.currencyCode)
+                    )
+                    if snapshot.hasBudget {
+                        WidgetStatPill(
+                            label: "Left".notyfiLocalized,
+                            value: snapshot.budgetLeft.formattedCurrency(code: snapshot.currencyCode)
+                        )
+                    }
+                }
+                .padding(.top, 8)
             }
-            .padding(16)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        }
-        .overlay(alignment: .bottom) {
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer()
+
             if snapshot.hasBudget {
                 WidgetProgressBar(progress: budgetProgress)
                     .frame(height: 4)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 14)
             }
         }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .containerBackground(for: .widget) {
-            Color(red: 242/255, green: 242/255, blue: 249/255)
+            Image("widget-medium")
+                .resizable()
+                .scaledToFill()
         }
     }
 }
@@ -314,9 +295,9 @@ private struct WidgetProgressBar: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(.primary.opacity(0.1))
+                    .fill(.black.opacity(0.1))
                 Capsule()
-                    .fill(.primary.opacity(0.55))
+                    .fill(.black.opacity(0.55))
                     .frame(width: geo.size.width * max(0.03, progress))
             }
         }
@@ -331,10 +312,10 @@ private struct WidgetStatPill: View {
         VStack(alignment: .leading, spacing: 1) {
             Text(label)
                 .font(.system(size: 9, weight: .medium))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.black.opacity(0.5))
             Text(value)
                 .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(.black)
                 .monospacedDigit()
                 .minimumScaleFactor(0.8)
                 .lineLimit(1)
