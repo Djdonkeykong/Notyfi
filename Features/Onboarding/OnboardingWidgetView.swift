@@ -141,6 +141,8 @@ struct OnboardingWidgetView: View {
             }
         }
         .padding(4)
+        .background(Color.white.opacity(0.6))
+        .clipShape(Capsule())
     }
 
     private var stepsList: some View {
