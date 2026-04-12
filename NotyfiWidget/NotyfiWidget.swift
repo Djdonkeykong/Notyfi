@@ -92,13 +92,6 @@ private struct SmallWidgetView: View {
                 .foregroundStyle(.black.opacity(0.5))
                 .padding(.top, 1)
 
-            // Budget bar
-            if snapshot.hasBudget {
-                WidgetProgressBar(progress: budgetProgress)
-                    .frame(height: 4)
-                    .padding(.top, 10)
-            }
-
             Spacer()
         }
         .padding(14)
@@ -177,11 +170,6 @@ private struct MediumWidgetView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Spacer()
-
-            if snapshot.hasBudget {
-                WidgetProgressBar(progress: budgetProgress)
-                    .frame(height: 4)
-            }
         }
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
