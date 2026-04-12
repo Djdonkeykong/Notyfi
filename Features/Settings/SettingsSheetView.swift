@@ -6,7 +6,6 @@ struct SettingsSheetView: View {
     @ObservedObject var viewModel: SettingsViewModel
     @ObservedObject var authManager: AuthManager
     @AppStorage("notyfi.onboarding.complete") private var hasCompletedOnboarding = false
-    @AppStorage(NotyfiAppearanceMode.storageKey) private var appearanceModeRawValue = NotyfiAppearanceMode.system.rawValue
     @State private var isFeedbackPresented = false
     @State private var isClearLogConfirmationPresented = false
     @State private var isSignOutConfirmationPresented = false
@@ -16,10 +15,6 @@ struct SettingsSheetView: View {
         let hasName = !(authManager.userDisplayName?.isEmpty ?? true)
         let hasEmail = !(authManager.userEmail?.isEmpty ?? true)
         return hasName || hasEmail
-    }
-
-    private var appearanceMode: NotyfiAppearanceMode {
-        NotyfiAppearanceMode(rawValue: appearanceModeRawValue) ?? .system
     }
 
     var body: some View {
@@ -200,7 +195,8 @@ struct SettingsSheetView: View {
                 .presentationBackground(NotyfiTheme.background.opacity(0.98))
                 .presentationCornerRadius(34)
         }
-        .preferredColorScheme(appearanceMode.colorScheme)
+        .id(viewModel.appearanceMode.id)
+        .preferredColorScheme(viewModel.appearanceMode.colorScheme)
     }
 
     private var header: some View {
@@ -232,28 +228,10 @@ struct SettingsSheetView: View {
 private struct FeedbackSheetView: View {
     let url: URL
 
-    @Environment(\.dismiss) private var dismiss
-
     var body: some View {
-        NavigationStack {
-            FeedbackWebView(url: url)
-                .ignoresSafeArea(edges: .bottom)
-                .background(NotyfiTheme.background)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Text("Give Feedback".notyfiLocalized)
-                            .font(.notyfi(.body, weight: .semibold))
-                            .foregroundStyle(.primary.opacity(0.84))
-                    }
-
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Done".notyfiLocalized) {
-                            dismiss()
-                        }
-                        .font(.notyfi(.body, weight: .semibold))
-                    }
-                }
-        }
+        FeedbackWebView(url: url)
+            .ignoresSafeArea()
+            .background(NotyfiTheme.background)
     }
 }
 
@@ -309,7 +287,7 @@ private struct AppearanceMenuRow: View {
                     .frame(width: 18)
 
                 Text(title.notyfiLocalized)
-                    .font(.notyfi(.body, weight: .medium))
+                    .font(.notyfi(.body))
                     .foregroundStyle(.primary.opacity(0.82))
 
                 Spacer()
@@ -357,7 +335,7 @@ private struct CurrencyMenuRow: View {
                     .frame(width: 18)
 
                 Text(title.notyfiLocalized)
-                    .font(.notyfi(.body, weight: .medium))
+                    .font(.notyfi(.body))
                     .foregroundStyle(.primary.opacity(0.82))
 
                 Spacer()
@@ -412,7 +390,7 @@ private struct SettingsToggleRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title.notyfiLocalized)
-                    .font(.notyfi(.body, weight: .medium))
+                    .font(.notyfi(.body))
                     .foregroundStyle(.primary.opacity(0.82))
 
                 Text(subtitle.notyfiLocalized)
@@ -455,7 +433,7 @@ private struct ReminderTimeRow: View {
                 .frame(width: 18)
 
             Text(title.notyfiLocalized)
-                .font(.notyfi(.body, weight: .medium))
+                .font(.notyfi(.body))
                 .foregroundStyle(.primary.opacity(0.82))
 
             Spacer()
@@ -495,7 +473,7 @@ private struct SettingsValueRow: View {
                 .frame(width: 18)
 
             Text(title.notyfiLocalized)
-                .font(.notyfi(.body, weight: .medium))
+                .font(.notyfi(.body))
                 .foregroundStyle(.primary.opacity(0.82))
 
             Spacer()
@@ -528,7 +506,7 @@ private struct SettingsActionRow: View {
                     .frame(width: 18)
 
                 Text(title.notyfiLocalized)
-                    .font(.notyfi(.body, weight: .medium))
+                    .font(.notyfi(.body))
                     .foregroundStyle(isDestructive ? .red.opacity(0.78) : .primary.opacity(0.82))
 
                 Spacer()
@@ -541,6 +519,8 @@ private struct SettingsActionRow: View {
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
