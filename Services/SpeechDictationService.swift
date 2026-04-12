@@ -8,8 +8,13 @@ final class SpeechDictationService: ObservableObject {
     @Published private(set) var transcript = ""
 
     private let audioEngine = AVAudioEngine()
+    private let defaults: UserDefaults
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
 
     func toggleRecording() async {
         if isRecording {
@@ -49,7 +54,7 @@ final class SpeechDictationService: ObservableObject {
         stopRecording(resetTranscript: false)
 
         guard
-            let recognizer = SFSpeechRecognizer(locale: .autoupdatingCurrent) ?? SFSpeechRecognizer(),
+            let recognizer = makeRecognizer(),
             recognizer.isAvailable
         else {
             return
@@ -123,5 +128,20 @@ final class SpeechDictationService: ObservableObject {
         }
 
         return microphoneAuthorized
+    }
+
+    private func makeRecognizer() -> SFSpeechRecognizer? {
+        let preference = NotyfiDictationLanguage.currentPreference(defaults: defaults)
+
+        if let preferredLocale = preference.preferredLocale(defaults: defaults),
+           let recognizer = SFSpeechRecognizer(locale: preferredLocale) {
+            return recognizer
+        }
+
+        if let recognizer = SFSpeechRecognizer(locale: .autoupdatingCurrent) {
+            return recognizer
+        }
+
+        return SFSpeechRecognizer()
     }
 }

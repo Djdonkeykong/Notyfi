@@ -88,15 +88,6 @@ struct OnboardingSignInView: View {
                 .presentationDragIndicator(.visible)
                 .presentationCornerRadius(26)
         }
-        .overlay(alignment: .bottom) {
-            AuthDebugPanel(
-                message: authManager.debugMessage,
-                isAuthenticated: authManager.isAuthenticated,
-                userEmail: authManager.userEmail
-            )
-            .padding(.horizontal, 16)
-            .padding(.bottom, 12)
-        }
     }
 
     private var isAnyLoading: Bool { loadingProvider != nil }

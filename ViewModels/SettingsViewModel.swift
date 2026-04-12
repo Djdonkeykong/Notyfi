@@ -4,6 +4,7 @@ import Foundation
 final class SettingsViewModel: ObservableObject {
     @Published var appearanceMode: NotyfiAppearanceMode
     @Published var currencyPreference: NotyfiCurrencyPreference
+    @Published var dictationLanguage: NotyfiDictationLanguage
     @Published var remindersEnabled = false
     @Published var reminderTime: Date
     @Published private(set) var remindersPermissionDenied = false
@@ -27,6 +28,7 @@ final class SettingsViewModel: ObservableObject {
             rawValue: defaults.string(forKey: NotyfiAppearanceMode.storageKey) ?? ""
         ) ?? .system
         self.currencyPreference = NotyfiCurrency.currentPreference(defaults: defaults)
+        self.dictationLanguage = NotyfiDictationLanguage.currentPreference(defaults: defaults)
 
         let reminderSettings = self.reminderManager.loadSettings()
         self.remindersEnabled = reminderSettings.isEnabled
@@ -97,6 +99,11 @@ final class SettingsViewModel: ObservableObject {
     func setCurrencyPreference(_ preference: NotyfiCurrencyPreference) {
         currencyPreference = preference
         defaults.set(preference.rawValue, forKey: NotyfiCurrency.storageKey)
+    }
+
+    func setDictationLanguage(_ language: NotyfiDictationLanguage) {
+        dictationLanguage = language
+        defaults.set(language.rawValue, forKey: NotyfiDictationLanguage.storageKey)
     }
 
     private var reminderDateComponents: DateComponents {

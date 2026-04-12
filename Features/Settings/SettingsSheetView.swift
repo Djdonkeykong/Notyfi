@@ -71,6 +71,15 @@ struct SettingsSheetView: View {
 
                             Divider()
 
+                            DictationLanguageMenuRow(
+                                icon: "mic.fill",
+                                title: "Dictation language",
+                                selection: $viewModel.dictationLanguage,
+                                onSelect: viewModel.setDictationLanguage
+                            )
+
+                            Divider()
+
                             SettingsToggleRow(
                                 icon: "bell.badge",
                                 title: "Daily reminder",
@@ -341,6 +350,61 @@ private struct CurrencyMenuRow: View {
                 Spacer()
 
                 Text(selection.title)
+                    .font(.notyfi(.subheadline))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .multilineTextAlignment(.trailing)
+
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.tertiaryText)
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct DictationLanguageMenuRow: View {
+    let icon: String
+    let title: String
+    @Binding var selection: NotyfiDictationLanguage
+    let onSelect: (NotyfiDictationLanguage) -> Void
+
+    var body: some View {
+        Menu {
+            ForEach(NotyfiDictationLanguage.allCases) { language in
+                Button {
+                    onSelect(language)
+                } label: {
+                    if language == selection {
+                        Label(language.title.notyfiLocalized, systemImage: "checkmark")
+                    } else {
+                        Text(language.title.notyfiLocalized)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .font(.system(size: 17, weight: .semibold))
+                    .frame(width: 18)
+
+                HStack(spacing: 6) {
+                    Text(title.notyfiLocalized)
+                        .font(.notyfi(.body))
+                        .foregroundStyle(.primary.opacity(0.82))
+
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(NotyfiTheme.tertiaryText)
+                }
+
+                Spacer()
+
+                Text(selection.title.notyfiLocalized)
                     .font(.notyfi(.subheadline))
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .multilineTextAlignment(.trailing)

@@ -78,15 +78,6 @@ struct OnboardingAuthView: View {
                 .presentationDragIndicator(.visible)
                 .presentationCornerRadius(26)
         }
-        .overlay(alignment: .bottom) {
-            AuthDebugPanel(
-                message: authManager.debugMessage,
-                isAuthenticated: authManager.isAuthenticated,
-                userEmail: authManager.userEmail
-            )
-            .padding(.horizontal, 16)
-            .padding(.bottom, 12)
-        }
     }
 
     // MARK: - Subviews
@@ -283,15 +274,6 @@ struct EmailSignUpView: View {
         }
         .onReceive(timer) { _ in
             if resendCooldown > 0 { resendCooldown -= 1 }
-        }
-        .overlay(alignment: .bottom) {
-            AuthDebugPanel(
-                message: authManager.debugMessage,
-                isAuthenticated: authManager.isAuthenticated,
-                userEmail: authManager.userEmail
-            )
-            .padding(.horizontal, 16)
-            .padding(.bottom, 12)
         }
     }
 

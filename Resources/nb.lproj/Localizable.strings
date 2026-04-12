@@ -111,6 +111,9 @@
 "Notifications" = "Varsler";
 "Quiet reminders when you want them" = "Diskré påminnelser når du ønsker dem";
 "Appearance" = "Utseende";
+"Dictation language" = "Dikteringsspråk";
+"App language" = "Appspråk";
+"Auto-detect" = "Automatisk";
 "System" = "System";
 "Light" = "Lys";
 "Dark" = "Mørk";

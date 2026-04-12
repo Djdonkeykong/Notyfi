@@ -7,10 +7,11 @@ struct AppRootView: View {
 
     @AppStorage("notyfi.onboarding.complete") private var hasCompletedOnboarding = false
     @AppStorage(NotyfiAppearanceMode.storageKey) private var appearanceModeRawValue = NotyfiAppearanceMode.system.rawValue
+    @State private var minimumSplashElapsed = false
 
     var body: some View {
         Group {
-            if !authManager.isReady {
+            if shouldShowSplash {
                 splashScreen
             } else if !hasCompletedOnboarding {
                 OnboardingFlowView(store: store, authManager: authManager)
@@ -30,11 +31,27 @@ struct AppRootView: View {
         .onChange(of: authManager.isAuthenticated) { _, _ in
             syncOnboardingWithAuthState()
         }
+        .task {
+            guard !minimumSplashElapsed else { return }
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            minimumSplashElapsed = true
+        }
     }
 
     private var splashScreen: some View {
-        Color(red: 0.949, green: 0.949, blue: 0.976)
-            .ignoresSafeArea()
+        ZStack {
+            Color("LaunchBackground")
+                .ignoresSafeArea()
+
+            Image("LaunchImage")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 280, height: 255)
+        }
+    }
+
+    private var shouldShowSplash: Bool {
+        !minimumSplashElapsed || !authManager.isReady
     }
 
     private var appearanceMode: NotyfiAppearanceMode {

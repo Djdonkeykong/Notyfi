@@ -14,7 +14,6 @@ final class AuthManager: ObservableObject {
     @Published private(set) var isLoading: Bool = false
     @Published private(set) var userEmail: String? = nil
     @Published private(set) var userDisplayName: String? = nil
-    @Published private(set) var debugMessage: String = "Idle"
 
     private let logger = Logger(subsystem: "com.djdonkeykong.notely", category: "auth")
     private var authStateTask: Task<Void, Never>?
@@ -230,7 +229,6 @@ final class AuthManager: ObservableObject {
     }
 
     private func setDebugMessage(_ message: String) {
-        debugMessage = message
         logger.log("\(message, privacy: .public)")
     }
 }
