@@ -143,11 +143,13 @@ private struct ReminderFrequencySlider: View {
                     Group {
                         if #available(iOS 26, *) {
                             Circle()
-                                .glassEffect()
+                                .fill(.white)
                                 .frame(width: thumbSize, height: thumbSize)
+                                .overlay { Circle().glassEffect() }
+                                .shadow(color: .black.opacity(0.20), radius: 8, x: 0, y: 3)
                         } else {
                             Circle()
-                                .fill(Color(uiColor: .systemBackground))
+                                .fill(.white)
                                 .frame(width: thumbSize, height: thumbSize)
                                 .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 2)
                                 .overlay {
