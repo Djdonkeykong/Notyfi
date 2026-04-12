@@ -271,7 +271,7 @@
 "Speak it out" = "Sano se Ã¤Ã¤neen";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Sano Ã¤Ã¤neen, mitÃ¤ kÃ¤ytit. Notyfi litteroi ja analysoi sen vÃ¤littÃ¶mÃ¤sti.";
 "Smart text" = "Ã„lykÃ¤s teksti";
-"Abbreviations, shorthand, even typos â€” the AI figures out what you mean." = "Lyhenteet, pikakirjoitus, jopa kirjoitusvirheet â€” tekoÃ¤ly selvittÃ¤Ã¤, mitÃ¤ tarkoitat.";
+"Abbreviations, shorthand, even typos — the AI figures out what you mean." = "Lyhenteet, pikakirjoitus, jopa kirjoitusvirheet â€” tekoÃ¤ly selvittÃ¤Ã¤, mitÃ¤ tarkoitat.";
 "Stay on track" = "Pysy raiteilla";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Saat pÃ¤ivittÃ¤isen muistutuksen kulutuksen kirjaamisesta. Muistutuksia kÃ¤yttÃ¤vÃ¤t ihmiset omaksuvat tavan 3x nopeammin.";
 "Enable Notifications" = "Ota ilmoitukset kÃ¤yttÃ¶Ã¶n";
@@ -283,7 +283,7 @@
 "Search for \"Notyfi\" and choose a size" = "Etsi \"Notyfi\" ja valitse koko";
 "Tap the widget any time to open the app" = "Napauta widgettia milloin tahansa avataksesi sovelluksen";
 "Set category limits" = "Aseta kategoriarajat";
-"Add a monthly limit for each category. Skip any you're not sure about â€” you can set these later." = "LisÃ¤Ã¤ kuukausiraja jokaiselle kategorialle. Ohita ne, joista et ole varma â€” voit asettaa ne myÃ¶hemmin.";
+"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "LisÃ¤Ã¤ kuukausiraja jokaiselle kategorialle. Ohita ne, joista et ole varma â€” voit asettaa ne myÃ¶hemmin.";
 "/mo" = "/kk";
 "Skip for now" = "Ohita toistaiseksi";
 "Follow System" = "Seuraa jÃ¤rjestelmÃ¤Ã¤";
@@ -314,7 +314,7 @@
 "per month for \(category.title)" = "kuukaudessa kategorialle \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending â€” every single day." = "Lisaa Notyfi-widget seurataksesi menojasi â€” joka paiva.";
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Lisaa Notyfi-widget seurataksesi menojasi â€” joka paiva.";
 
 // Category group titles
 "Essentials" = "Perustarpeet";

@@ -271,7 +271,7 @@
 "Speak it out" = "Sig det hÃ¸jt";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Sig, hvad du brugte, hÃ¸jt. Notyfi transkriberer og analyserer det Ã¸jeblikkeligt.";
 "Smart text" = "Smart tekst";
-"Abbreviations, shorthand, even typos â€” the AI figures out what you mean." = "Forkortelser, stenografi, selv slÃ¥fejl â€” AI'en finder ud af, hvad du mener.";
+"Abbreviations, shorthand, even typos — the AI figures out what you mean." = "Forkortelser, stenografi, selv slÃ¥fejl â€” AI'en finder ud af, hvad du mener.";
 "Stay on track" = "Hold kursen";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "FÃ¥ et dagligt puf til at logge dit forbrug. Folk, der bruger pÃ¥mindelser, opbygger vanen 3x hurtigere.";
 "Enable Notifications" = "Aktiver notifikationer";
@@ -283,7 +283,7 @@
 "Search for \"Notyfi\" and choose a size" = "SÃ¸g efter \"Notyfi\" og vÃ¦lg en stÃ¸rrelse";
 "Tap the widget any time to open the app" = "Tryk pÃ¥ widgetten til enhver tid for at Ã¥bne appen";
 "Set category limits" = "Angiv kategorigrÃ¦nser";
-"Add a monthly limit for each category. Skip any you're not sure about â€” you can set these later." = "TilfÃ¸j en mÃ¥nedlig grÃ¦nse for hver kategori. Spring dem over, du er usikker pÃ¥ â€” du kan angive dem senere.";
+"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "TilfÃ¸j en mÃ¥nedlig grÃ¦nse for hver kategori. Spring dem over, du er usikker pÃ¥ â€” du kan angive dem senere.";
 "/mo" = "/md.";
 "Skip for now" = "Spring over for nu";
 "Follow System" = "FÃ¸lg system";
@@ -314,7 +314,7 @@
 "per month for \(category.title)" = "pr. maaned for \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending â€” every single day." = "Tilfoj Notyfi-widgetten for at holde styr pa dine udgifter â€” hver dag.";
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Tilfoj Notyfi-widgetten for at holde styr pa dine udgifter â€” hver dag.";
 
 // Category group titles
 "Essentials" = "GrundlÃ¦ggende";

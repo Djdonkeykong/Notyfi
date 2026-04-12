@@ -271,7 +271,7 @@
 "Speak it out" = "Dites-le Ã  voix haute";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Dites ce que vous avez dÃ©pensÃ© Ã  voix haute. Notyfi le transcrit et l'analyse instantanÃ©ment.";
 "Smart text" = "Texte intelligent";
-"Abbreviations, shorthand, even typos â€” the AI figures out what you mean." = "AbrÃ©viations, stÃ©nographie, mÃªme des fautes de frappe â€” l'IA comprend ce que vous voulez dire.";
+"Abbreviations, shorthand, even typos — the AI figures out what you mean." = "AbrÃ©viations, stÃ©nographie, mÃªme des fautes de frappe â€” l'IA comprend ce que vous voulez dire.";
 "Stay on track" = "Restez sur la bonne voie";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Recevez un rappel quotidien pour enregistrer vos dÃ©penses. Les personnes qui utilisent des rappels prennent l'habitude 3 fois plus vite.";
 "Enable Notifications" = "Activer les notifications";
@@ -283,7 +283,7 @@
 "Search for \"Notyfi\" and choose a size" = "Recherchez \"Notyfi\" et choisissez une taille";
 "Tap the widget any time to open the app" = "Touchez le widget Ã  tout moment pour ouvrir l'application";
 "Set category limits" = "DÃ©finir les limites de catÃ©gorie";
-"Add a monthly limit for each category. Skip any you're not sure about â€” you can set these later." = "Ajoutez une limite mensuelle pour chaque catÃ©gorie. Ignorez celles dont vous n'Ãªtes pas sÃ»r â€” vous pourrez les dÃ©finir plus tard.";
+"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Ajoutez une limite mensuelle pour chaque catÃ©gorie. Ignorez celles dont vous n'Ãªtes pas sÃ»r â€” vous pourrez les dÃ©finir plus tard.";
 "/mo" = "/mois";
 "Skip for now" = "Ignorer pour l'instant";
 "Follow System" = "Suivre le systÃ¨me";
@@ -314,7 +314,7 @@
 "per month for \(category.title)" = "par mois pour \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending â€” every single day." = "Ajoute le widget Notyfi pour suivre tes depenses â€” chaque jour.";
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Ajoute le widget Notyfi pour suivre tes depenses â€” chaque jour.";
 
 // Category group titles
 "Essentials" = "Essentiels";

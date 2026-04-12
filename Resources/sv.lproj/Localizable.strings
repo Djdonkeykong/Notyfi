@@ -271,7 +271,7 @@
 "Speak it out" = "Sag det hogt";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Sag vad du spenderade hogt. Notyfi transkriberar och analyserar det omedelbart.";
 "Smart text" = "Smart text";
-"Abbreviations, shorthand, even typos â€” the AI figures out what you mean." = "Forkortningar, stenografi, till och med stavfel â€” AI:n raknar ut vad du menar.";
+"Abbreviations, shorthand, even typos — the AI figures out what you mean." = "Forkortningar, stenografi, till och med stavfel â€” AI:n raknar ut vad du menar.";
 "Stay on track" = "Hall dig pa sparet";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Fa en daglig paminnelse om att logga dina utgifter. Manniskor som anvander paminnelser bygger vanor 3x snabbare.";
 "Enable Notifications" = "Aktivera aviseringar";
@@ -283,7 +283,7 @@
 "Search for \"Notyfi\" and choose a size" = "Sok efter \"Notyfi\" och valj en storlek";
 "Tap the widget any time to open the app" = "Tryck pa widgeten nar som helst for att oppna appen";
 "Set category limits" = "Ange kategorigranser";
-"Add a monthly limit for each category. Skip any you're not sure about â€” you can set these later." = "Lagg till en manatlig grans for varje kategori. Hoppa over de du ar osaker pa â€” du kan ange dem senare.";
+"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Lagg till en manatlig grans for varje kategori. Hoppa over de du ar osaker pa â€” du kan ange dem senare.";
 "/mo" = "/man.";
 "Skip for now" = "Hoppa over for nu";
 "Follow System" = "Folj system";
@@ -314,7 +314,7 @@
 "per month for \(category.title)" = "per manad for \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending â€” every single day." = "Lagg till Notyfi-widgeten for att halla koll pa dina utgifter â€” varje dag.";
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Lagg till Notyfi-widgeten for att halla koll pa dina utgifter â€” varje dag.";
 
 // Category group titles
 "Essentials" = "GrundlÃ¤ggande";

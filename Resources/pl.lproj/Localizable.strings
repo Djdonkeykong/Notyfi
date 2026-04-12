@@ -271,7 +271,7 @@
 "Speak it out" = "Powiedz to glosno";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Powiedz glosno, co wydales. Notyfi natychmiast to transkrybuje i przetworzy.";
 "Smart text" = "Inteligentny tekst";
-"Abbreviations, shorthand, even typos â€” the AI figures out what you mean." = "Skroty, stenografia, a nawet literowki â€” sztuczna inteligencja rozumie, co masz na mysli.";
+"Abbreviations, shorthand, even typos — the AI figures out what you mean." = "Skroty, stenografia, a nawet literowki â€” sztuczna inteligencja rozumie, co masz na mysli.";
 "Stay on track" = "Trzymaj sie planu";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Otrzymuj codzienne przypomnienie o rejestrowaniu wydatkow. Osoby korzystajace z przypomnien wyrabiaja nawyk 3x szybciej.";
 "Enable Notifications" = "Wlacz powiadomienia";
@@ -283,7 +283,7 @@
 "Search for \"Notyfi\" and choose a size" = "Wyszukaj \"Notyfi\" i wybierz rozmiar";
 "Tap the widget any time to open the app" = "Dotknij widgetu w dowolnym momencie, aby otworzyc aplikacje";
 "Set category limits" = "Ustaw limity kategorii";
-"Add a monthly limit for each category. Skip any you're not sure about â€” you can set these later." = "Dodaj miesieczny limit dla kazdej kategorii. Pomin te, co do ktorych nie jestes pewny â€” mozesz je ustawic pozniej.";
+"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Dodaj miesieczny limit dla kazdej kategorii. Pomin te, co do ktorych nie jestes pewny â€” mozesz je ustawic pozniej.";
 "/mo" = "/mies.";
 "Skip for now" = "Pomin na razie";
 "Follow System" = "Podazaj za systemem";
@@ -314,7 +314,7 @@
 "per month for \(category.title)" = "miesieczne dla \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending â€” every single day." = "Dodaj widget Notyfi, aby byc na biezaco ze swoimi wydatkami â€” kazdego dnia.";
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Dodaj widget Notyfi, aby byc na biezaco ze swoimi wydatkami â€” kazdego dnia.";
 
 // Category group titles
 "Essentials" = "Podstawowe";

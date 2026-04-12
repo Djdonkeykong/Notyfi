@@ -271,7 +271,7 @@
 "Speak it out" = "Zeg het hardop";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Zeg hardop wat je hebt uitgegeven. Notyfi transcribeert en analyseert het direct.";
 "Smart text" = "Slimme tekst";
-"Abbreviations, shorthand, even typos â€” the AI figures out what you mean." = "Afkortingen, steno, zelfs tikfouten â€” de AI begrijpt wat je bedoelt.";
+"Abbreviations, shorthand, even typos — the AI figures out what you mean." = "Afkortingen, steno, zelfs tikfouten â€” de AI begrijpt wat je bedoelt.";
 "Stay on track" = "Blijf op koers";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Ontvang dagelijks een herinnering om je uitgaven te registreren. Mensen die herinneringen gebruiken, bouwen de gewoonte 3x sneller op.";
 "Enable Notifications" = "Meldingen inschakelen";
@@ -283,7 +283,7 @@
 "Search for \"Notyfi\" and choose a size" = "Zoek naar \"Notyfi\" en kies een grootte";
 "Tap the widget any time to open the app" = "Tik op de widget om de app te openen";
 "Set category limits" = "Categorielimieten instellen";
-"Add a monthly limit for each category. Skip any you're not sure about â€” you can set these later." = "Voeg een maandelijks limiet toe voor elke categorie. Sla de categorieÃ«n over waar je niet zeker van bent â€” je kunt ze later instellen.";
+"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Voeg een maandelijks limiet toe voor elke categorie. Sla de categorieÃ«n over waar je niet zeker van bent â€” je kunt ze later instellen.";
 "/mo" = "/mnd.";
 "Skip for now" = "Nu overslaan";
 "Follow System" = "Systeem volgen";
@@ -314,7 +314,7 @@
 "per month for \(category.title)" = "per maand voor \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending â€” every single day." = "Voeg de Notyfi-widget toe om je uitgaven bij te houden â€” elke dag.";
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Voeg de Notyfi-widget toe om je uitgaven bij te houden â€” elke dag.";
 
 // Category group titles
 "Essentials" = "Basisbehoeften";
