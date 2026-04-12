@@ -14,6 +14,7 @@ final class AuthManager: ObservableObject {
     @Published private(set) var isLoading: Bool = false
     @Published private(set) var userEmail: String? = nil
     @Published private(set) var userDisplayName: String? = nil
+    @Published private(set) var debugMessage: String = "Idle"
 
     private let logger = Logger(subsystem: "com.djdonkeykong.notely", category: "auth")
     private var authStateTask: Task<Void, Never>?
@@ -24,6 +25,9 @@ final class AuthManager: ObservableObject {
         authStateTask = Task { [weak self] in
             for await (_, session) in await SupabaseService.client.auth.authStateChanges {
                 guard let self else { return }
+                self.setDebugMessage(
+                    "Auth state changed. session=\(session != nil ? "yes" : "no") user=\(session?.user.email ?? "nil")"
+                )
                 self.applyAuthState(session: session)
             }
         }
@@ -38,18 +42,21 @@ final class AuthManager: ObservableObject {
     func signInWithApple() async throws {
         isLoading = true
         defer { isLoading = false }
-        logger.log("Starting Apple sign-in")
+        setDebugMessage("Starting Apple sign-in")
 
         let rawNonce = randomNonce()
         let hashedNonce = sha256(rawNonce)
 
         let credential = try await requestAppleCredential(nonce: hashedNonce)
+        setDebugMessage("Apple credential received")
 
         guard let identityToken = credential.identityToken,
               let tokenString = String(data: identityToken, encoding: .utf8) else {
+            setDebugMessage("Apple sign-in failed: missing identity token")
             throw AuthError.missingIdentityToken
         }
 
+        setDebugMessage("Exchanging Apple token with Supabase")
         let session = try await SupabaseService.client.auth.signInWithIdToken(
             credentials: .init(
                 provider: .apple,
@@ -68,23 +75,27 @@ final class AuthManager: ObservableObject {
     func signInWithGoogle() async throws {
         isLoading = true
         defer { isLoading = false }
-        logger.log("Starting Google sign-in")
+        setDebugMessage("Starting Google sign-in")
 
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
-            logger.error("Google sign-in failed before presentation: missing key window")
+            setDebugMessage("Google sign-in failed: missing key window")
             throw AuthError.googleSignInFailed
         }
 
         do {
+            setDebugMessage("Presenting Google sign-in")
             let result = try await GIDSignIn.sharedInstance.signIn(
                 withPresenting: root,
                 hint: nil,
                 additionalScopes: nil
             )
+            setDebugMessage("Google credential received")
             guard let idToken = result.user.idToken?.tokenString else {
+                setDebugMessage("Google sign-in failed: missing identity token")
                 throw AuthError.missingIdentityToken
             }
+            setDebugMessage("Exchanging Google token with Supabase")
             let session = try await SupabaseService.client.auth.signInWithIdToken(
                 credentials: .init(provider: .google, idToken: idToken)
             )
@@ -93,10 +104,10 @@ final class AuthManager: ObservableObject {
                 context: "Google sign-in"
             )
         } catch let error as GIDSignInError where error.code == .canceled {
-            logger.log("Google sign-in cancelled by user")
+            setDebugMessage("Google sign-in cancelled by user")
             throw AuthError.googleSignInCancelled
         } catch {
-            logger.error("Google sign-in failed: \(error.localizedDescription, privacy: .public)")
+            setDebugMessage("Google sign-in failed: \(error.localizedDescription)")
             throw error
         }
     }
@@ -106,14 +117,15 @@ final class AuthManager: ObservableObject {
     func sendOTP(email: String) async throws {
         isLoading = true
         defer { isLoading = false }
-        logger.log("Sending email OTP to \(email, privacy: .public)")
+        setDebugMessage("Sending email OTP to \(email)")
         try await SupabaseService.client.auth.signInWithOTP(email: email)
+        setDebugMessage("OTP email sent to \(email)")
     }
 
     func verifyOTP(email: String, token: String) async throws {
         isLoading = true
         defer { isLoading = false }
-        logger.log("Verifying email OTP for \(email, privacy: .public)")
+        setDebugMessage("Verifying email OTP for \(email)")
         try await SupabaseService.client.auth.verifyOTP(
             email: email,
             token: token,
@@ -185,23 +197,23 @@ final class AuthManager: ObservableObject {
         context: String
     ) async throws {
         if let preferredSession {
-            logger.log("\(context, privacy: .public) completed with immediate session")
+            setDebugMessage("\(context) completed with immediate session")
             applyAuthState(session: preferredSession)
             return
         }
 
         if let currentSession = SupabaseService.client.auth.currentSession {
-            logger.log("\(context, privacy: .public) found current cached session")
+            setDebugMessage("\(context) found current cached session")
             applyAuthState(session: currentSession)
             return
         }
 
         do {
             let persistedSession = try await SupabaseService.client.auth.session
-            logger.log("\(context, privacy: .public) recovered persisted session")
+            setDebugMessage("\(context) recovered persisted session")
             applyAuthState(session: persistedSession)
         } catch {
-            logger.error("\(context, privacy: .public) finished without an active Supabase session: \(error.localizedDescription, privacy: .public)")
+            setDebugMessage("\(context) finished without an active Supabase session: \(error.localizedDescription)")
             throw AuthError.sessionNotEstablished
         }
     }
@@ -212,6 +224,14 @@ final class AuthManager: ObservableObject {
         userEmail = session?.user.email
         userDisplayName = session?.user.userMetadata["full_name"]?.stringValue
             ?? session?.user.userMetadata["name"]?.stringValue
+        setDebugMessage(
+            "applyAuthState: authenticated=\(session != nil ? "yes" : "no") user=\(session?.user.email ?? "nil")"
+        )
+    }
+
+    private func setDebugMessage(_ message: String) {
+        debugMessage = message
+        logger.log("\(message, privacy: .public)")
     }
 }
 
