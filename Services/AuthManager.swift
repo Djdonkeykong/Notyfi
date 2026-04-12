@@ -4,6 +4,7 @@ import Auth
 import AuthenticationServices
 import CryptoKit
 import GoogleSignIn
+import OSLog
 import UIKit
 
 @MainActor
@@ -14,6 +15,7 @@ final class AuthManager: ObservableObject {
     @Published private(set) var userEmail: String? = nil
     @Published private(set) var userDisplayName: String? = nil
 
+    private let logger = Logger(subsystem: "com.djdonkeykong.notely", category: "auth")
     private var authStateTask: Task<Void, Never>?
 
     init() {
@@ -36,6 +38,7 @@ final class AuthManager: ObservableObject {
     func signInWithApple() async throws {
         isLoading = true
         defer { isLoading = false }
+        logger.log("Starting Apple sign-in")
 
         let rawNonce = randomNonce()
         let hashedNonce = sha256(rawNonce)
@@ -54,7 +57,10 @@ final class AuthManager: ObservableObject {
                 nonce: rawNonce
             )
         )
-        applyAuthState(session: session)
+        try await applyVerifiedAuthState(
+            preferredSession: session,
+            context: "Apple sign-in"
+        )
     }
 
     // MARK: - Google Sign In
@@ -62,9 +68,11 @@ final class AuthManager: ObservableObject {
     func signInWithGoogle() async throws {
         isLoading = true
         defer { isLoading = false }
+        logger.log("Starting Google sign-in")
 
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
+            logger.error("Google sign-in failed before presentation: missing key window")
             throw AuthError.googleSignInFailed
         }
 
@@ -80,9 +88,16 @@ final class AuthManager: ObservableObject {
             let session = try await SupabaseService.client.auth.signInWithIdToken(
                 credentials: .init(provider: .google, idToken: idToken)
             )
-            applyAuthState(session: session)
+            try await applyVerifiedAuthState(
+                preferredSession: session,
+                context: "Google sign-in"
+            )
         } catch let error as GIDSignInError where error.code == .canceled {
+            logger.log("Google sign-in cancelled by user")
             throw AuthError.googleSignInCancelled
+        } catch {
+            logger.error("Google sign-in failed: \(error.localizedDescription, privacy: .public)")
+            throw error
         }
     }
 
@@ -91,18 +106,23 @@ final class AuthManager: ObservableObject {
     func sendOTP(email: String) async throws {
         isLoading = true
         defer { isLoading = false }
+        logger.log("Sending email OTP to \(email, privacy: .public)")
         try await SupabaseService.client.auth.signInWithOTP(email: email)
     }
 
     func verifyOTP(email: String, token: String) async throws {
         isLoading = true
         defer { isLoading = false }
+        logger.log("Verifying email OTP for \(email, privacy: .public)")
         try await SupabaseService.client.auth.verifyOTP(
             email: email,
             token: token,
             type: .email
         )
-        applyAuthState(session: SupabaseService.client.auth.currentSession)
+        try await applyVerifiedAuthState(
+            preferredSession: SupabaseService.client.auth.currentSession,
+            context: "Email OTP verification"
+        )
     }
 
     // MARK: - Sign Out
@@ -160,6 +180,32 @@ final class AuthManager: ObservableObject {
         return hash.compactMap { String(format: "%02x", $0) }.joined()
     }
 
+    private func applyVerifiedAuthState(
+        preferredSession: Session?,
+        context: String
+    ) async throws {
+        if let preferredSession {
+            logger.log("\(context, privacy: .public) completed with immediate session")
+            applyAuthState(session: preferredSession)
+            return
+        }
+
+        if let currentSession = SupabaseService.client.auth.currentSession {
+            logger.log("\(context, privacy: .public) found current cached session")
+            applyAuthState(session: currentSession)
+            return
+        }
+
+        do {
+            let persistedSession = try await SupabaseService.client.auth.session
+            logger.log("\(context, privacy: .public) recovered persisted session")
+            applyAuthState(session: persistedSession)
+        } catch {
+            logger.error("\(context, privacy: .public) finished without an active Supabase session: \(error.localizedDescription, privacy: .public)")
+            throw AuthError.sessionNotEstablished
+        }
+    }
+
     private func applyAuthState(session: Session?) {
         isAuthenticated = session != nil
         isReady = true
@@ -177,6 +223,7 @@ enum AuthError: LocalizedError {
     case appleSignInFailed(Error)
     case googleSignInCancelled
     case googleSignInFailed
+    case sessionNotEstablished
 
     var errorDescription: String? {
         switch self {
@@ -188,6 +235,8 @@ enum AuthError: LocalizedError {
             return error.localizedDescription
         case .googleSignInFailed:
             return "error.auth.googleFailed".notyfiLocalized
+        case .sessionNotEstablished:
+            return "Sign-in succeeded, but no session was established. Check the Xcode console for auth logs."
         }
     }
 
