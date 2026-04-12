@@ -257,8 +257,16 @@ struct EmailSignUpView: View {
 
                 if step == .email {
                     emailStep
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .leading),
+                            removal: .move(edge: .leading)
+                        ))
                 } else {
                     otpStep
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing),
+                            removal: .move(edge: .trailing)
+                        ))
                 }
 
                 Spacer()
@@ -375,7 +383,7 @@ struct EmailSignUpView: View {
             .padding(.top, 8)
 
             Button {
-                step = .email
+                withAnimation(.easeInOut(duration: 0.28)) { step = .email }
                 otpCode = ""
                 errorMessage = nil
             } label: {
@@ -448,7 +456,7 @@ struct EmailSignUpView: View {
                 isSending = false
                 otpCode = ""
                 resendCooldown = 60
-                withAnimation { step = .otp }
+                withAnimation(.easeInOut(duration: 0.28)) { step = .otp }
             } catch {
                 isSending = false
                 errorMessage = error.localizedDescription
