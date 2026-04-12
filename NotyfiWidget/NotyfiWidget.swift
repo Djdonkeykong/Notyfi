@@ -234,7 +234,7 @@ private struct LockCircularView: View {
             EmptyView()
         } currentValueLabel: {
             VStack(spacing: 0) {
-                Text(snapshot.monthSpent.formattedCurrency(code: snapshot.currencyCode))
+                Text(snapshot.monthSpent.formattedAmount())
                     .font(.system(size: 11, weight: .bold, design: .default))
                     .minimumScaleFactor(0.4)
                     .lineLimit(1)
