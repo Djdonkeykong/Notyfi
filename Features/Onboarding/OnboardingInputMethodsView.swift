@@ -32,6 +32,7 @@ struct OnboardingInputMethodsView: View {
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .multilineTextAlignment(.center)
                     .lineSpacing(3)
+                    .padding(.horizontal, 16)
                     .padding(.bottom, 32)
 
                 VStack(spacing: 16) {
