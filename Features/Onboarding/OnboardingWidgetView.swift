@@ -124,16 +124,9 @@ struct OnboardingWidgetView: View {
                         .frame(height: 42)
                         .background {
                             if screen == option {
-                                if #available(iOS 26, *) {
-                                    Capsule()
-                                        .fill(.white)
-                                        .overlay { Capsule().glassEffect() }
-                                        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 1)
-                                } else {
-                                    Capsule()
-                                        .fill(.white)
-                                        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 1)
-                                }
+                                Capsule()
+                                    .fill(Color.white)
+                                    .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 1)
                             }
                         }
                 }
