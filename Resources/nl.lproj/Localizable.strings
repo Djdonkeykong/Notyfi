@@ -342,7 +342,7 @@
 "widget.days.one" = "1 dag over";
 "widget.days.many" = "%d dagen over";
 "No categories selected" = "Geen categorieën geselecteerd";
-"Go back and select some categories to set spending limits. You can always do this later in the app." = "Ga terug en selecteer categorieën om uitgavenlimieten in te stellen. Je kunt dit altijd later in de app doen.";
+"Go back to choose categories, or skip for now." = "Ga terug om categorieën te kiezen, of sla dit nu over.";
 
 // Errors
 "error.auth.missingToken" = "Aanmelden mislukt: identiteitstoken ontbreekt.";
@@ -351,3 +351,10 @@
 "error.photo.timeout.title" = "Duurt te lang";
 "error.photo.timeout.message" = "De afbeelding kon niet op tijd worden verwerkt. Probeer opnieuw.";
 "error.api.unknown" = "Onbekende API-fout";
+
+"Home Screen" = "Beginscherm";
+"Lock Screen" = "Vergrendelscherm";
+"Scroll down, tap Notyfi, then add a widget" = "Scrol omlaag, tik op Notyfi en voeg daarna een widget toe";
+"Long press anywhere on your Lock Screen" = "Druk lang ergens op je vergrendelscherm";
+"Tap \"Customize\" at the bottom, then \"Add widgets\"" = "Tik onderaan op \"Pas aan\" en daarna op \"Voeg widgets toe\"";
+"Tap \"Edit\" in the top left, then \"Add Widget\"" = "Tik linksboven op \"Wijzig\" en daarna op \"Voeg widget toe\"";

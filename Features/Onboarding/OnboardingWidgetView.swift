@@ -32,7 +32,7 @@ struct OnboardingWidgetView: View {
             case .home:
                 return [
                     (1, "Long press anywhere on your Home Screen"),
-                    (2, "Tap the \"+\" button in the top left corner"),
+                    (2, "Tap \"Edit\" in the top left, then \"Add Widget\""),
                     (3, "Scroll down, tap Notyfi, then add a widget"),
                     (4, "Tap the widget any time to open the app")
                 ]

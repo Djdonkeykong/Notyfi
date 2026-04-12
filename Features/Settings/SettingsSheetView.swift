@@ -9,6 +9,12 @@ struct SettingsSheetView: View {
     @State private var isSignOutConfirmationPresented = false
     @State private var isDeleteAccountConfirmationPresented = false
 
+    private var hasAccountInfo: Bool {
+        let hasName = !(authManager.userDisplayName?.isEmpty ?? true)
+        let hasEmail = !(authManager.userEmail?.isEmpty ?? true)
+        return hasName || hasEmail
+    }
+
     var body: some View {
         ZStack {
             NotyfiTheme.background.ignoresSafeArea()
@@ -17,23 +23,27 @@ struct SettingsSheetView: View {
                 VStack(spacing: 24) {
                     header
 
-                    SectionHeader(title: "Account")
-                    SettingsCard {
-                        VStack(spacing: 0) {
-                            if let name = authManager.userDisplayName, !name.isEmpty {
-                                SettingsValueRow(
-                                    icon: "person",
-                                    title: "Name",
-                                    value: name
-                                )
-                                Divider()
-                            }
-                            if let email = authManager.userEmail, !email.isEmpty {
-                                SettingsValueRow(
-                                    icon: "envelope",
-                                    title: "Email",
-                                    value: email
-                                )
+                    if hasAccountInfo {
+                        SectionHeader(title: "Account")
+                        SettingsCard {
+                            VStack(spacing: 0) {
+                                if let name = authManager.userDisplayName, !name.isEmpty {
+                                    SettingsValueRow(
+                                        icon: "person",
+                                        title: "Name",
+                                        value: name
+                                    )
+                                    if let email = authManager.userEmail, !email.isEmpty {
+                                        Divider()
+                                    }
+                                }
+                                if let email = authManager.userEmail, !email.isEmpty {
+                                    SettingsValueRow(
+                                        icon: "envelope",
+                                        title: "Email",
+                                        value: email
+                                    )
+                                }
                             }
                         }
                     }
@@ -41,14 +51,6 @@ struct SettingsSheetView: View {
                     SectionHeader(title: "Preferences")
                     SettingsCard {
                         VStack(spacing: 0) {
-                            SettingsValueRow(
-                                icon: "globe",
-                                title: "Language",
-                                value: "Follow system".notyfiLocalized
-                            )
-
-                            Divider()
-
                             CurrencyMenuRow(
                                 icon: "banknote",
                                 title: "Currency",
@@ -95,30 +97,6 @@ struct SettingsSheetView: View {
                     SectionHeader(title: "Data")
                     SettingsCard {
                         VStack(spacing: 0) {
-                            SettingsValueRow(
-                                icon: "wand.and.stars",
-                                title: "AI parsing",
-                                value: "Enabled".notyfiLocalized
-                            )
-
-                            Divider()
-
-                            SettingsValueRow(
-                                icon: "iphone.and.arrow.forward",
-                                title: "Storage",
-                                value: "This device".notyfiLocalized
-                            )
-
-                            Divider()
-
-                            SettingsValueRow(
-                                icon: "square.grid.2x2",
-                                title: "Home widgets",
-                                value: "Available".notyfiLocalized
-                            )
-
-                            Divider()
-
                             SettingsActionRow(
                                 icon: "trash",
                                 title: "Clear Log",
@@ -127,41 +105,6 @@ struct SettingsSheetView: View {
                                 action: {
                                     isClearLogConfirmationPresented = true
                                 }
-                            )
-                        }
-                    }
-
-                    SectionHeader(title: "Coming later")
-                    SettingsCard {
-                        VStack(spacing: 0) {
-                            ComingSoonRow(
-                                icon: "arrow.triangle.2.circlepath",
-                                title: "Cloud sync",
-                                detail: "Planned".notyfiLocalized
-                            )
-
-                            Divider()
-
-                            ComingSoonRow(
-                                icon: "bell.badge",
-                                title: "Reminders",
-                                detail: "Planned".notyfiLocalized
-                            )
-
-                            Divider()
-
-                            ComingSoonRow(
-                                icon: "lock.shield",
-                                title: "Privacy lock",
-                                detail: "Planned".notyfiLocalized
-                            )
-
-                            Divider()
-
-                            ComingSoonRow(
-                                icon: "square.and.arrow.up",
-                                title: "Export data",
-                                detail: "Planned".notyfiLocalized
                             )
                         }
                     }
@@ -485,38 +428,6 @@ private struct SettingsValueRow: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .frame(maxWidth: 180, alignment: .trailing)
-        }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 16)
-    }
-}
-
-private struct ComingSoonRow: View {
-    let icon: String
-    let title: String
-    let detail: String
-
-    var body: some View {
-        HStack(spacing: 14) {
-            Image(systemName: icon)
-                .foregroundStyle(NotyfiTheme.brandBlue.opacity(0.9))
-                .frame(width: 18)
-
-            Text(title.notyfiLocalized)
-                .font(.notyfi(.body))
-                .foregroundStyle(.primary.opacity(0.82))
-
-            Spacer()
-
-            Text(detail)
-                .font(.notyfi(.caption, weight: .semibold))
-                .foregroundStyle(NotyfiTheme.tertiaryText)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background {
-                    Capsule()
-                        .fill(NotyfiTheme.elevatedSurface)
-                }
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)

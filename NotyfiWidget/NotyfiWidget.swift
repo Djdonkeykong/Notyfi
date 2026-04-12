@@ -68,7 +68,7 @@ private struct SmallWidgetView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .center, spacing: 0) {
             // Main number
             Text(spendAmount)
                 .font(.system(size: 28, weight: .bold, design: .default))
@@ -76,6 +76,7 @@ private struct SmallWidgetView: View {
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
                 .monospacedDigit()
+                .multilineTextAlignment(.center)
 
             if let budget = budgetString {
                 Text("of \(budget)")
@@ -83,17 +84,17 @@ private struct SmallWidgetView: View {
                     .foregroundStyle(.black.opacity(0.55))
                     .monospacedDigit()
                     .padding(.top, 1)
+                    .multilineTextAlignment(.center)
             }
 
             Text("spent this month".notyfiLocalized)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.black.opacity(0.5))
                 .padding(.top, 1)
-
-            Spacer()
+                .multilineTextAlignment(.center)
         }
         .padding(14)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .containerBackground(for: .widget) {
             Image("widget-small")
                 .resizable()

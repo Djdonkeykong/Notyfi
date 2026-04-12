@@ -342,7 +342,7 @@
 "widget.days.one" = "1 día restante";
 "widget.days.many" = "%d días restantes";
 "No categories selected" = "Sin categorías seleccionadas";
-"Go back and select some categories to set spending limits. You can always do this later in the app." = "Vuelve atrás y selecciona algunas categorías para establecer límites de gasto. Siempre puedes hacerlo más tarde en la app.";
+"Go back to choose categories, or skip for now." = "Vuelve para elegir categorías o sáltalo por ahora.";
 
 // Errors
 "error.auth.missingToken" = "Error al iniciar sesión: falta el token de identidad.";
@@ -351,3 +351,10 @@
 "error.photo.timeout.title" = "Tarda demasiado";
 "error.photo.timeout.message" = "La imagen no se pudo procesar a tiempo. Inténtalo de nuevo.";
 "error.api.unknown" = "Error de API desconocido";
+
+"Home Screen" = "Pantalla de inicio";
+"Lock Screen" = "Pantalla bloqueada";
+"Scroll down, tap Notyfi, then add a widget" = "Desplázate hacia abajo, toca Notyfi y luego añade un widget";
+"Long press anywhere on your Lock Screen" = "Mantén pulsado en cualquier lugar de tu pantalla bloqueada";
+"Tap \"Customize\" at the bottom, then \"Add widgets\"" = "Toca \"Personalizar\" abajo y luego \"Añadir widgets\"";
+"Tap \"Edit\" in the top left, then \"Add Widget\"" = "Toca \"Editar\" arriba a la izquierda y luego \"Añadir widget\"";

@@ -341,7 +341,7 @@
 "widget.days.one" = "1 day left";
 "widget.days.many" = "%d days left";
 "No categories selected" = "No categories selected";
-"Go back and select some categories to set spending limits. You can always do this later in the app." = "Go back and select some categories to set spending limits. You can always do this later in the app.";
+"Go back to choose categories, or skip for now." = "Go back to choose categories, or skip for now.";
 
 // Errors
 "error.auth.missingToken" = "Sign in failed: missing identity token.";
@@ -350,3 +350,10 @@
 "error.photo.timeout.title" = "Taking too long";
 "error.photo.timeout.message" = "The image couldn't be processed in time. Please try again.";
 "error.api.unknown" = "Unknown API error";
+
+"Home Screen" = "Home Screen";
+"Lock Screen" = "Lock Screen";
+"Scroll down, tap Notyfi, then add a widget" = "Scroll down, tap Notyfi, then add a widget";
+"Long press anywhere on your Lock Screen" = "Long press anywhere on your Lock Screen";
+"Tap \"Customize\" at the bottom, then \"Add widgets\"" = "Tap \"Customize\" at the bottom, then \"Add widgets\"";
+"Tap \"Edit\" in the top left, then \"Add Widget\"" = "Tap \"Edit\" in the top left, then \"Add Widget\"";

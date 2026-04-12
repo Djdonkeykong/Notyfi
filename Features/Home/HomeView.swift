@@ -6,6 +6,7 @@ import UniformTypeIdentifiers
 struct HomeView: View {
     @ObservedObject private var store: ExpenseJournalStore
     @ObservedObject private var authManager: AuthManager
+    @AppStorage(NotyfiAppearanceMode.storageKey) private var appearanceModeRawValue = NotyfiAppearanceMode.system.rawValue
     @StateObject private var viewModel: HomeViewModel
     @StateObject private var speechDictation = SpeechDictationService()
     @State private var selectedEntry: ExpenseEntry?
@@ -62,6 +63,10 @@ struct HomeView: View {
 }
 
 private extension HomeView {
+    var appearanceMode: NotyfiAppearanceMode {
+        NotyfiAppearanceMode(rawValue: appearanceModeRawValue) ?? .system
+    }
+
     var homeContent: some View {
         baseHomeContent(includeInlineTopBar: false)
     }
@@ -127,6 +132,8 @@ private extension HomeView {
             }
             .sheet(isPresented: $viewModel.isSettingsPresented) {
                 SettingsSheetView(viewModel: SettingsViewModel(store: store), authManager: authManager)
+                    .id(appearanceMode.rawValue)
+                    .preferredColorScheme(appearanceMode.colorScheme)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
                     .presentationBackground(NotyfiTheme.background.opacity(0.98))
@@ -695,6 +702,7 @@ private struct DayJournalPager: View {
     @State private var isHorizontalDragging = false
     @State private var isTransitioning = false
     @State private var dragAxisLock: PagerDragAxisLock?
+    @State private var isBlankSpaceTapBlocked = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -746,6 +754,7 @@ private struct DayJournalPager: View {
             date: date,
             entries: entries,
             isEditable: true,
+            allowsBlankSpaceTap: !isBlankSpaceTapBlocked,
             journalText: $journalText,
             focusedEditor: $focusedEditor,
             editorFocusRequest: $editorFocusRequest,
@@ -773,6 +782,7 @@ private struct DayJournalPager: View {
             date: date,
             entries: entries,
             isEditable: false,
+            allowsBlankSpaceTap: false,
             journalText: .constant(journalText),
             focusedEditor: .constant(nil),
             editorFocusRequest: .constant(nil),
@@ -808,6 +818,7 @@ private struct DayJournalPager: View {
                     dragAxisLock = horizontal > vertical ? .horizontal : .vertical
 
                     if dragAxisLock == .horizontal {
+                        blockBlankSpaceTap()
                         Haptics.mediumImpact()
                     }
                 }
@@ -902,6 +913,17 @@ private struct DayJournalPager: View {
     private func resetDragTracking() {
         isHorizontalDragging = false
         dragAxisLock = nil
+        releaseBlankSpaceTapBlock()
+    }
+
+    private func blockBlankSpaceTap() {
+        isBlankSpaceTapBlocked = true
+    }
+
+    private func releaseBlankSpaceTapBlock(after delay: TimeInterval = 0.18) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            isBlankSpaceTapBlocked = false
+        }
     }
 }
 
@@ -909,6 +931,7 @@ private struct DayJournalPage: View {
     let date: Date
     let entries: [ExpenseEntry]
     let isEditable: Bool
+    let allowsBlankSpaceTap: Bool
     @Binding var journalText: String
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var editorFocusRequest: JournalEditorFocusRequest?
@@ -940,6 +963,7 @@ private struct DayJournalPage: View {
         date: Date,
         entries: [ExpenseEntry],
         isEditable: Bool,
+        allowsBlankSpaceTap: Bool,
         journalText: Binding<String>,
         focusedEditor: Binding<JournalEditorTarget?>,
         editorFocusRequest: Binding<JournalEditorFocusRequest?>,
@@ -957,6 +981,7 @@ private struct DayJournalPage: View {
         self.date = date
         self.entries = entries
         self.isEditable = isEditable
+        self.allowsBlankSpaceTap = allowsBlankSpaceTap
         _journalText = journalText
         _focusedEditor = focusedEditor
         _editorFocusRequest = editorFocusRequest
@@ -1038,7 +1063,7 @@ private struct DayJournalPage: View {
                 .frame(maxWidth: .infinity, alignment: .topLeading)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    guard isEditable, !scrollDisabled else {
+                    guard isEditable, allowsBlankSpaceTap, !scrollDisabled else {
                         return
                     }
 
@@ -1423,33 +1448,72 @@ private struct KeyboardAccessoryBar: View {
 
 private struct PhotoImportOverlay: View {
     var body: some View {
-        VStack(spacing: 14) {
-            ProgressView()
-                .progressViewStyle(.circular)
-                .controlSize(.large)
-                .tint(NotyfiTheme.primaryText)
+        VStack(spacing: 16) {
+            Image("photo-import-mascot")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 170, height: 114)
+                .padding(.top, 2)
 
-            Text("Reading attachment".notyfiLocalized)
-                .font(.notyfi(.title3, weight: .semibold))
-                .foregroundStyle(NotyfiTheme.primaryText)
+            VStack(spacing: 6) {
+                Text("Reading attachment".notyfiLocalized)
+                    .font(.notyfi(.title3, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.primaryText)
 
-            Text("Turning it into notes".notyfiLocalized)
-                .font(.notyfi(.body))
-                .foregroundStyle(NotyfiTheme.secondaryText)
-                .multilineTextAlignment(.center)
+                Text("Turning it into notes".notyfiLocalized)
+                    .font(.notyfi(.body))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
+
+            PhotoImportLoadingDots()
+                .foregroundStyle(NotyfiTheme.secondaryText.opacity(0.7))
+                .padding(.top, 2)
         }
-        .frame(maxWidth: 260)
-        .padding(.horizontal, 24)
-        .padding(.vertical, 22)
+        .frame(maxWidth: 292)
+        .padding(.horizontal, 28)
+        .padding(.vertical, 26)
         .background {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
+            RoundedRectangle(cornerRadius: 32, style: .continuous)
                 .fill(NotyfiTheme.surface.opacity(0.96))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    RoundedRectangle(cornerRadius: 32, style: .continuous)
                         .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
                 }
                 .shadow(color: NotyfiTheme.shadow, radius: 24, x: 0, y: 16)
         }
+    }
+}
+
+private struct PhotoImportLoadingDots: View {
+    var body: some View {
+        TimelineView(.animation) { context in
+            HStack(spacing: 6) {
+                ForEach(0..<3, id: \.self) { index in
+                    Circle()
+                        .fill(.foreground)
+                        .frame(width: 7, height: 7)
+                        .scaleEffect(dotScale(index: index, timestamp: context.date))
+                        .offset(y: dotOffset(index: index, timestamp: context.date))
+                }
+            }
+            .frame(height: 18, alignment: .center)
+        }
+    }
+
+    private func dotPhase(index: Int, timestamp: Date) -> Double {
+        let animationDuration: TimeInterval = 0.9
+        let elapsed = timestamp.timeIntervalSinceReferenceDate
+        let progress = elapsed.truncatingRemainder(dividingBy: animationDuration) / animationDuration
+        return (progress * 2 * .pi) - (Double(index) * 0.7)
+    }
+
+    private func dotScale(index: Int, timestamp: Date) -> CGFloat {
+        0.82 + (0.18 * max(0, sin(dotPhase(index: index, timestamp: timestamp))))
+    }
+
+    private func dotOffset(index: Int, timestamp: Date) -> CGFloat {
+        -2.8 * max(0, sin(dotPhase(index: index, timestamp: timestamp)))
     }
 }
 

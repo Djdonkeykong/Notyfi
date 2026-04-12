@@ -342,7 +342,7 @@
 "widget.days.one" = "1 dag igjen";
 "widget.days.many" = "%d dager igjen";
 "No categories selected" = "Ingen kategorier valgt";
-"Go back and select some categories to set spending limits. You can always do this later in the app." = "Gå tilbake og velg noen kategorier for å sette forbruksgrenser. Du kan alltid gjøre dette senere i appen.";
+"Go back to choose categories, or skip for now." = "Gå tilbake for å velge kategorier, eller hopp over foreløpig.";
 
 // Errors
 "error.auth.missingToken" = "Innlogging mislyktes: manglende identitetstoken.";
@@ -351,3 +351,10 @@
 "error.photo.timeout.title" = "Tar for lang tid";
 "error.photo.timeout.message" = "Bildet kunne ikke behandles i tide. Prøv igjen.";
 "error.api.unknown" = "Ukjent API-feil";
+
+"Home Screen" = "Startskjerm";
+"Lock Screen" = "Låseskjerm";
+"Scroll down, tap Notyfi, then add a widget" = "Rull ned, trykk på Notyfi, og legg deretter til en widget";
+"Long press anywhere on your Lock Screen" = "Trykk og hold et sted på låseskjermen din";
+"Tap \"Customize\" at the bottom, then \"Add widgets\"" = "Trykk på \"Tilpass\" nederst, og deretter på \"Legg til widgets\"";
+"Tap \"Edit\" in the top left, then \"Add Widget\"" = "Trykk på \"Rediger\" øverst til venstre, og deretter på \"Legg til widget\"";

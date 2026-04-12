@@ -1,18 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "mascot-currency.png",
-      "idiom" : "universal",
-      "scale" : "1x"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "dark"
-        }
-      ],
-      "filename" : "mascot-currency-dark.png",
+      "filename" : "mascot-allocate-empty.png",
       "idiom" : "universal",
       "scale" : "1x"
     },

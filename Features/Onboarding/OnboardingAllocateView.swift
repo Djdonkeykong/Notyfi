@@ -99,7 +99,7 @@ struct OnboardingAllocateView: View {
 
     private var emptyState: some View {
         VStack(spacing: 12) {
-            Image("mascot-budget")
+            Image("mascot-allocate-empty")
                 .resizable()
                 .scaledToFit()
                 .frame(height: 120)
@@ -109,7 +109,7 @@ struct OnboardingAllocateView: View {
                 .font(.notyfi(.title3, weight: .semibold))
                 .foregroundStyle(.primary)
 
-            Text("Go back and select some categories to set spending limits. You can always do this later in the app.".notyfiLocalized)
+            Text("Go back to choose categories, or skip for now.".notyfiLocalized)
                 .font(.notyfi(.body))
                 .foregroundStyle(NotyfiTheme.secondaryText)
                 .multilineTextAlignment(.center)
@@ -127,10 +127,16 @@ private struct AllocateRow: View {
     let text: String
     let onTap: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+
     private var formattedAmount: String? {
         let normalized = text.replacingOccurrences(of: ",", with: ".")
         guard let amount = Double(normalized), amount > 0 else { return nil }
         return amount.formattedCurrency(code: currencyCode)
+    }
+
+    private var amountTextColor: Color {
+        colorScheme == .dark ? NotyfiTheme.primaryText : NotyfiTheme.brandPrimary
     }
 
     var body: some View {
@@ -152,7 +158,7 @@ private struct AllocateRow: View {
                         .foregroundStyle(.primary)
                     Text(formattedAmount ?? "Tap to set limit".notyfiLocalized)
                         .font(.notyfi(.caption))
-                        .foregroundStyle(formattedAmount != nil ? NotyfiTheme.brandPrimary : NotyfiTheme.secondaryText)
+                        .foregroundStyle(formattedAmount != nil ? amountTextColor : NotyfiTheme.secondaryText)
                 }
 
                 Spacer()

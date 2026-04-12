@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EntryDetailView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var languageManager: LanguageManager
     @StateObject private var viewModel: EntryDetailViewModel
     @State private var shouldPersistOnDisappear = true
     private let isNewEntryDraft: Bool
@@ -21,6 +22,8 @@ struct EntryDetailView: View {
     }
 
     var body: some View {
+        let _ = languageManager.refreshID
+
         ZStack {
             NotyfiTheme.background.ignoresSafeArea()
 

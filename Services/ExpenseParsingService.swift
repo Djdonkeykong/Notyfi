@@ -265,7 +265,7 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         date: Date,
         currencyCode: String
     ) -> [String: Any] {
-        let appLanguage = Bundle.main.preferredLocalizations.first ?? "en"
+        let appLanguage = currentAppLanguageCode()
         let userContent = """
         Note: \(rawText)
         Date: \(ISO8601DateFormatter().string(from: date))
@@ -349,7 +349,7 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         date: Date,
         currencyCode: String
     ) -> [String: Any] {
-        let appLanguage = Bundle.main.preferredLocalizations.first ?? "en"
+        let appLanguage = currentAppLanguageCode()
         let base64Image = imageData.base64EncodedString()
         let imageDataURL = "data:\(mimeType);base64,\(base64Image)"
         let userPrompt = """
@@ -417,6 +417,20 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
                 ]
             ]
         ]
+    }
+
+    private func currentAppLanguageCode() -> String {
+        let saved = UserDefaults.standard.string(forKey: LanguageManager.storageKey)
+        let selectedLanguage = NotyfiLanguage(rawValue: saved ?? "") ?? .system
+
+        if let localeCode = selectedLanguage.localeCode {
+            return localeCode
+        }
+
+        let systemCode = Locale.preferredLanguages.first
+            .flatMap { Locale(identifier: $0).language.languageCode?.identifier }
+
+        return systemCode ?? "en"
     }
 
     private func parsedExpenseDraftSchema() -> [String: Any] {

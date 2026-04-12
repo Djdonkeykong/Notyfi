@@ -342,7 +342,7 @@
 "widget.days.one" = "1 dzień pozostał";
 "widget.days.many" = "%d dni pozostało";
 "No categories selected" = "Nie wybrano żadnych kategorii";
-"Go back and select some categories to set spending limits. You can always do this later in the app." = "Wróć i wybierz kategorie, aby ustawić limity wydatków. Zawsze możesz to zrobić później w aplikacji.";
+"Go back to choose categories, or skip for now." = "Wróć, aby wybrać kategorie, albo pomiń to na razie.";
 
 // Errors
 "error.auth.missingToken" = "Logowanie nie powiodło się: brak tokenu tożsamości.";
@@ -351,3 +351,10 @@
 "error.photo.timeout.title" = "Trwa za długo";
 "error.photo.timeout.message" = "Nie można było przetworzyć obrazu na czas. Spróbuj ponownie.";
 "error.api.unknown" = "Nieznany błąd API";
+
+"Home Screen" = "Ekran główny";
+"Lock Screen" = "Ekran blokady";
+"Scroll down, tap Notyfi, then add a widget" = "Przewiń w dół, stuknij Notyfi, a potem dodaj widżet";
+"Long press anywhere on your Lock Screen" = "Przytrzymaj palec w dowolnym miejscu na ekranie blokady";
+"Tap \"Customize\" at the bottom, then \"Add widgets\"" = "Stuknij na dole „Dostosuj”, a potem „Dodaj widżety”";
+"Tap \"Edit\" in the top left, then \"Add Widget\"" = "Stuknij „Edytuj” w lewym górnym rogu, a potem „Dodaj widżet”";
