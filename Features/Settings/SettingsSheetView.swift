@@ -1,10 +1,13 @@
 import SwiftUI
+import WebKit
 
 struct SettingsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: SettingsViewModel
     @ObservedObject var authManager: AuthManager
     @AppStorage("notyfi.onboarding.complete") private var hasCompletedOnboarding = false
+    @AppStorage(NotyfiAppearanceMode.storageKey) private var appearanceModeRawValue = NotyfiAppearanceMode.system.rawValue
+    @State private var isFeedbackPresented = false
     @State private var isClearLogConfirmationPresented = false
     @State private var isSignOutConfirmationPresented = false
     @State private var isDeleteAccountConfirmationPresented = false
@@ -13,6 +16,10 @@ struct SettingsSheetView: View {
         let hasName = !(authManager.userDisplayName?.isEmpty ?? true)
         let hasEmail = !(authManager.userEmail?.isEmpty ?? true)
         return hasName || hasEmail
+    }
+
+    private var appearanceMode: NotyfiAppearanceMode {
+        NotyfiAppearanceMode(rawValue: appearanceModeRawValue) ?? .system
     }
 
     var body: some View {
@@ -94,7 +101,16 @@ struct SettingsSheetView: View {
                         }
                     }
 
-                    SectionHeader(title: "Data")
+                    SettingsCard {
+                        VStack(spacing: 0) {
+                            SettingsActionRow(
+                                icon: "star.fill",
+                                title: "Give Feedback",
+                                action: { isFeedbackPresented = true }
+                            )
+                        }
+                    }
+
                     SettingsCard {
                         VStack(spacing: 0) {
                             SettingsActionRow(
@@ -106,11 +122,7 @@ struct SettingsSheetView: View {
                                     isClearLogConfirmationPresented = true
                                 }
                             )
-                        }
-                    }
-
-                    SettingsCard {
-                        VStack(spacing: 0) {
+                            Divider()
                             SettingsActionRow(
                                 icon: "rectangle.portrait.and.arrow.right",
                                 title: "Sign Out",
@@ -181,6 +193,14 @@ struct SettingsSheetView: View {
         } message: {
             Text("This permanently deletes your account and all data. This cannot be undone.".notyfiLocalized)
         }
+        .sheet(isPresented: $isFeedbackPresented) {
+            FeedbackSheetView(url: URL(string: "https://snaplook.app/")!)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(NotyfiTheme.background.opacity(0.98))
+                .presentationCornerRadius(34)
+        }
+        .preferredColorScheme(appearanceMode.colorScheme)
     }
 
     private var header: some View {
@@ -209,6 +229,59 @@ struct SettingsSheetView: View {
     }
 }
 
+private struct FeedbackSheetView: View {
+    let url: URL
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            FeedbackWebView(url: url)
+                .ignoresSafeArea(edges: .bottom)
+                .background(NotyfiTheme.background)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Text("Give Feedback".notyfiLocalized)
+                            .font(.notyfi(.body, weight: .semibold))
+                            .foregroundStyle(.primary.opacity(0.84))
+                    }
+
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done".notyfiLocalized) {
+                            dismiss()
+                        }
+                        .font(.notyfi(.body, weight: .semibold))
+                    }
+                }
+        }
+    }
+}
+
+private struct FeedbackWebView: UIViewRepresentable {
+    let url: URL
+
+    func makeUIView(context: Context) -> WKWebView {
+        let configuration = WKWebViewConfiguration()
+        configuration.defaultWebpagePreferences.allowsContentJavaScript = true
+
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.backgroundColor = .clear
+        webView.load(URLRequest(url: url))
+        return webView
+    }
+
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        guard webView.url != url else {
+            return
+        }
+
+        webView.load(URLRequest(url: url))
+    }
+}
+
 private struct AppearanceMenuRow: View {
     let icon: String
     let title: String
@@ -232,10 +305,11 @@ private struct AppearanceMenuRow: View {
             HStack(spacing: 14) {
                 Image(systemName: icon)
                     .foregroundStyle(NotyfiTheme.secondaryText)
+                    .font(.system(size: 17, weight: .semibold))
                     .frame(width: 18)
 
                 Text(title.notyfiLocalized)
-                    .font(.notyfi(.body))
+                    .font(.notyfi(.body, weight: .medium))
                     .foregroundStyle(.primary.opacity(0.82))
 
                 Spacer()
@@ -279,10 +353,11 @@ private struct CurrencyMenuRow: View {
             HStack(spacing: 14) {
                 Image(systemName: icon)
                     .foregroundStyle(NotyfiTheme.secondaryText)
+                    .font(.system(size: 17, weight: .semibold))
                     .frame(width: 18)
 
                 Text(title.notyfiLocalized)
-                    .font(.notyfi(.body))
+                    .font(.notyfi(.body, weight: .medium))
                     .foregroundStyle(.primary.opacity(0.82))
 
                 Spacer()
@@ -332,11 +407,12 @@ private struct SettingsToggleRow: View {
         HStack(alignment: .center, spacing: 14) {
             Image(systemName: icon)
                 .foregroundStyle(NotyfiTheme.secondaryText)
+                .font(.system(size: 17, weight: .semibold))
                 .frame(width: 18)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title.notyfiLocalized)
-                    .font(.notyfi(.body))
+                    .font(.notyfi(.body, weight: .medium))
                     .foregroundStyle(.primary.opacity(0.82))
 
                 Text(subtitle.notyfiLocalized)
@@ -375,10 +451,11 @@ private struct ReminderTimeRow: View {
         HStack(spacing: 14) {
             Image(systemName: icon)
                 .foregroundStyle(NotyfiTheme.secondaryText)
+                .font(.system(size: 17, weight: .semibold))
                 .frame(width: 18)
 
             Text(title.notyfiLocalized)
-                .font(.notyfi(.body))
+                .font(.notyfi(.body, weight: .medium))
                 .foregroundStyle(.primary.opacity(0.82))
 
             Spacer()
@@ -414,10 +491,11 @@ private struct SettingsValueRow: View {
         HStack(spacing: 14) {
             Image(systemName: icon)
                 .foregroundStyle(NotyfiTheme.secondaryText)
+                .font(.system(size: 17, weight: .semibold))
                 .frame(width: 18)
 
             Text(title.notyfiLocalized)
-                .font(.notyfi(.body))
+                .font(.notyfi(.body, weight: .medium))
                 .foregroundStyle(.primary.opacity(0.82))
 
             Spacer()
@@ -446,10 +524,11 @@ private struct SettingsActionRow: View {
             HStack(spacing: 14) {
                 Image(systemName: icon)
                     .foregroundStyle(isDestructive ? .red.opacity(0.75) : NotyfiTheme.brandBlue.opacity(0.9))
+                    .font(.system(size: 17, weight: .semibold))
                     .frame(width: 18)
 
                 Text(title.notyfiLocalized)
-                    .font(.notyfi(.body))
+                    .font(.notyfi(.body, weight: .medium))
                     .foregroundStyle(isDestructive ? .red.opacity(0.78) : .primary.opacity(0.82))
 
                 Spacer()

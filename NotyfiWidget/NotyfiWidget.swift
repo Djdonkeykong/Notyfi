@@ -68,33 +68,36 @@ private struct SmallWidgetView: View {
     }
 
     var body: some View {
-        VStack(alignment: .center, spacing: 0) {
-            // Main number
-            Text(spendAmount)
-                .font(.system(size: 28, weight: .bold, design: .default))
-                .foregroundStyle(.black)
-                .minimumScaleFactor(0.6)
-                .lineLimit(1)
-                .monospacedDigit()
-                .multilineTextAlignment(.center)
+        VStack(alignment: .leading, spacing: 0) {
+            Spacer(minLength: 0)
 
-            if let budget = budgetString {
-                Text("of \(budget)")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.black.opacity(0.55))
+            VStack(alignment: .leading, spacing: 0) {
+                // Main number
+                Text(spendAmount)
+                    .font(.system(size: 28, weight: .bold, design: .default))
+                    .foregroundStyle(.black)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
                     .monospacedDigit()
+
+                if let budget = budgetString {
+                    Text("of \(budget)")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.black.opacity(0.55))
+                        .monospacedDigit()
+                        .padding(.top, 1)
+                }
+
+                Text("spent this month".notyfiLocalized)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.black.opacity(0.5))
                     .padding(.top, 1)
-                    .multilineTextAlignment(.center)
             }
 
-            Text("spent this month".notyfiLocalized)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(.black.opacity(0.5))
-                .padding(.top, 1)
-                .multilineTextAlignment(.center)
+            Spacer(minLength: 0)
         }
         .padding(14)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .containerBackground(for: .widget) {
             Image("widget-small")
                 .resizable()

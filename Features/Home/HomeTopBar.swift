@@ -12,17 +12,18 @@ struct HomeTopBar: View {
 
                 Spacer()
 
-                SoftCapsule(horizontalPadding: 14, verticalPadding: 11) {
-                    Button(action: {
-                        Haptics.mediumImpact()
-                        onSettingsTap()
-                    }) {
+                Button(action: {
+                    Haptics.mediumImpact()
+                    onSettingsTap()
+                }) {
+                    SoftCapsule(horizontalPadding: 14, verticalPadding: 11) {
                         Image(systemName: "gearshape.fill")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.primary.opacity(0.82))
                     }
-                    .buttonStyle(.plain)
                 }
+                .buttonStyle(.plain)
+                .contentShape(Capsule())
             }
 
             Button(action: {

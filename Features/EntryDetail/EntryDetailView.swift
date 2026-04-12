@@ -205,17 +205,18 @@ struct EntryDetailView: View {
         detailCard {
             VStack(spacing: 16) {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    Text("\u{1F525}")
-                        .font(.system(size: 24))
-
                     Text(viewModel.formattedAmount)
                         .font(.system(size: 28, weight: .bold, design: .default))
                         .foregroundStyle(viewModel.amountColor)
                         .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
 
                     Text(viewModel.summaryCaption)
-                        .font(.notyfi(.body))
+                        .font(.notyfi(.footnote))
                         .foregroundStyle(NotyfiTheme.secondaryText)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
 
                     Spacer()
                 }

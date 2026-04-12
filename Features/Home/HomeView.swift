@@ -20,6 +20,7 @@ struct HomeView: View {
     @State private var datePickerVisibleMonth = Date()
     @State private var focusedEditor: JournalEditorTarget?
     @State private var editorFocusRequest: JournalEditorFocusRequest?
+    @State private var isBlankSpaceFocusBlocked = false
     @State private var journalCursorLineIndex = 0
     @State private var journalLineFramesByDate: [Date: [JournalTextLineFrame]] = [:]
     @State private var focusRequestGeneration = 0
@@ -132,8 +133,6 @@ private extension HomeView {
             }
             .sheet(isPresented: $viewModel.isSettingsPresented) {
                 SettingsSheetView(viewModel: SettingsViewModel(store: store), authManager: authManager)
-                    .id(appearanceMode.rawValue)
-                    .preferredColorScheme(appearanceMode.colorScheme)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
                     .presentationBackground(NotyfiTheme.background.opacity(0.98))
@@ -222,6 +221,7 @@ private extension HomeView {
                     nextJournalText: viewModel.journalDraft(for: viewModel.date(forDayOffset: 1)),
                     focusedEditor: $focusedEditor,
                     editorFocusRequest: $editorFocusRequest,
+                    isBlankSpaceFocusBlocked: $isBlankSpaceFocusBlocked,
                     journalCursorLineIndex: $journalCursorLineIndex,
                     lineFramesByDate: $journalLineFramesByDate,
                     feedback: viewModel.draftFeedback,
@@ -252,6 +252,10 @@ private extension HomeView {
                         presentEntryDetail(entry)
                     },
                     onBlankSpaceTap: {
+                        guard !isBlankSpaceFocusBlocked else {
+                            return
+                        }
+
                         applyFocusRequest {
                             viewModel.focusComposer()
                         }
@@ -687,6 +691,7 @@ private struct DayJournalPager: View {
     let nextJournalText: String
     @Binding var focusedEditor: JournalEditorTarget?
     @Binding var editorFocusRequest: JournalEditorFocusRequest?
+    @Binding var isBlankSpaceFocusBlocked: Bool
     @Binding var journalCursorLineIndex: Int
     @Binding var lineFramesByDate: [Date: [JournalTextLineFrame]]
     let feedback: DraftComposerFeedback?
@@ -702,7 +707,6 @@ private struct DayJournalPager: View {
     @State private var isHorizontalDragging = false
     @State private var isTransitioning = false
     @State private var dragAxisLock: PagerDragAxisLock?
-    @State private var isBlankSpaceTapBlocked = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -754,7 +758,7 @@ private struct DayJournalPager: View {
             date: date,
             entries: entries,
             isEditable: true,
-            allowsBlankSpaceTap: !isBlankSpaceTapBlocked,
+            allowsBlankSpaceTap: !isBlankSpaceFocusBlocked,
             journalText: $journalText,
             focusedEditor: $focusedEditor,
             editorFocusRequest: $editorFocusRequest,
@@ -818,7 +822,7 @@ private struct DayJournalPager: View {
                     dragAxisLock = horizontal > vertical ? .horizontal : .vertical
 
                     if dragAxisLock == .horizontal {
-                        blockBlankSpaceTap()
+                        blockBlankSpaceFocus()
                         Haptics.mediumImpact()
                     }
                 }
@@ -913,16 +917,16 @@ private struct DayJournalPager: View {
     private func resetDragTracking() {
         isHorizontalDragging = false
         dragAxisLock = nil
-        releaseBlankSpaceTapBlock()
+        releaseBlankSpaceFocusBlock()
     }
 
-    private func blockBlankSpaceTap() {
-        isBlankSpaceTapBlocked = true
+    private func blockBlankSpaceFocus() {
+        isBlankSpaceFocusBlocked = true
     }
 
-    private func releaseBlankSpaceTapBlock(after delay: TimeInterval = 0.18) {
+    private func releaseBlankSpaceFocusBlock(after delay: TimeInterval = 0.18) {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            isBlankSpaceTapBlocked = false
+            isBlankSpaceFocusBlocked = false
         }
     }
 }
