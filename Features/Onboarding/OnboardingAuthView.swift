@@ -193,12 +193,13 @@ struct OnboardingAuthView: View {
         Task {
             do {
                 try await authManager.signInWithGoogle()
+                loadingProvider = nil
             } catch let error as AuthError where error.isCancelled {
-                // User dismissed — do nothing
+                loadingProvider = nil
             } catch {
+                loadingProvider = nil
                 errorMessage = error.localizedDescription
             }
-            loadingProvider = nil
         }
     }
 
@@ -208,12 +209,13 @@ struct OnboardingAuthView: View {
         Task {
             do {
                 try await authManager.signInWithApple()
+                loadingProvider = nil
             } catch let error as AuthError where error.isCancelled {
-                // User dismissed — do nothing
+                loadingProvider = nil
             } catch {
+                loadingProvider = nil
                 errorMessage = error.localizedDescription
             }
-            loadingProvider = nil
         }
     }
 }
@@ -229,6 +231,8 @@ struct EmailSignUpView: View {
     @State private var step: Step = .email
     @State private var errorMessage: String? = nil
     @State private var resendCooldown: Int = 0
+    @State private var isSending = false
+    @State private var isVerifying = false
     @FocusState private var emailFocused: Bool
     @FocusState private var otpFocused: Bool
 
@@ -328,7 +332,7 @@ struct EmailSignUpView: View {
                     .foregroundStyle(.red)
             }
 
-            OnboardingPrimaryButton(title: "Send code".notyfiLocalized, isLoading: authManager.isLoading) {
+            OnboardingPrimaryButton(title: "Send code".notyfiLocalized, isLoading: isSending) {
                 sendCode()
             }
         }
@@ -351,7 +355,7 @@ struct EmailSignUpView: View {
                     .foregroundStyle(.red)
             }
 
-            OnboardingPrimaryButton(title: "Verify".notyfiLocalized, isLoading: authManager.isLoading) {
+            OnboardingPrimaryButton(title: "Verify".notyfiLocalized, isLoading: isVerifying) {
                 verify()
             }
             .disabled(otpCode.count < 6)
@@ -437,13 +441,16 @@ struct EmailSignUpView: View {
             errorMessage = "Please enter your email.".notyfiLocalized
             return
         }
+        isSending = true
         Task {
             do {
                 try await authManager.sendOTP(email: trimmed)
+                isSending = false
                 otpCode = ""
                 resendCooldown = 30
                 withAnimation { step = .otp }
             } catch {
+                isSending = false
                 errorMessage = error.localizedDescription
             }
         }
@@ -452,11 +459,14 @@ struct EmailSignUpView: View {
     private func verify() {
         errorMessage = nil
         guard otpCode.count == 6 else { return }
+        isVerifying = true
         Task {
             do {
                 try await authManager.verifyOTP(email: email, token: otpCode)
+                isVerifying = false
                 dismiss()
             } catch {
+                isVerifying = false
                 errorMessage = error.localizedDescription
                 otpCode = ""
             }

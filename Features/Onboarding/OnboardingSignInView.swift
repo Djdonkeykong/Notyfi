@@ -166,12 +166,13 @@ struct OnboardingSignInView: View {
         Task {
             do {
                 try await authManager.signInWithGoogle()
+                loadingProvider = nil
             } catch let error as AuthError where error.isCancelled {
-                // User dismissed — do nothing
+                loadingProvider = nil
             } catch {
+                loadingProvider = nil
                 errorMessage = error.localizedDescription
             }
-            loadingProvider = nil
         }
     }
 
@@ -181,12 +182,13 @@ struct OnboardingSignInView: View {
         Task {
             do {
                 try await authManager.signInWithApple()
+                loadingProvider = nil
             } catch let error as AuthError where error.isCancelled {
-                // User dismissed — do nothing
+                loadingProvider = nil
             } catch {
+                loadingProvider = nil
                 errorMessage = error.localizedDescription
             }
-            loadingProvider = nil
         }
     }
 }
