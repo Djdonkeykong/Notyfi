@@ -343,3 +343,11 @@
 "widget.days.many" = "%d dagen over";
 "No categories selected" = "Geen categorieën geselecteerd";
 "Go back and select some categories to set spending limits. You can always do this later in the app." = "Ga terug en selecteer categorieën om uitgavenlimieten in te stellen. Je kunt dit altijd later in de app doen.";
+
+// Errors
+"error.auth.missingToken" = "Aanmelden mislukt: identiteitstoken ontbreekt.";
+"error.auth.cancelled" = "Aanmelden geannuleerd.";
+"error.auth.googleFailed" = "Google aanmelden mislukt. Probeer opnieuw.";
+"error.photo.timeout.title" = "Duurt te lang";
+"error.photo.timeout.message" = "De afbeelding kon niet op tijd worden verwerkt. Probeer opnieuw.";
+"error.api.unknown" = "Onbekende API-fout";

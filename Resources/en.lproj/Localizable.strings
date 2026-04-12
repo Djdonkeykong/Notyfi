@@ -342,3 +342,11 @@
 "widget.days.many" = "%d days left";
 "No categories selected" = "No categories selected";
 "Go back and select some categories to set spending limits. You can always do this later in the app." = "Go back and select some categories to set spending limits. You can always do this later in the app.";
+
+// Errors
+"error.auth.missingToken" = "Sign in failed: missing identity token.";
+"error.auth.cancelled" = "Sign in cancelled.";
+"error.auth.googleFailed" = "Google Sign In failed. Please try again.";
+"error.photo.timeout.title" = "Taking too long";
+"error.photo.timeout.message" = "The image couldn't be processed in time. Please try again.";
+"error.api.unknown" = "Unknown API error";

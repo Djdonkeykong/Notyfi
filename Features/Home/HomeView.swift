@@ -523,8 +523,8 @@ private extension HomeView {
             } catch PhotoImportError.timeout {
                 isImportingPhoto = false
                 photoImportAlert = PhotoImportAlert(
-                    title: "Taking too long",
-                    message: "The image couldn't be processed in time. Please try again."
+                    title: "error.photo.timeout.title".notyfiLocalized,
+                    message: "error.photo.timeout.message".notyfiLocalized
                 )
             } catch {
                 isImportingPhoto = false

@@ -174,13 +174,13 @@ enum AuthError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingIdentityToken:
-            return "Sign in failed: missing identity token."
+            return "error.auth.missingToken".notyfiLocalized
         case .appleSignInCancelled, .googleSignInCancelled:
-            return "Sign in cancelled."
+            return "error.auth.cancelled".notyfiLocalized
         case .appleSignInFailed(let error):
             return error.localizedDescription
         case .googleSignInFailed:
-            return "Google Sign In failed. Please try again."
+            return "error.auth.googleFailed".notyfiLocalized
         }
     }
 

@@ -343,3 +343,11 @@
 "widget.days.many" = "%d dias restantes";
 "No categories selected" = "Nenhuma categoria selecionada";
 "Go back and select some categories to set spending limits. You can always do this later in the app." = "Volte e selecione algumas categorias para definir limites de gastos. Você sempre pode fazer isso mais tarde no app.";
+
+// Errors
+"error.auth.missingToken" = "Falha no login: token de identidade ausente.";
+"error.auth.cancelled" = "Login cancelado.";
+"error.auth.googleFailed" = "Falha no login com Google. Tente novamente.";
+"error.photo.timeout.title" = "Demora demais";
+"error.photo.timeout.message" = "A imagem não pôde ser processada a tempo. Tente novamente.";
+"error.api.unknown" = "Erro de API desconhecido";

@@ -343,3 +343,11 @@
 "widget.days.many" = "%d dni pozostało";
 "No categories selected" = "Nie wybrano żadnych kategorii";
 "Go back and select some categories to set spending limits. You can always do this later in the app." = "Wróć i wybierz kategorie, aby ustawić limity wydatków. Zawsze możesz to zrobić później w aplikacji.";
+
+// Errors
+"error.auth.missingToken" = "Logowanie nie powiodło się: brak tokenu tożsamości.";
+"error.auth.cancelled" = "Logowanie anulowane.";
+"error.auth.googleFailed" = "Logowanie przez Google nie powiodło się. Spróbuj ponownie.";
+"error.photo.timeout.title" = "Trwa za długo";
+"error.photo.timeout.message" = "Nie można było przetworzyć obrazu na czas. Spróbuj ponownie.";
+"error.api.unknown" = "Nieznany błąd API";

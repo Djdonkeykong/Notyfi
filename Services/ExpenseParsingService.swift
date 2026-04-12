@@ -181,7 +181,7 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
 
         if let httpResponse = response as? HTTPURLResponse,
            !(200...299).contains(httpResponse.statusCode) {
-            let message = String(data: data, encoding: .utf8) ?? "Unknown API error"
+            let message = String(data: data, encoding: .utf8) ?? "error.api.unknown".notyfiLocalized
             throw RequestError.http(statusCode: httpResponse.statusCode, message: message)
         }
 
@@ -234,7 +234,7 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
 
         if let httpResponse = response as? HTTPURLResponse,
            !(200...299).contains(httpResponse.statusCode) {
-            let message = String(data: data, encoding: .utf8) ?? "Unknown API error"
+            let message = String(data: data, encoding: .utf8) ?? "error.api.unknown".notyfiLocalized
             throw RequestError.http(statusCode: httpResponse.statusCode, message: message)
         }
 

@@ -343,3 +343,11 @@
 "widget.days.many" = "%d päivää jäljellä";
 "No categories selected" = "Ei valittuja kategorioita";
 "Go back and select some categories to set spending limits. You can always do this later in the app." = "Palaa takaisin ja valitse kategorioita asettaaksesi kulurajat. Voit tehdä tämän myöhemmin sovelluksessa.";
+
+// Errors
+"error.auth.missingToken" = "Kirjautuminen epäonnistui: tunnustoken puuttuu.";
+"error.auth.cancelled" = "Kirjautuminen peruutettu.";
+"error.auth.googleFailed" = "Google-kirjautuminen epäonnistui. Yritä uudelleen.";
+"error.photo.timeout.title" = "Kestää liian kauan";
+"error.photo.timeout.message" = "Kuvaa ei voitu käsitellä ajoissa. Yritä uudelleen.";
+"error.api.unknown" = "Tuntematon API-virhe";

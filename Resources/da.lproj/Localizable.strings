@@ -343,3 +343,11 @@
 "widget.days.many" = "%d dage tilbage";
 "No categories selected" = "Ingen kategorier valgt";
 "Go back and select some categories to set spending limits. You can always do this later in the app." = "Gå tilbage og vælg nogle kategorier for at sætte forbrugsgrænser. Du kan altid gøre det senere i appen.";
+
+// Errors
+"error.auth.missingToken" = "Login mislykkedes: identitetstoken mangler.";
+"error.auth.cancelled" = "Login annulleret.";
+"error.auth.googleFailed" = "Google-login mislykkedes. Prøv igen.";
+"error.photo.timeout.title" = "Tager for lang tid";
+"error.photo.timeout.message" = "Billedet kunne ikke behandles i tide. Prøv igen.";
+"error.api.unknown" = "Ukendt API-fejl";

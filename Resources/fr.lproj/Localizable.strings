@@ -343,3 +343,11 @@
 "widget.days.many" = "%d jours restants";
 "No categories selected" = "Aucune catégorie sélectionnée";
 "Go back and select some categories to set spending limits. You can always do this later in the app." = "Revenez en arrière et sélectionnez des catégories pour définir des limites de dépenses. Vous pouvez toujours le faire plus tard dans l'app.";
+
+// Errors
+"error.auth.missingToken" = "Échec de la connexion : jeton d'identité manquant.";
+"error.auth.cancelled" = "Connexion annulée.";
+"error.auth.googleFailed" = "Échec de la connexion Google. Veuillez réessayer.";
+"error.photo.timeout.title" = "Trop long";
+"error.photo.timeout.message" = "L'image n'a pas pu être traitée à temps. Veuillez réessayer.";
+"error.api.unknown" = "Erreur API inconnue";
