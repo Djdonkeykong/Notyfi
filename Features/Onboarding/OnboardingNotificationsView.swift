@@ -141,22 +141,10 @@ private struct ReminderFrequencySlider: View {
 
                     // Thumb
                     Group {
-                        if #available(iOS 26, *) {
-                            Circle()
-                                .fill(.white)
-                                .frame(width: thumbSize, height: thumbSize)
-                                .overlay { Circle().glassEffect() }
-                                .shadow(color: .black.opacity(0.20), radius: 8, x: 0, y: 3)
-                        } else {
-                            Circle()
-                                .fill(.white)
-                                .frame(width: thumbSize, height: thumbSize)
-                                .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 2)
-                                .overlay {
-                                    Circle()
-                                        .stroke(Color.primary.opacity(0.08), lineWidth: 1)
-                                }
-                        }
+                        Circle()
+                            .fill(.white)
+                            .frame(width: thumbSize, height: thumbSize)
+                            .shadow(color: .black.opacity(0.18), radius: 6, x: 0, y: 2)
                     }
                     .offset(x: thumbX)
                     .animation(.interactiveSpring(response: 0.2, dampingFraction: 0.8), value: selection)
