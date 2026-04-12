@@ -126,10 +126,13 @@ struct OnboardingWidgetView: View {
                             if screen == option {
                                 if #available(iOS 26, *) {
                                     Capsule()
-                                        .glassEffect()
+                                        .fill(.white)
+                                        .overlay { Capsule().glassEffect() }
+                                        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 1)
                                 } else {
                                     Capsule()
-                                        .fill(NotyfiTheme.brandPrimary)
+                                        .fill(.white)
+                                        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 1)
                                 }
                             }
                         }
