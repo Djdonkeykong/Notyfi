@@ -20,13 +20,9 @@ final class AuthManager: ObservableObject {
         // Subscribe to Supabase auth state changes so session
         // restores automatically on re-launch (SDK handles token refresh).
         authStateTask = Task { [weak self] in
-            for await (_, session) in SupabaseService.client.auth.authStateChanges {
+            for await (_, session) in await SupabaseService.client.auth.authStateChanges {
                 guard let self else { return }
-                self.isAuthenticated = session != nil
-                self.isReady = true
-                self.userEmail = session?.user.email
-                self.userDisplayName = session?.user.userMetadata["full_name"]?.stringValue
-                    ?? session?.user.userMetadata["name"]?.stringValue
+                self.applyAuthState(session: session)
             }
         }
     }
@@ -51,13 +47,14 @@ final class AuthManager: ObservableObject {
             throw AuthError.missingIdentityToken
         }
 
-        try await SupabaseService.client.auth.signInWithIdToken(
+        let session = try await SupabaseService.client.auth.signInWithIdToken(
             credentials: .init(
                 provider: .apple,
                 idToken: tokenString,
                 nonce: rawNonce
             )
         )
+        applyAuthState(session: session)
     }
 
     // MARK: - Google Sign In
@@ -80,9 +77,10 @@ final class AuthManager: ObservableObject {
             guard let idToken = result.user.idToken?.tokenString else {
                 throw AuthError.missingIdentityToken
             }
-            try await SupabaseService.client.auth.signInWithIdToken(
+            let session = try await SupabaseService.client.auth.signInWithIdToken(
                 credentials: .init(provider: .google, idToken: idToken)
             )
+            applyAuthState(session: session)
         } catch let error as GIDSignInError where error.code == .canceled {
             throw AuthError.googleSignInCancelled
         }
@@ -104,6 +102,7 @@ final class AuthManager: ObservableObject {
             token: token,
             type: .email
         )
+        applyAuthState(session: SupabaseService.client.auth.currentSession)
     }
 
     // MARK: - Sign Out
@@ -159,6 +158,14 @@ final class AuthManager: ObservableObject {
         let inputData = Data(input.utf8)
         let hash = SHA256.hash(data: inputData)
         return hash.compactMap { String(format: "%02x", $0) }.joined()
+    }
+
+    private func applyAuthState(session: Session?) {
+        isAuthenticated = session != nil
+        isReady = true
+        userEmail = session?.user.email
+        userDisplayName = session?.user.userMetadata["full_name"]?.stringValue
+            ?? session?.user.userMetadata["name"]?.stringValue
     }
 }
 
