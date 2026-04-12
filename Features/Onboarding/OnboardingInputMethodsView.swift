@@ -48,7 +48,7 @@ struct OnboardingInputMethodsView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 }
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 8)
         }
         .contentMargins(.top, 72, for: .scrollContent)
         .contentMargins(.bottom, 160, for: .scrollContent)
