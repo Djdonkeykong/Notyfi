@@ -447,7 +447,7 @@ struct EmailSignUpView: View {
                 try await authManager.sendOTP(email: trimmed)
                 isSending = false
                 otpCode = ""
-                resendCooldown = 30
+                resendCooldown = 60
                 withAnimation { step = .otp }
             } catch {
                 isSending = false
