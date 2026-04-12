@@ -315,7 +315,7 @@ struct EmailSignUpView: View {
                         if v.count > 254 { email = String(v.prefix(254)) }
                     }
                     .padding(16)
-                    .background(.white)
+                    .background(NotyfiTheme.elevatedSurface)
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .overlay {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -419,7 +419,7 @@ struct EmailSignUpView: View {
                         .foregroundStyle(.primary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
-                        .background(.white)
+                        .background(NotyfiTheme.elevatedSurface)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .overlay {
                             RoundedRectangle(cornerRadius: 12, style: .continuous)

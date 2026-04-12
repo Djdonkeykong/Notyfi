@@ -48,7 +48,10 @@ enum NotyfiTheme {
     )
     static let brandBlue = Color(red: 22.0 / 255.0, green: 45.0 / 255.0, blue: 249.0 / 255.0)
     static let brandPrimary = Color(red: 22.0 / 255.0, green: 45.0 / 255.0, blue: 249.0 / 255.0)
-    static let brandLight = Color(red: 242.0 / 255.0, green: 242.0 / 255.0, blue: 249.0 / 255.0)
+    static let brandLight = adaptiveColor(
+        light: UIColor(red: 242.0 / 255.0, green: 242.0 / 255.0, blue: 249.0 / 255.0, alpha: 1),
+        dark: UIColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1)
+    )
     static let reviewTint = Color(red: 0.90, green: 0.60, blue: 0.29)
     static let incomeColor = Color(red: 0.28, green: 0.71, blue: 0.45)
     static let expenseColor = Color(red: 0.90, green: 0.36, blue: 0.34)

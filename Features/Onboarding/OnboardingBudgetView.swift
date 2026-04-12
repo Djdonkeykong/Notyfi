@@ -77,7 +77,7 @@ struct OnboardingBudgetView: View {
                     .clipShape(Circle())
             }
             .padding(18)
-            .background(.white)
+            .background(NotyfiTheme.elevatedSurface)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)

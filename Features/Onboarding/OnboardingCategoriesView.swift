@@ -109,7 +109,7 @@ private struct CategoryPill: View {
             .padding(.vertical, 11)
             .background {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(isSelected ? category.tint : Color.white)
+                    .fill(isSelected ? category.tint : NotyfiTheme.elevatedSurface)
                     .shadow(color: .black.opacity(isSelected ? 0.0 : 0.05), radius: 4, x: 0, y: 2)
             }
             .overlay {

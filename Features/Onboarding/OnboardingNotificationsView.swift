@@ -78,7 +78,7 @@ struct OnboardingNotificationsView: View {
                 }
         }
         .padding(18)
-        .background(.white)
+        .background(NotyfiTheme.elevatedSurface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
@@ -147,7 +147,7 @@ private struct ReminderFrequencySlider: View {
                                 .frame(width: thumbSize, height: thumbSize)
                         } else {
                             Circle()
-                                .fill(.white)
+                                .fill(Color(uiColor: .systemBackground))
                                 .frame(width: thumbSize, height: thumbSize)
                                 .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 2)
                                 .overlay {
