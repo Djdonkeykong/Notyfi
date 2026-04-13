@@ -14,6 +14,7 @@ struct HomeView: View {
     @State private var isCameraPresented = false
     @State private var cameraSourceType: UIImagePickerController.SourceType = .camera
     @State private var isQuickAddPresented = false
+    @State private var recurringDraft: RecurringTransactionDraft?
     @State private var isFileImporterPresented = false
     @State private var isImportingPhoto = false
     @State private var photoImportAlert: PhotoImportAlert?
@@ -149,7 +150,17 @@ private extension HomeView {
                 QuickAddSheetView { action in
                     handleQuickAddSelection(action)
                 }
-                .presentationDetents([.height(452)])
+                .presentationDetents([.height(520)])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(NotyfiTheme.background.opacity(0.98))
+                .presentationCornerRadius(34)
+            }
+            .sheet(item: $recurringDraft) { draft in
+                RecurringTransactionEditorView(
+                    draft: draft,
+                    store: store
+                )
+                .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
                 .presentationBackground(NotyfiTheme.background.opacity(0.98))
                 .presentationCornerRadius(34)
@@ -197,6 +208,12 @@ private extension HomeView {
                 if !isRecording {
                     EditableJournalTextView.endActiveDictationSession()
                 }
+            }
+            .onAppear {
+                _ = store.materializeDueRecurringEntries(upTo: Date())
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                _ = store.materializeDueRecurringEntries(upTo: Date())
             }
     }
 
@@ -486,6 +503,8 @@ private extension HomeView {
             switch action {
             case .attachFiles:
                 isFileImporterPresented = true
+            case .recurringExpense, .recurringIncome:
+                recurringDraft = viewModel.recurringDraft(for: action)
             default:
                 selectedEntryIsDraft = true
                 selectedEntry = viewModel.createManualEntryDraft(for: action)
@@ -1648,8 +1667,10 @@ private extension QuickAddAction {
             return "Income".notyfiLocalized
         case .transfer:
             return "Transfer".notyfiLocalized
-        case .recurringBill:
-            return "Recurring bill".notyfiLocalized
+        case .recurringExpense:
+            return "Recurring expense".notyfiLocalized
+        case .recurringIncome:
+            return "Recurring income".notyfiLocalized
         case .attachFiles:
             return "Attachment from Files".notyfiLocalized
         }
@@ -1663,8 +1684,10 @@ private extension QuickAddAction {
             return "Add one manual income entry.".notyfiLocalized
         case .transfer:
             return "Start a transfer entry and adjust the direction.".notyfiLocalized
-        case .recurringBill:
-            return "Create a bill entry you can fill in quickly.".notyfiLocalized
+        case .recurringExpense:
+            return "Set up an expense that repeats on its own.".notyfiLocalized
+        case .recurringIncome:
+            return "Set up an income that repeats on its own.".notyfiLocalized
         case .attachFiles:
             return "Import an image or PDF from Files.".notyfiLocalized
         }
@@ -1678,7 +1701,7 @@ private extension QuickAddAction {
             return "plus.circle.fill"
         case .transfer:
             return "arrow.left.arrow.right.circle.fill"
-        case .recurringBill:
+        case .recurringExpense, .recurringIncome:
             return "repeat.circle.fill"
         case .attachFiles:
             return "doc.badge.plus"
@@ -1693,8 +1716,10 @@ private extension QuickAddAction {
             return NotyfiTheme.incomeColor
         case .transfer:
             return Color(red: 0.27, green: 0.58, blue: 0.92)
-        case .recurringBill:
+        case .recurringExpense:
             return Color(red: 0.74, green: 0.55, blue: 0.25)
+        case .recurringIncome:
+            return Color(red: 0.19, green: 0.65, blue: 0.42)
         case .attachFiles:
             return Color(red: 0.68, green: 0.32, blue: 0.86)
         }

@@ -11,6 +11,8 @@ struct ParsedExpenseDraft: Codable {
     var note: String
     var confidence: ParsingConfidence
     var isAmountEstimated: Bool
+    var isRecurring: Bool
+    var recurringFrequency: RecurringFrequency?
 
     private enum CodingKeys: String, CodingKey {
         case rawText
@@ -23,6 +25,8 @@ struct ParsedExpenseDraft: Codable {
         case note
         case confidence
         case isAmountEstimated
+        case isRecurring
+        case recurringFrequency
     }
 
     init(
@@ -35,7 +39,9 @@ struct ParsedExpenseDraft: Codable {
         merchant: String?,
         note: String,
         confidence: ParsingConfidence,
-        isAmountEstimated: Bool = false
+        isAmountEstimated: Bool = false,
+        isRecurring: Bool = false,
+        recurringFrequency: RecurringFrequency? = nil
     ) {
         self.rawText = rawText
         self.title = title
@@ -47,6 +53,8 @@ struct ParsedExpenseDraft: Codable {
         self.note = note
         self.confidence = confidence
         self.isAmountEstimated = isAmountEstimated
+        self.isRecurring = isRecurring
+        self.recurringFrequency = recurringFrequency
     }
 
     init(from decoder: Decoder) throws {
@@ -62,6 +70,8 @@ struct ParsedExpenseDraft: Codable {
         note = try container.decode(String.self, forKey: .note)
         confidence = try container.decode(ParsingConfidence.self, forKey: .confidence)
         isAmountEstimated = try container.decodeIfPresent(Bool.self, forKey: .isAmountEstimated) ?? false
+        isRecurring = try container.decodeIfPresent(Bool.self, forKey: .isRecurring) ?? false
+        recurringFrequency = try container.decodeIfPresent(RecurringFrequency.self, forKey: .recurringFrequency)
     }
 }
 
@@ -193,17 +203,23 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         let parsedData = Data(content.utf8)
         let parsedDraft = try decoder.decode(ParsedExpenseDraft.self, from: parsedData)
 
-        return ParsedExpenseDraft(
-            rawText: rawText,
-            title: parsedDraft.title.trimmingCharacters(in: .whitespacesAndNewlines),
-            amount: max(parsedDraft.amount, 0),
-            currencyCode: parsedDraft.currencyCode.isEmpty ? currencyCode : parsedDraft.currencyCode,
-            transactionKind: parsedDraft.transactionKind,
-            category: parsedDraft.category,
-            merchant: parsedDraft.merchant?.trimmingCharacters(in: .whitespacesAndNewlines),
-            note: parsedDraft.note.trimmingCharacters(in: .whitespacesAndNewlines),
-            confidence: parsedDraft.confidence,
-            isAmountEstimated: parsedDraft.isAmountEstimated
+        return sanitizeParsedDraft(
+            ParsedExpenseDraft(
+                rawText: rawText,
+                title: parsedDraft.title.trimmingCharacters(in: .whitespacesAndNewlines),
+                amount: max(parsedDraft.amount, 0),
+                currencyCode: parsedDraft.currencyCode.isEmpty ? currencyCode : parsedDraft.currencyCode,
+                transactionKind: parsedDraft.transactionKind,
+                category: parsedDraft.category,
+                merchant: parsedDraft.merchant?.trimmingCharacters(in: .whitespacesAndNewlines),
+                note: parsedDraft.note.trimmingCharacters(in: .whitespacesAndNewlines),
+                confidence: parsedDraft.confidence,
+                isAmountEstimated: parsedDraft.isAmountEstimated,
+                isRecurring: parsedDraft.isRecurring,
+                recurringFrequency: parsedDraft.recurringFrequency
+            ),
+            fallbackRawText: rawText,
+            fallbackCurrencyCode: currencyCode
         )
     }
 
@@ -272,11 +288,15 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         Currency: \(currencyCode)
         Target language: \(appLanguage.name) (\(appLanguage.code))
 
-        Return one transaction JSON object. Infer a short title, amount as a positive number, transactionKind as expense/income, one allowed category, merchant if explicit, note as "" unless useful, confidence as certain/review/uncertain, and isAmountEstimated as true/false.
+        Return one transaction JSON object. Infer a short title, amount as a positive number, transactionKind as expense/income, one allowed category, merchant if explicit, note as "" unless useful, confidence as certain/review/uncertain, isAmountEstimated as true/false, and recurrence intent.
         All natural-language fields must be written in \(appLanguage.name). Do not write English unless the target language is English.
         Write title and note in the target language above. Keep merchant in its original spelling when it is a brand or proper name.
-        Keep transactionKind, category, confidence, and boolean fields as schema values.
+        Keep transactionKind, category, confidence, recurrence, and boolean fields as schema values.
         Use transactionKind "income" for salary, freelance pay, refunds, reimbursements, gifts received, or money coming in. Use "expense" for spending, bills, purchases, subscriptions, or money going out.
+        Set isRecurring true when the note explicitly says recurring, monthly, weekly, yearly, every month, every week, every year, or otherwise clearly describes a repeating income or expense.
+        When isRecurring is true, recurringFrequency must be one of weekly, monthly, or yearly.
+        If the note says something repeats but does not include a cadence, default recurringFrequency to monthly.
+        If the note does not indicate recurrence, set isRecurring false and recurringFrequency null.
         If no amount is written but the note mentions a concrete item/place, estimate a plausible amount in the given currency, set confidence "review", and set isAmountEstimated true. If there is not enough context to estimate, use amount 0, confidence "review", and isAmountEstimated false.
         """
 
@@ -325,7 +345,17 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
                                 "type": "string",
                                 "enum": ParsingConfidence.allCases.map(\.rawValue)
                             ],
-                            "isAmountEstimated": ["type": "boolean"]
+                            "isAmountEstimated": ["type": "boolean"],
+                            "isRecurring": ["type": "boolean"],
+                            "recurringFrequency": [
+                                "anyOf": [
+                                    [
+                                        "type": "string",
+                                        "enum": RecurringFrequency.allCases.map(\.rawValue)
+                                    ],
+                                    ["type": "null"]
+                                ]
+                            ]
                         ],
                         "required": [
                             "rawText",
@@ -337,7 +367,9 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
                             "merchant",
                             "note",
                             "confidence",
-                            "isAmountEstimated"
+                            "isAmountEstimated",
+                            "isRecurring",
+                            "recurringFrequency"
                         ]
                     ]
                 ]
@@ -375,6 +407,9 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         - All natural-language fields must be written in \(appLanguage.name). Do not write English unless the target language is English.
         - Write rawText, title, and note in the target language above.
         - Keep merchant in its original spelling when it is a brand or proper name.
+        - Only set isRecurring true when the image clearly indicates a repeating charge or income, such as a subscription, recurring invoice, monthly plan, annual fee, or repeating paycheck.
+        - When isRecurring is true, recurringFrequency must be weekly, monthly, or yearly. If the document looks recurring but does not say how often, default recurringFrequency to monthly.
+        - If recurrence is unclear, set isRecurring false and recurringFrequency null.
         """
 
         return [
@@ -471,7 +506,17 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
                     "type": "string",
                     "enum": ParsingConfidence.allCases.map(\.rawValue)
                 ],
-                "isAmountEstimated": ["type": "boolean"]
+                "isAmountEstimated": ["type": "boolean"],
+                "isRecurring": ["type": "boolean"],
+                "recurringFrequency": [
+                    "anyOf": [
+                        [
+                            "type": "string",
+                            "enum": RecurringFrequency.allCases.map(\.rawValue)
+                        ],
+                        ["type": "null"]
+                    ]
+                ]
             ],
             "required": [
                 "rawText",
@@ -483,7 +528,9 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
                 "merchant",
                 "note",
                 "confidence",
-                "isAmountEstimated"
+                "isAmountEstimated",
+                "isRecurring",
+                "recurringFrequency"
             ]
         ]
     }
@@ -507,7 +554,9 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
             merchant: draft.merchant?.trimmingCharacters(in: .whitespacesAndNewlines),
             note: draft.note.trimmingCharacters(in: .whitespacesAndNewlines),
             confidence: draft.confidence,
-            isAmountEstimated: draft.isAmountEstimated
+            isAmountEstimated: draft.isAmountEstimated,
+            isRecurring: draft.isRecurring,
+            recurringFrequency: draft.isRecurring ? (draft.recurringFrequency ?? .monthly) : nil
         )
     }
 }

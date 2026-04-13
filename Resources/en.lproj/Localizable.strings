@@ -361,3 +361,24 @@
 "Tap \"Customize\" at the bottom, then \"Add widgets\"" = "Tap \"Customize\" at the bottom, then \"Add widgets\"";
 "Tap \"Edit\" in the top left, then \"Add Widget\"" = "Tap \"Edit\" in the top left, then \"Add Widget\"";
 "Give Feedback" = "Give Feedback";
+
+// Recurring
+"Recurring" = "Recurring";
+"Recurring expense" = "Recurring expense";
+"Recurring income" = "Recurring income";
+"Recurring entry" = "Recurring entry";
+"Create something that should land in your journal automatically." = "Create something that should land in your journal automatically.";
+"Set up an expense that repeats on its own." = "Set up an expense that repeats on its own.";
+"Set up an income that repeats on its own." = "Set up an income that repeats on its own.";
+"Save recurring item" = "Save recurring item";
+"Update recurring item" = "Update recurring item";
+"Delete recurring item" = "Delete recurring item";
+"No recurring items yet" = "No recurring items yet";
+"Manage bills, paychecks, and anything that repeats." = "Manage bills, paychecks, and anything that repeats.";
+"Create one from quick add, from an entry, or tap the plus button here." = "Create one from quick add, from an entry, or tap the plus button here.";
+"Active rules" = "Active rules";
+"Make recurring" = "Make recurring";
+"Edit recurring" = "Edit recurring";
+"Turn this entry into a repeating rule." = "Turn this entry into a repeating rule.";
+"Update the repeating rule behind this entry." = "Update the repeating rule behind this entry.";
+"Until" = "Until";

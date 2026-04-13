@@ -68,6 +68,10 @@ final class SettingsViewModel: ObservableObject {
         return "A gentle nudge to log your day before you forget.".notyfiLocalized
     }
 
+    var journalStore: ExpenseJournalStore {
+        store
+    }
+
     func setRemindersEnabled(_ isEnabled: Bool) async {
         if isEnabled {
             let granted = await reminderManager.enableReminder(

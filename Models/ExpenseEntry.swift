@@ -62,6 +62,8 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
     var confidence: ParsingConfidence
     var isAmountEstimated: Bool
     var createdAt: Date
+    var recurringTransactionID: UUID?
+    var recurrenceInstanceKey: String?
 
     init(
         id: UUID = UUID(),
@@ -76,7 +78,9 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         note: String = "",
         confidence: ParsingConfidence,
         isAmountEstimated: Bool = false,
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        recurringTransactionID: UUID? = nil,
+        recurrenceInstanceKey: String? = nil
     ) {
         self.id = id
         self.rawText = rawText
@@ -91,6 +95,8 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         self.confidence = confidence
         self.isAmountEstimated = isAmountEstimated
         self.createdAt = createdAt
+        self.recurringTransactionID = recurringTransactionID
+        self.recurrenceInstanceKey = recurrenceInstanceKey
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -107,6 +113,8 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         case confidence
         case isAmountEstimated
         case createdAt
+        case recurringTransactionID
+        case recurrenceInstanceKey
     }
 
     init(from decoder: Decoder) throws {
@@ -125,6 +133,8 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         confidence = try container.decode(ParsingConfidence.self, forKey: .confidence)
         isAmountEstimated = try container.decodeIfPresent(Bool.self, forKey: .isAmountEstimated) ?? false
         createdAt = try container.decode(Date.self, forKey: .createdAt)
+        recurringTransactionID = try container.decodeIfPresent(UUID.self, forKey: .recurringTransactionID)
+        recurrenceInstanceKey = try container.decodeIfPresent(String.self, forKey: .recurrenceInstanceKey)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -143,5 +153,7 @@ struct ExpenseEntry: Identifiable, Codable, Hashable {
         try container.encode(confidence, forKey: .confidence)
         try container.encode(isAmountEstimated, forKey: .isAmountEstimated)
         try container.encode(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(recurringTransactionID, forKey: .recurringTransactionID)
+        try container.encodeIfPresent(recurrenceInstanceKey, forKey: .recurrenceInstanceKey)
     }
 }

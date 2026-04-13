@@ -5,6 +5,7 @@ struct EntryDetailView: View {
     @EnvironmentObject private var languageManager: LanguageManager
     @StateObject private var viewModel: EntryDetailViewModel
     @State private var shouldPersistOnDisappear = true
+    @State private var recurringDraft: RecurringTransactionDraft?
     private let isNewEntryDraft: Bool
     private let store: ExpenseJournalStore
     private let entryID: UUID
@@ -152,11 +153,55 @@ struct EntryDetailView: View {
                             .padding(.vertical, 16)
                         }
                     }
+
+                    SectionHeader(title: "Automation")
+                    detailCard {
+                        Button(action: presentRecurringEditor) {
+                            HStack(spacing: 14) {
+                                Image(systemName: "repeat.circle.fill")
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundStyle(NotyfiTheme.brandBlue.opacity(0.88))
+                                    .frame(width: 18)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(recurringActionTitle)
+                                        .font(.notyfi(.body))
+                                        .foregroundStyle(.primary.opacity(0.82))
+
+                                    Text(recurringActionSubtitle)
+                                        .font(.notyfi(.caption))
+                                        .foregroundStyle(NotyfiTheme.secondaryText)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(NotyfiTheme.tertiaryText)
+                            }
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 16)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
                 .padding(.horizontal, 20)
                 .safeAreaPadding(.top, 14)
                 .padding(.bottom, 32)
             }
+        }
+        .sheet(item: $recurringDraft) { draft in
+            RecurringTransactionEditorView(
+                draft: draft,
+                store: store,
+                sourceEntryID: entryID
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(NotyfiTheme.background.opacity(0.98))
+            .presentationCornerRadius(34)
         }
         .onDisappear {
             if shouldPersistOnDisappear {
@@ -165,6 +210,23 @@ struct EntryDetailView: View {
                 store.removeEntry(id: entryID)
             }
         }
+    }
+
+    private var currentRecurringTransactionID: UUID? {
+        store.entries.first(where: { $0.id == entryID })?.recurringTransactionID
+            ?? viewModel.recurringTransactionID
+    }
+
+    private var recurringActionTitle: String {
+        store.recurringTransaction(id: currentRecurringTransactionID) == nil
+            ? "Make recurring".notyfiLocalized
+            : "Edit recurring".notyfiLocalized
+    }
+
+    private var recurringActionSubtitle: String {
+        store.recurringTransaction(id: currentRecurringTransactionID) == nil
+            ? "Turn this entry into a repeating rule.".notyfiLocalized
+            : "Update the repeating rule behind this entry.".notyfiLocalized
     }
 
     private var header: some View {
@@ -260,6 +322,11 @@ struct EntryDetailView: View {
                     }
                     .shadow(color: NotyfiTheme.shadow, radius: 18, x: 0, y: 8)
             }
+    }
+
+    private func presentRecurringEditor() {
+        viewModel.save()
+        recurringDraft = viewModel.recurringDraft(using: store)
     }
 }
 

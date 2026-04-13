@@ -71,6 +71,7 @@ final class CloudSyncManager: ObservableObject {
             try await bootstrap(for: session.user)
             activeUserID = session.user.id
             hasCompletedInitialSync = true
+            await pushLatestLocalStateIfPossible()
         } catch {
             logger.error("Initial cloud sync failed: \(error.localizedDescription, privacy: .public)")
         }
@@ -79,8 +80,13 @@ final class CloudSyncManager: ObservableObject {
     }
 
     private func observeLocalChanges() {
-        Publishers.CombineLatest3(store.$entries, store.$budgetPlan, store.$trackedCategories)
-            .sink { [weak self] _, _, _ in
+        Publishers.CombineLatest4(
+            store.$entries,
+            store.$budgetPlan,
+            store.$trackedCategories,
+            store.$recurringTransactions
+        )
+            .sink { [weak self] _, _, _, _ in
                 self?.scheduleUpload()
             }
             .store(in: &cancellables)
@@ -204,11 +210,13 @@ final class CloudSyncManager: ObservableObject {
         let budgetPlan = remoteState.budgetPlan
         let trackedCategories = remoteState.trackedCategories
         let entries = remoteState.entries
+        let recurringTransactions = remoteState.recurringTransactions
 
         store.replaceAll(
             entries: entries,
             budgetPlan: budgetPlan,
-            trackedCategories: trackedCategories
+            trackedCategories: trackedCategories,
+            recurringTransactions: recurringTransactions
         )
 
         if let currencyCode = remoteState.user.currencyCode,
@@ -221,6 +229,10 @@ final class CloudSyncManager: ObservableObject {
         }
 
         isApplyingRemoteState = false
+
+        if store.materializeDueRecurringEntries(upTo: Date()) {
+            scheduleUpload()
+        }
     }
 
     private func makeLocalSnapshot() -> LocalFinanceSnapshot {
@@ -228,6 +240,7 @@ final class CloudSyncManager: ObservableObject {
             entries: store.entries,
             budgetPlan: store.budgetPlan,
             trackedCategories: store.trackedCategories,
+            recurringTransactions: store.recurringTransactions,
             currencyCode: NotyfiCurrency.currentCode(defaults: defaults),
             languageCode: defaults.string(forKey: LanguageManager.storageKey) ?? NotyfiLanguage.system.rawValue,
             onboardingCompleted: defaults.bool(forKey: PendingOnboardingBootstrap.onboardingCompletedKey)
@@ -265,6 +278,7 @@ private struct LocalFinanceSnapshot {
     let entries: [ExpenseEntry]
     let budgetPlan: BudgetPlan
     let trackedCategories: Set<ExpenseCategory>
+    let recurringTransactions: [RecurringTransaction]
     let currencyCode: String
     let languageCode: String
     let onboardingCompleted: Bool
@@ -274,6 +288,7 @@ private struct RemoteFinanceState {
     let user: UserProfileRow
     let activePlan: BudgetPlanRow?
     let categoryTargets: [BudgetCategoryTargetRow]
+    let recurringTransactions: [RecurringTransaction]
     let entries: [ExpenseEntry]
 
     var hasServerData: Bool {
@@ -283,6 +298,7 @@ private struct RemoteFinanceState {
             || user.languageCode != nil
             || activePlan != nil
             || !categoryTargets.isEmpty
+            || !recurringTransactions.isEmpty
             || !entries.isEmpty
     }
 
@@ -318,6 +334,7 @@ private struct RemoteFinanceState {
             user: UserProfileRow(id: userID, email: nil, displayName: nil, currencyCode: nil, languageCode: nil, monthlyBudget: nil, onboardingCompletedAt: nil),
             activePlan: nil,
             categoryTargets: [],
+            recurringTransactions: [],
             entries: []
         )
     }
@@ -347,9 +364,17 @@ private enum SupabaseFinanceService {
             .execute()
             .value
 
+        async let recurringRows: [RecurringTransactionRow] = SupabaseService.client
+            .from("recurring_transactions")
+            .select()
+            .eq("user_id", value: userID.uuidString.lowercased())
+            .execute()
+            .value
+
         let fetchedUserRows = try await userRows
         let fetchedActivePlanRows = try await activePlanRows
         let fetchedEntryRows = try await entryRows
+        let fetchedRecurringRows = try await recurringRows
 
         let user = fetchedUserRows.first
             ?? UserProfileRow(
@@ -363,6 +388,7 @@ private enum SupabaseFinanceService {
             )
         let activePlan = fetchedActivePlanRows.first
         let entries = fetchedEntryRows.map(\.asExpenseEntry)
+        let recurringTransactions = fetchedRecurringRows.map(\.asRecurringTransaction)
 
         let categoryTargets: [BudgetCategoryTargetRow]
         if let activePlan {
@@ -381,6 +407,13 @@ private enum SupabaseFinanceService {
             user: user,
             activePlan: activePlan,
             categoryTargets: categoryTargets,
+            recurringTransactions: recurringTransactions.sorted { lhs, rhs in
+                if lhs.isActive != rhs.isActive {
+                    return lhs.isActive && !rhs.isActive
+                }
+
+                return lhs.nextOccurrenceAt < rhs.nextOccurrenceAt
+            },
             entries: entries.sorted { lhs, rhs in
                 if Calendar.current.isDate(lhs.date, equalTo: rhs.date, toGranularity: .minute) {
                     return lhs.createdAt > rhs.createdAt
@@ -415,10 +448,55 @@ private enum SupabaseFinanceService {
             activePlanID: activePlanID
         )
 
+        try await replaceRecurringTransactions(
+            snapshot.recurringTransactions,
+            userID: userID
+        )
+
         try await replaceExpenseEntries(
             snapshot.entries,
             userID: userID
         )
+    }
+
+    private static func replaceRecurringTransactions(
+        _ recurringTransactions: [RecurringTransaction],
+        userID: UUID
+    ) async throws {
+        if !recurringTransactions.isEmpty {
+            let payload = recurringTransactions.map {
+                RecurringTransactionPayload(
+                    recurringTransaction: $0,
+                    userID: userID
+                )
+            }
+
+            try await SupabaseService.client
+                .from("recurring_transactions")
+                .upsert(payload, onConflict: "id")
+                .execute()
+        }
+
+        let existingRows: [RecurringTransactionIdentifierRow] = try await SupabaseService.client
+            .from("recurring_transactions")
+            .select("id")
+            .eq("user_id", value: userID.uuidString.lowercased())
+            .execute()
+            .value
+
+        let localRecurringIDs = Set(recurringTransactions.map(\.id))
+        let staleRecurringIDs = existingRows
+            .map(\.id)
+            .filter { !localRecurringIDs.contains($0) }
+
+        for staleRecurringID in staleRecurringIDs {
+            try await SupabaseService.client
+                .from("recurring_transactions")
+                .delete()
+                .eq("id", value: staleRecurringID.uuidString.lowercased())
+                .eq("user_id", value: userID.uuidString.lowercased())
+                .execute()
+        }
     }
 
     static func upsertProfilePreferences(
@@ -653,6 +731,8 @@ private struct ExpenseEntryRow: Decodable {
     let isAmountEstimated: Bool
     let occurredAt: Date
     let createdAt: Date
+    let recurringTransactionID: UUID?
+    let recurrenceInstanceKey: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -669,6 +749,8 @@ private struct ExpenseEntryRow: Decodable {
         case isAmountEstimated = "is_amount_estimated"
         case occurredAt = "occurred_at"
         case createdAt = "created_at"
+        case recurringTransactionID = "recurring_transaction_id"
+        case recurrenceInstanceKey = "recurrence_instance_key"
     }
 
     var asExpenseEntry: ExpenseEntry {
@@ -685,12 +767,88 @@ private struct ExpenseEntryRow: Decodable {
             note: note ?? "",
             confidence: ParsingConfidence(rawValue: confidence) ?? .review,
             isAmountEstimated: isAmountEstimated,
-            createdAt: createdAt
+            createdAt: createdAt,
+            recurringTransactionID: recurringTransactionID,
+            recurrenceInstanceKey: recurrenceInstanceKey
         )
     }
 }
 
 private struct ExpenseEntryIdentifierRow: Decodable {
+    let id: UUID
+}
+
+private struct RecurringTransactionRow: Decodable {
+    let id: UUID
+    let userID: UUID
+    let title: String
+    let rawTextTemplate: String
+    let amount: Double
+    let currencyCode: String
+    let transactionKind: String
+    let category: String
+    let merchant: String?
+    let note: String
+    let frequency: String
+    let interval: Int
+    let startsAt: Date
+    let nextOccurrenceAt: Date
+    let endsAt: Date?
+    let isActive: Bool
+    let autopost: Bool
+    let lastGeneratedAt: Date?
+    let createdAt: Date
+    let updatedAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userID = "user_id"
+        case title
+        case rawTextTemplate = "raw_text_template"
+        case amount
+        case currencyCode = "currency_code"
+        case transactionKind = "transaction_kind"
+        case category
+        case merchant
+        case note
+        case frequency
+        case interval
+        case startsAt = "starts_at"
+        case nextOccurrenceAt = "next_occurrence_at"
+        case endsAt = "ends_at"
+        case isActive = "is_active"
+        case autopost
+        case lastGeneratedAt = "last_generated_at"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+
+    var asRecurringTransaction: RecurringTransaction {
+        RecurringTransaction(
+            id: id,
+            title: title,
+            rawTextTemplate: rawTextTemplate,
+            amount: amount,
+            currencyCode: currencyCode,
+            transactionKind: TransactionKind(rawValue: transactionKind) ?? .expense,
+            category: ExpenseCategory(rawValue: category) ?? .uncategorized,
+            merchant: merchant,
+            note: note,
+            frequency: RecurringFrequency(rawValue: frequency) ?? .monthly,
+            interval: interval,
+            startsAt: startsAt,
+            nextOccurrenceAt: nextOccurrenceAt,
+            endsAt: endsAt,
+            isActive: isActive,
+            autopost: autopost,
+            lastGeneratedAt: lastGeneratedAt,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
+}
+
+private struct RecurringTransactionIdentifierRow: Decodable {
     let id: UUID
 }
 
@@ -778,6 +936,8 @@ private struct ExpenseEntryPayload: Encodable {
     let entryDate: String
     let occurredAt: Date
     let createdAt: Date
+    let recurringTransactionID: UUID?
+    let recurrenceInstanceKey: String?
 
     init(entry: ExpenseEntry, userID: UUID) {
         self.id = entry.id
@@ -795,6 +955,8 @@ private struct ExpenseEntryPayload: Encodable {
         self.entryDate = Self.entryDateFormatter.string(from: entry.date)
         self.occurredAt = entry.date
         self.createdAt = entry.createdAt
+        self.recurringTransactionID = entry.recurringTransactionID
+        self.recurrenceInstanceKey = entry.recurrenceInstanceKey
     }
 
     enum CodingKeys: String, CodingKey {
@@ -813,6 +975,8 @@ private struct ExpenseEntryPayload: Encodable {
         case entryDate = "entry_date"
         case occurredAt = "occurred_at"
         case createdAt = "created_at"
+        case recurringTransactionID = "recurring_transaction_id"
+        case recurrenceInstanceKey = "recurrence_instance_key"
     }
 
     private static let entryDateFormatter: DateFormatter = {
@@ -823,4 +987,73 @@ private struct ExpenseEntryPayload: Encodable {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
+}
+
+private struct RecurringTransactionPayload: Encodable {
+    let id: UUID
+    let userID: UUID
+    let title: String
+    let rawTextTemplate: String
+    let amount: Double
+    let currencyCode: String
+    let transactionKind: String
+    let category: String
+    let merchant: String?
+    let note: String
+    let frequency: String
+    let interval: Int
+    let startsAt: Date
+    let nextOccurrenceAt: Date
+    let endsAt: Date?
+    let isActive: Bool
+    let autopost: Bool
+    let lastGeneratedAt: Date?
+    let createdAt: Date
+    let updatedAt: Date
+
+    init(recurringTransaction: RecurringTransaction, userID: UUID) {
+        self.id = recurringTransaction.id
+        self.userID = userID
+        self.title = recurringTransaction.title
+        self.rawTextTemplate = recurringTransaction.rawTextTemplate
+        self.amount = recurringTransaction.amount
+        self.currencyCode = recurringTransaction.currencyCode
+        self.transactionKind = recurringTransaction.transactionKind.rawValue
+        self.category = recurringTransaction.category.rawValue
+        self.merchant = recurringTransaction.merchant
+        self.note = recurringTransaction.note
+        self.frequency = recurringTransaction.frequency.rawValue
+        self.interval = recurringTransaction.interval
+        self.startsAt = recurringTransaction.startsAt
+        self.nextOccurrenceAt = recurringTransaction.nextOccurrenceAt
+        self.endsAt = recurringTransaction.endsAt
+        self.isActive = recurringTransaction.isActive
+        self.autopost = recurringTransaction.autopost
+        self.lastGeneratedAt = recurringTransaction.lastGeneratedAt
+        self.createdAt = recurringTransaction.createdAt
+        self.updatedAt = recurringTransaction.updatedAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userID = "user_id"
+        case title
+        case rawTextTemplate = "raw_text_template"
+        case amount
+        case currencyCode = "currency_code"
+        case transactionKind = "transaction_kind"
+        case category
+        case merchant
+        case note
+        case frequency
+        case interval
+        case startsAt = "starts_at"
+        case nextOccurrenceAt = "next_occurrence_at"
+        case endsAt = "ends_at"
+        case isActive = "is_active"
+        case autopost
+        case lastGeneratedAt = "last_generated_at"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
 }

@@ -18,7 +18,8 @@ enum QuickAddAction: String, CaseIterable, Identifiable {
     case expense
     case income
     case transfer
-    case recurringBill
+    case recurringExpense
+    case recurringIncome
     case attachFiles
 
     var id: String { rawValue }
@@ -130,9 +131,22 @@ final class HomeViewModel: ObservableObject {
                 primaryColorName = .neutral
             }
 
+            let secondaryText: String?
+            if composerPreviewDraft.isRecurring {
+                let recurrenceText = composerPreviewDraft.recurringFrequency?.title ?? "Recurring".notyfiLocalized
+
+                if let categoryText, !categoryText.isEmpty {
+                    secondaryText = "\(categoryText) - \(recurrenceText)"
+                } else {
+                    secondaryText = recurrenceText
+                }
+            } else {
+                secondaryText = categoryText
+            }
+
             return DraftComposerFeedback(
                 primaryText: primaryText,
-                secondaryText: categoryText,
+                secondaryText: secondaryText,
                 primaryColorName: primaryColorName
             )
         }
@@ -226,21 +240,8 @@ final class HomeViewModel: ObservableObject {
                 isAmountEstimated: false,
                 createdAt: Date()
             )
-        case .recurringBill:
-            entry = ExpenseEntry(
-                rawText: "Recurring bill".notyfiLocalized,
-                title: "Recurring bill".notyfiLocalized,
-                amount: 0,
-                currencyCode: currencyCode,
-                transactionKind: .expense,
-                category: .bills,
-                merchant: nil,
-                date: date,
-                note: "",
-                confidence: .review,
-                isAmountEstimated: false,
-                createdAt: Date()
-            )
+        case .recurringExpense, .recurringIncome:
+            fatalError("Recurring quick add is handled by the recurring editor flow.")
         case .attachFiles:
             fatalError("Attachment from Files is handled outside manual draft creation.")
         }
@@ -520,6 +521,33 @@ final class HomeViewModel: ObservableObject {
 
     func suggestedMonthlyBudgetAmount() -> Double? {
         budgetInsight.suggestedMonthlyBudget
+    }
+
+    func recurringDraft(for action: QuickAddAction) -> RecurringTransactionDraft? {
+        switch action {
+        case .recurringExpense:
+            return RecurringTransactionDraft(
+                title: "Recurring expense".notyfiLocalized,
+                rawTextTemplate: "Recurring expense".notyfiLocalized,
+                amountText: "",
+                currencyCode: currencyCode,
+                transactionKind: .expense,
+                category: .bills,
+                startsAt: defaultEntryDate(for: selectedDate)
+            )
+        case .recurringIncome:
+            return RecurringTransactionDraft(
+                title: "Recurring income".notyfiLocalized,
+                rawTextTemplate: "Recurring income".notyfiLocalized,
+                amountText: "",
+                currencyCode: currencyCode,
+                transactionKind: .income,
+                category: .uncategorized,
+                startsAt: defaultEntryDate(for: selectedDate)
+            )
+        default:
+            return nil
+        }
     }
 
     private func recompute(
@@ -830,7 +858,9 @@ final class HomeViewModel: ObservableObject {
             note: entry.note,
             confidence: entry.confidence,
             isAmountEstimated: entry.isAmountEstimated,
-            createdAt: entry.createdAt
+            createdAt: entry.createdAt,
+            recurringTransactionID: entry.recurringTransactionID,
+            recurrenceInstanceKey: entry.recurrenceInstanceKey
         )
     }
 

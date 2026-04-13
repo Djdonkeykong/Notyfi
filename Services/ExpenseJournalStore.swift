@@ -9,6 +9,7 @@ final class ExpenseJournalStore: ObservableObject {
     @Published private(set) var entries: [ExpenseEntry] = []
     @Published private(set) var budgetPlan: BudgetPlan = .empty
     @Published private(set) var trackedCategories: Set<ExpenseCategory> = []
+    @Published private(set) var recurringTransactions: [RecurringTransaction] = []
 
     private let parser: ExpenseParsingServicing
     private let defaults: UserDefaults
@@ -17,6 +18,7 @@ final class ExpenseJournalStore: ObservableObject {
     private let storageKey = "notely.expense.entries"
     private let budgetPlanStorageKey = "notely.expense.budget-plan"
     private let trackedCategoriesStorageKey = "notely.expense.tracked-categories"
+    private let recurringTransactionsStorageKey = "notely.expense.recurring-transactions"
     private let parseCacheStorageKey = "notely.expense.parse-cache"
     private let maxParseCacheEntryCount = 300
     private var hasStoredTrackedCategories = false
@@ -38,13 +40,17 @@ final class ExpenseJournalStore: ObservableObject {
             entries = Self.mockEntries(calendar: calendar)
             budgetPlan = Self.mockBudgetPlan
             trackedCategories = Set(Self.mockBudgetPlan.categoryTargets.map(\.category))
+            recurringTransactions = Self.mockRecurringTransactions(calendar: calendar)
             hasStoredTrackedCategories = true
+            _ = materializeDueRecurringEntries(upTo: Date())
             updateSharedSurfaces()
         } else {
             load()
             loadBudgetPlan()
             loadTrackedCategories()
+            loadRecurringTransactions()
             loadParseCache()
+            _ = materializeDueRecurringEntries(upTo: Date())
             resumePendingParsesIfNeeded()
             updateSharedSurfaces()
         }
@@ -206,6 +212,117 @@ final class ExpenseJournalStore: ObservableObject {
         persistTrackedCategories()
     }
 
+    func saveRecurringTransaction(
+        _ recurringTransaction: RecurringTransaction,
+        materializeDueEntries: Bool = true
+    ) {
+        var nextRecurringTransactions = recurringTransactions
+
+        if let index = nextRecurringTransactions.firstIndex(where: { $0.id == recurringTransaction.id }) {
+            nextRecurringTransactions[index] = recurringTransaction
+        } else {
+            nextRecurringTransactions.append(recurringTransaction)
+        }
+
+        recurringTransactions = sortedRecurringTransactions(nextRecurringTransactions)
+        persistRecurringTransactions()
+
+        if materializeDueEntries {
+            _ = materializeDueRecurringEntries(upTo: Date())
+        }
+    }
+
+    func removeRecurringTransaction(id: UUID) {
+        recurringTransactions.removeAll { $0.id == id }
+        persistRecurringTransactions()
+
+        let updatedEntries = entries.map { entry -> ExpenseEntry in
+            guard entry.recurringTransactionID == id else {
+                return entry
+            }
+
+            var updatedEntry = entry
+            updatedEntry.recurringTransactionID = nil
+            updatedEntry.recurrenceInstanceKey = nil
+            return updatedEntry
+        }
+
+        if updatedEntries != entries {
+            entries = updatedEntries
+            sortAndPersist()
+        }
+    }
+
+    func recurringTransaction(id: UUID?) -> RecurringTransaction? {
+        guard let id else {
+            return nil
+        }
+
+        return recurringTransactions.first(where: { $0.id == id })
+    }
+
+    @discardableResult
+    func materializeDueRecurringEntries(upTo referenceDate: Date = Date()) -> Bool {
+        guard !recurringTransactions.isEmpty else {
+            return false
+        }
+
+        var nextEntries = entries
+        var nextRecurringTransactions = recurringTransactions
+        let generatedAt = Date()
+        var didChangeEntries = false
+        var didChangeRecurringTransactions = false
+
+        for index in nextRecurringTransactions.indices {
+            let recurringTransaction = nextRecurringTransactions[index]
+            let dueDates = recurringTransaction.dueOccurrenceDates(
+                upTo: referenceDate,
+                calendar: calendar
+            )
+
+            guard !dueDates.isEmpty else {
+                continue
+            }
+
+            for occurrenceDate in dueDates {
+                let instanceKey = RecurringTransaction.recurrenceInstanceKey(
+                    recurringTransactionID: recurringTransaction.id,
+                    occurrenceDate: occurrenceDate
+                )
+
+                guard !nextEntries.contains(where: { $0.recurrenceInstanceKey == instanceKey }) else {
+                    continue
+                }
+
+                nextEntries.append(
+                    recurringTransaction.recurringEntry(
+                        for: occurrenceDate
+                    )
+                )
+                didChangeEntries = true
+            }
+
+            nextRecurringTransactions[index] = recurringTransaction.advancingPastDueOccurrences(
+                dueDates,
+                generatedAt: generatedAt,
+                calendar: calendar
+            )
+            didChangeRecurringTransactions = true
+        }
+
+        if didChangeRecurringTransactions {
+            recurringTransactions = sortedRecurringTransactions(nextRecurringTransactions)
+            persistRecurringTransactions()
+        }
+
+        if didChangeEntries {
+            entries = nextEntries
+            sortAndPersist()
+        }
+
+        return didChangeEntries || didChangeRecurringTransactions
+    }
+
     var effectiveTrackedCategories: Set<ExpenseCategory> {
         if hasStoredTrackedCategories {
             return trackedCategories
@@ -255,7 +372,9 @@ final class ExpenseJournalStore: ObservableObject {
                 merchant: cachedDraft.merchant,
                 note: cachedDraft.note,
                 confidence: cachedDraft.confidence,
-                isAmountEstimated: cachedDraft.isAmountEstimated
+                isAmountEstimated: cachedDraft.isAmountEstimated,
+                isRecurring: cachedDraft.isRecurring,
+                recurringFrequency: cachedDraft.recurringFrequency
             )
         }
 
@@ -283,16 +402,24 @@ final class ExpenseJournalStore: ObservableObject {
 
         let timestampSeed = Date()
         let importedEntries = drafts.enumerated().map { index, draft in
-            importedEntry(
+            let createdAt = timestampSeed.addingTimeInterval(Double(index) * 0.001)
+            let entry = importedEntry(
                 from: draft,
                 on: date,
                 fallbackCurrencyCode: currencyCode,
-                createdAt: timestampSeed.addingTimeInterval(Double(index) * 0.001)
+                createdAt: createdAt
+            )
+
+            return linkRecurringTransactionIfNeeded(
+                for: entry,
+                parsedDraft: draft,
+                createdAt: createdAt
             )
         }
 
         entries.insert(contentsOf: importedEntries, at: 0)
         sortAndPersist()
+        _ = materializeDueRecurringEntries(upTo: Date())
         Haptics.lightImpact()
 
         return importedEntries.map(\.id)
@@ -301,7 +428,8 @@ final class ExpenseJournalStore: ObservableObject {
     func replaceAll(
         entries: [ExpenseEntry],
         budgetPlan: BudgetPlan,
-        trackedCategories: Set<ExpenseCategory>
+        trackedCategories: Set<ExpenseCategory>,
+        recurringTransactions: [RecurringTransaction]
     ) {
         parseTasksByEntryID.values.forEach { $0.cancel() }
         parseTasksByEntryID.removeAll()
@@ -309,11 +437,13 @@ final class ExpenseJournalStore: ObservableObject {
         self.entries = entries
         self.budgetPlan = budgetPlan
         self.trackedCategories = Set(trackedCategories.filter { $0 != .uncategorized })
+        self.recurringTransactions = sortedRecurringTransactions(recurringTransactions)
         hasStoredTrackedCategories = true
 
         sortAndPersist()
         persistBudgetPlan()
         persistTrackedCategories()
+        persistRecurringTransactions()
         updateSharedSurfaces()
     }
 
@@ -376,6 +506,16 @@ final class ExpenseJournalStore: ObservableObject {
         hasStoredTrackedCategories = true
     }
 
+    private func loadRecurringTransactions() {
+        guard let data = defaults.data(forKey: recurringTransactionsStorageKey),
+              let decoded = try? JSONDecoder().decode([RecurringTransaction].self, from: data) else {
+            recurringTransactions = []
+            return
+        }
+
+        recurringTransactions = sortedRecurringTransactions(decoded)
+    }
+
     private func persistBudgetPlan() {
         guard let data = try? JSONEncoder().encode(budgetPlan) else {
             return
@@ -392,6 +532,14 @@ final class ExpenseJournalStore: ObservableObject {
         }
 
         defaults.set(data, forKey: trackedCategoriesStorageKey)
+    }
+
+    private func persistRecurringTransactions() {
+        guard let data = try? JSONEncoder().encode(recurringTransactions) else {
+            return
+        }
+
+        defaults.set(data, forKey: recurringTransactionsStorageKey)
     }
 
     private func updateSharedSurfaces() {
@@ -488,9 +636,9 @@ final class ExpenseJournalStore: ObservableObject {
         let cacheKey = parseCacheKey(rawText: trimmedText, currencyCode: currencyCode)
         if let cachedDraft = parseCacheByKey[cacheKey] {
             parseTasksByEntryID[entryID] = nil
-                applyParsedDraft(
-                    ParsedExpenseDraft(
-                        rawText: trimmedText,
+            applyParsedDraft(
+                ParsedExpenseDraft(
+                    rawText: trimmedText,
                     title: cachedDraft.title,
                     amount: cachedDraft.amount,
                     currencyCode: cachedDraft.currencyCode,
@@ -499,13 +647,15 @@ final class ExpenseJournalStore: ObservableObject {
                     merchant: cachedDraft.merchant,
                     note: cachedDraft.note,
                     confidence: cachedDraft.confidence,
-                    isAmountEstimated: cachedDraft.isAmountEstimated
-                    ),
-                    entryID: entryID,
-                    expectedRawText: rawText,
-                    createdCurrencyCode: currencyCode,
-                    sendsHapticFeedback: sendsHapticFeedback
-                )
+                    isAmountEstimated: cachedDraft.isAmountEstimated,
+                    isRecurring: cachedDraft.isRecurring,
+                    recurringFrequency: cachedDraft.recurringFrequency
+                ),
+                entryID: entryID,
+                expectedRawText: rawText,
+                createdCurrencyCode: currencyCode,
+                sendsHapticFeedback: sendsHapticFeedback
+            )
             return
         }
 
@@ -574,7 +724,7 @@ final class ExpenseJournalStore: ObservableObject {
             ? .review
             : draft.confidence
 
-        entries[index] = ExpenseEntry(
+        var updatedEntry = ExpenseEntry(
             id: currentEntry.id,
             rawText: currentEntry.rawText,
             title: draft.title.isEmpty ? currentEntry.title : draft.title,
@@ -587,9 +737,24 @@ final class ExpenseJournalStore: ObservableObject {
             note: draft.note.isEmpty ? currentEntry.note : draft.note,
             confidence: resolvedConfidence,
             isAmountEstimated: draft.isAmountEstimated,
+            createdAt: currentEntry.createdAt,
+            recurringTransactionID: currentEntry.recurringTransactionID,
+            recurrenceInstanceKey: currentEntry.recurrenceInstanceKey
+        )
+
+        let linkedEntry = linkRecurringTransactionIfNeeded(
+            for: updatedEntry,
+            parsedDraft: draft,
             createdAt: currentEntry.createdAt
         )
+        let shouldMaterializeRecurring = linkedEntry.recurringTransactionID != currentEntry.recurringTransactionID
+        updatedEntry = linkedEntry
+        entries[index] = updatedEntry
         sortAndPersist()
+
+        if shouldMaterializeRecurring {
+            _ = materializeDueRecurringEntries(upTo: Date())
+        }
 
         if sendsHapticFeedback {
             Haptics.lightImpact()
@@ -727,7 +892,9 @@ final class ExpenseJournalStore: ObservableObject {
             merchant: draft.merchant,
             note: draft.note,
             confidence: draft.confidence,
-            isAmountEstimated: draft.isAmountEstimated
+            isAmountEstimated: draft.isAmountEstimated,
+            isRecurring: draft.isRecurring,
+            recurringFrequency: draft.recurringFrequency
         )
 
         if parseCacheByKey.count > maxParseCacheEntryCount {
@@ -760,10 +927,95 @@ final class ExpenseJournalStore: ObservableObject {
                 merchant: entry.merchant,
                 note: entry.note,
                 confidence: entry.confidence,
-                isAmountEstimated: false
+                isAmountEstimated: false,
+                isRecurring: false,
+                recurringFrequency: nil
             ),
             for: parseCacheKey(rawText: trimmedText, currencyCode: entry.currencyCode)
         )
+    }
+
+    private func linkRecurringTransactionIfNeeded(
+        for entry: ExpenseEntry,
+        parsedDraft: ParsedExpenseDraft,
+        createdAt: Date
+    ) -> ExpenseEntry {
+        guard parsedDraft.isRecurring, entry.amount > 0, entry.recurringTransactionID == nil else {
+            return entry
+        }
+
+        let frequency = parsedDraft.recurringFrequency ?? .monthly
+
+        if let existingRecurringTransaction = matchingRecurringTransaction(
+            for: entry,
+            frequency: frequency
+        ) {
+            let instanceKey = RecurringTransaction.recurrenceInstanceKey(
+                recurringTransactionID: existingRecurringTransaction.id,
+                occurrenceDate: existingRecurringTransaction.nextOccurrenceAt
+            )
+
+            guard !entries.contains(where: {
+                $0.id != entry.id && $0.recurrenceInstanceKey == instanceKey
+            }) else {
+                return entry
+            }
+
+            var linkedEntry = entry
+            linkedEntry.recurringTransactionID = existingRecurringTransaction.id
+            linkedEntry.recurrenceInstanceKey = instanceKey
+            return linkedEntry
+        }
+
+        var recurringDraft = RecurringTransactionDraft(entry: entry)
+        recurringDraft.frequency = frequency
+
+        let preferredTemplate = entry.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !preferredTemplate.isEmpty {
+            recurringDraft.rawTextTemplate = preferredTemplate
+        }
+
+        let recurringTransaction = recurringDraft.recurringTransaction(
+            calendar: calendar,
+            now: createdAt
+        )
+
+        saveRecurringTransaction(
+            recurringTransaction,
+            materializeDueEntries: false
+        )
+
+        var linkedEntry = entry
+        linkedEntry.recurringTransactionID = recurringTransaction.id
+        linkedEntry.recurrenceInstanceKey = RecurringTransaction.recurrenceInstanceKey(
+            recurringTransactionID: recurringTransaction.id,
+            occurrenceDate: entry.date
+        )
+        return linkedEntry
+    }
+
+    private func matchingRecurringTransaction(
+        for entry: ExpenseEntry,
+        frequency: RecurringFrequency
+    ) -> RecurringTransaction? {
+        let normalizedTitle = entry.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedMerchant = entry.merchant?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+
+        return recurringTransactions.first { recurringTransaction in
+            recurringTransaction.frequency == frequency
+                && recurringTransaction.transactionKind == entry.transactionKind
+                && recurringTransaction.category == entry.category
+                && abs(recurringTransaction.amount - entry.amount) < 0.0001
+                && recurringTransaction.currencyCode.caseInsensitiveCompare(entry.currencyCode) == .orderedSame
+                && calendar.isDate(recurringTransaction.nextOccurrenceAt, inSameDayAs: entry.date)
+                && recurringTransaction.title.trimmingCharacters(in: .whitespacesAndNewlines)
+                    .caseInsensitiveCompare(normalizedTitle) == .orderedSame
+                && recurringTransaction.merchant?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .lowercased() == normalizedMerchant
+        }
     }
 
     private func parseCacheKey(rawText: String, currencyCode: String) -> String {
@@ -880,6 +1132,20 @@ final class ExpenseJournalStore: ObservableObject {
 
         return dayEntries[referenceIndex + 1]
     }
+
+    private func sortedRecurringTransactions(_ transactions: [RecurringTransaction]) -> [RecurringTransaction] {
+        transactions.sorted { lhs, rhs in
+            if lhs.isActive != rhs.isActive {
+                return lhs.isActive && !rhs.isActive
+            }
+
+            if lhs.nextOccurrenceAt == rhs.nextOccurrenceAt {
+                return lhs.title.localizedCaseInsensitiveCompare(rhs.title) == .orderedAscending
+            }
+
+            return lhs.nextOccurrenceAt < rhs.nextOccurrenceAt
+        }
+    }
 }
 
 private extension ExpenseJournalStore {
@@ -976,5 +1242,34 @@ private extension ExpenseJournalStore {
                 isAmountEstimated: false
             )
         ].sorted { $0.date > $1.date }
+    }
+
+    static func mockRecurringTransactions(calendar: Calendar) -> [RecurringTransaction] {
+        let now = Date()
+        let nextBillDate = calendar.date(byAdding: .day, value: 5, to: now) ?? now
+
+        return [
+            RecurringTransaction(
+                id: UUID(),
+                title: "Streaming",
+                rawTextTemplate: "Streaming 149".notyfiLocalized,
+                amount: 149,
+                currencyCode: "NOK",
+                transactionKind: .expense,
+                category: .entertainment,
+                merchant: "Netflix",
+                note: "",
+                frequency: .monthly,
+                interval: 1,
+                startsAt: nextBillDate,
+                nextOccurrenceAt: nextBillDate,
+                endsAt: nil,
+                isActive: true,
+                autopost: true,
+                lastGeneratedAt: nil,
+                createdAt: now,
+                updatedAt: now
+            )
+        ]
     }
 }
