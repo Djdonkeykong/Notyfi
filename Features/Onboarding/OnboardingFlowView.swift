@@ -374,6 +374,7 @@ struct OnboardingFlowView: View {
             store.setMonthlySpendingLimit(amount)
             navigate(to: .categories)
         case .categories:
+            store.setTrackedCategories(selectedCategories)
             navigate(to: .allocate)
         case .allocate:
             for (category, text) in categoryBudgetTexts {
@@ -390,6 +391,7 @@ struct OnboardingFlowView: View {
         case .inputMethods:
             navigate(to: .widget)
         case .widget:
+            PendingOnboardingBootstrap.markPending()
             navigate(to: .auth)
         default:
             break

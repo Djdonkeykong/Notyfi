@@ -55,12 +55,13 @@ final class HomeViewModel: ObservableObject {
         self.calendar = calendar
         self.currencyCode = NotyfiCurrency.currentCode(defaults: defaults)
 
-        Publishers.CombineLatest3(store.$entries, $selectedDate, store.$budgetPlan)
-            .sink { [weak self] entries, date, budgetPlan in
+        Publishers.CombineLatest4(store.$entries, $selectedDate, store.$budgetPlan, store.$trackedCategories)
+            .sink { [weak self] entries, date, budgetPlan, _ in
                 self?.recompute(
                     entries: entries,
                     selectedDate: date,
-                    budgetPlan: budgetPlan
+                    budgetPlan: budgetPlan,
+                    trackedCategories: store.effectiveTrackedCategories
                 )
             }
             .store(in: &cancellables)
@@ -84,6 +85,14 @@ final class HomeViewModel: ObservableObject {
 
     var budgetPlan: BudgetPlan {
         store.budgetPlan
+    }
+
+    var trackedCategories: Set<ExpenseCategory> {
+        store.effectiveTrackedCategories
+    }
+
+    var orderedTrackedCategories: [ExpenseCategory] {
+        ExpenseCategory.trackableCases.filter { trackedCategories.contains($0) }
     }
 
     var draftFeedback: DraftComposerFeedback? {
@@ -505,11 +514,20 @@ final class HomeViewModel: ObservableObject {
         store.setCategoryBudget(amount, for: category)
     }
 
+    func setTrackedCategories(_ categories: Set<ExpenseCategory>) {
+        store.setTrackedCategories(categories)
+    }
+
     func suggestedMonthlyBudgetAmount() -> Double? {
         budgetInsight.suggestedMonthlyBudget
     }
 
-    private func recompute(entries: [ExpenseEntry], selectedDate: Date, budgetPlan: BudgetPlan) {
+    private func recompute(
+        entries: [ExpenseEntry],
+        selectedDate: Date,
+        budgetPlan: BudgetPlan,
+        trackedCategories: Set<ExpenseCategory>
+    ) {
         displayedEntries = sortEntriesChronologically(
             entries.filter { calendar.isDate($0.date, inSameDayAs: selectedDate) }
         )
@@ -526,18 +544,24 @@ final class HomeViewModel: ObservableObject {
         let monthEntries = entries.filter {
             calendar.isDate($0.date, equalTo: selectedDate, toGranularity: .month)
         }
+        let selectedCurrencyEntries = monthEntries.filter {
+            $0.currencyCode.caseInsensitiveCompare(currencyCode) == .orderedSame
+        }
+        let selectedCurrencyDisplayedEntries = displayedEntries.filter {
+            $0.currencyCode.caseInsensitiveCompare(currencyCode) == .orderedSame
+        }
 
-        let dayExpenseTotal = displayedEntries
+        let dayExpenseTotal = selectedCurrencyDisplayedEntries
             .filter { $0.transactionKind == .expense }
             .reduce(0) { $0 + $1.amount }
-        let dayIncomeTotal = displayedEntries
+        let dayIncomeTotal = selectedCurrencyDisplayedEntries
             .filter { $0.transactionKind == .income }
             .reduce(0) { $0 + $1.amount }
         let dayNetTotal = dayIncomeTotal - dayExpenseTotal
 
-        let monthExpenseEntries = monthEntries.filter { $0.transactionKind == .expense }
+        let monthExpenseEntries = selectedCurrencyEntries.filter { $0.transactionKind == .expense }
         let monthExpenseTotal = monthExpenseEntries.reduce(0) { $0 + $1.amount }
-        let monthIncomeTotal = monthEntries
+        let monthIncomeTotal = selectedCurrencyEntries
             .filter { $0.transactionKind == .income }
             .reduce(0) { $0 + $1.amount }
         let monthNetTotal = monthIncomeTotal - monthExpenseTotal
@@ -559,8 +583,8 @@ final class HomeViewModel: ObservableObject {
             monthIncomeTotal: monthIncomeTotal,
             monthNetTotal: monthNetTotal,
             topCategory: topCategory,
-            reviewCount: monthEntries.filter { $0.confidence.needsReview }.count,
-            monthEntryCount: monthEntries.count,
+            reviewCount: selectedCurrencyEntries.filter { $0.confidence.needsReview }.count,
+            monthEntryCount: selectedCurrencyEntries.count,
             monthAveragePerEntry: monthAveragePerEntry,
             topCategoryShare: topCategoryShare,
             categoryBreakdown: categoryBreakdown
@@ -571,7 +595,8 @@ final class HomeViewModel: ObservableObject {
             monthExpenseEntries: monthExpenseEntries,
             monthExpenseTotal: monthExpenseTotal,
             monthIncomeTotal: monthIncomeTotal,
-            budgetPlan: budgetPlan
+            budgetPlan: budgetPlan,
+            trackedCategories: trackedCategories
         )
     }
 
@@ -673,7 +698,8 @@ final class HomeViewModel: ObservableObject {
         monthExpenseEntries: [ExpenseEntry],
         monthExpenseTotal: Double,
         monthIncomeTotal: Double,
-        budgetPlan: BudgetPlan
+        budgetPlan: BudgetPlan,
+        trackedCategories: Set<ExpenseCategory>
     ) -> BudgetInsight {
         let daysInMonth = calendar.range(of: .day, in: .month, for: date)?.count ?? 30
         let daysElapsed = max(1, min(calendar.component(.day, from: date), daysInMonth))
@@ -695,7 +721,7 @@ final class HomeViewModel: ObservableObject {
         )
 
         let groupedEntries = Dictionary(grouping: monthExpenseEntries, by: \.category)
-        var categories = ExpenseCategory.allCases.filter { $0 != .uncategorized }
+        var categories = ExpenseCategory.trackableCases.filter { trackedCategories.contains($0) }
 
         if groupedEntries[.uncategorized] != nil || budgetPlan.target(for: .uncategorized) > 0 {
             categories.append(.uncategorized)

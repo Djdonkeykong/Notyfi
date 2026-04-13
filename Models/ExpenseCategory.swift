@@ -15,6 +15,10 @@ enum ExpenseCategory: String, CaseIterable, Codable, Identifiable {
 
     var id: String { rawValue }
 
+    static var trackableCases: [ExpenseCategory] {
+        allCases.filter { $0 != .uncategorized }
+    }
+
     var title: String {
         switch self {
         case .food:

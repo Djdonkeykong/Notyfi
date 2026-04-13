@@ -3,11 +3,24 @@ import SwiftUI
 struct AppRootView: View {
     @ObservedObject var store: ExpenseJournalStore
     @StateObject private var authManager = AuthManager()
-    @StateObject private var languageManager = LanguageManager()
+    @StateObject private var languageManager: LanguageManager
+    @StateObject private var cloudSyncManager: CloudSyncManager
 
     @AppStorage("notyfi.onboarding.complete") private var hasCompletedOnboarding = false
     @AppStorage(NotyfiAppearanceMode.storageKey) private var appearanceModeRawValue = NotyfiAppearanceMode.system.rawValue
     @State private var minimumSplashElapsed = false
+
+    init(store: ExpenseJournalStore) {
+        self.store = store
+        let languageManager = LanguageManager()
+        _languageManager = StateObject(wrappedValue: languageManager)
+        _cloudSyncManager = StateObject(
+            wrappedValue: CloudSyncManager(
+                store: store,
+                languageManager: languageManager
+            )
+        )
+    }
 
     var body: some View {
         Group {
@@ -31,6 +44,12 @@ struct AppRootView: View {
         .onChange(of: authManager.isAuthenticated) { _, _ in
             syncOnboardingWithAuthState()
         }
+        .task(id: syncTaskID) {
+            await cloudSyncManager.refreshAuthenticationState(
+                isReady: authManager.isReady,
+                isAuthenticated: authManager.isAuthenticated
+            )
+        }
         .task {
             guard !minimumSplashElapsed else { return }
             try? await Task.sleep(nanoseconds: 500_000_000)
@@ -51,11 +70,17 @@ struct AppRootView: View {
     }
 
     private var shouldShowSplash: Bool {
-        !minimumSplashElapsed || !authManager.isReady
+        !minimumSplashElapsed
+            || !authManager.isReady
+            || (authManager.isAuthenticated && !cloudSyncManager.isReady)
     }
 
     private var appearanceMode: NotyfiAppearanceMode {
         NotyfiAppearanceMode(rawValue: appearanceModeRawValue) ?? .system
+    }
+
+    private var syncTaskID: String {
+        "\(authManager.isReady)-\(authManager.isAuthenticated)"
     }
 
     private func syncOnboardingWithAuthState() {

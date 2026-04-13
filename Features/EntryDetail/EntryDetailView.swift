@@ -237,7 +237,7 @@ struct EntryDetailView: View {
                     )
 
                     SummaryMetricChip(
-                        value: viewModel.date.formatted(.dateTime.hour().minute()),
+                        value: viewModel.date.notyfiTimeLabel(),
                         label: "Time",
                         tint: Color(red: 0.71, green: 0.43, blue: 0.84),
                         systemImage: "clock.fill"

@@ -265,15 +265,17 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         date: Date,
         currencyCode: String
     ) -> [String: Any] {
-        let appLanguage = currentAppLanguageCode()
+        let appLanguage = currentAppLanguageContext()
         let userContent = """
         Note: \(rawText)
         Date: \(ISO8601DateFormatter().string(from: date))
         Currency: \(currencyCode)
-        App language: \(appLanguage)
+        Target language: \(appLanguage.name) (\(appLanguage.code))
 
         Return one transaction JSON object. Infer a short title, amount as a positive number, transactionKind as expense/income, one allowed category, merchant if explicit, note as "" unless useful, confidence as certain/review/uncertain, and isAmountEstimated as true/false.
-        Write title and note in the app language above. Keep transactionKind, category, confidence, and boolean fields as schema values.
+        All natural-language fields must be written in \(appLanguage.name). Do not write English unless the target language is English.
+        Write title and note in the target language above. Keep merchant in its original spelling when it is a brand or proper name.
+        Keep transactionKind, category, confidence, and boolean fields as schema values.
         Use transactionKind "income" for salary, freelance pay, refunds, reimbursements, gifts received, or money coming in. Use "expense" for spending, bills, purchases, subscriptions, or money going out.
         If no amount is written but the note mentions a concrete item/place, estimate a plausible amount in the given currency, set confidence "review", and set isAmountEstimated true. If there is not enough context to estimate, use amount 0, confidence "review", and isAmountEstimated false.
         """
@@ -284,7 +286,7 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
             "messages": [
                 [
                     "role": "system",
-                    "content": "You convert Norwegian or English personal finance notes into strict transaction JSON for a budgeting app."
+                    "content": "You convert personal finance notes into strict transaction JSON for a budgeting app. Always write natural-language output fields in the requested target language."
                 ],
                 [
                     "role": "user",
@@ -349,14 +351,14 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         date: Date,
         currencyCode: String
     ) -> [String: Any] {
-        let appLanguage = currentAppLanguageCode()
+        let appLanguage = currentAppLanguageContext()
         let base64Image = imageData.base64EncodedString()
         let imageDataURL = "data:\(mimeType);base64,\(base64Image)"
         let userPrompt = """
         Analyze this personal-finance photo and return one or more transaction JSON objects.
         Date context: \(ISO8601DateFormatter().string(from: date))
         Default currency: \(currencyCode)
-        App language: \(appLanguage)
+        Target language: \(appLanguage.name) (\(appLanguage.code))
 
         Rules:
         - Return one entry per distinct money movement visible in the image.
@@ -370,7 +372,9 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         - Use category uncategorized when no listed category fits well, including stock purchases or investment-related documents.
         - Use note for useful extra context from the image, such as billing period, share count, ticker, provider, or order details.
         - If any detail is unclear, keep the entry but lower confidence to review or uncertain.
-        - Write rawText, title, merchant, and note in the app language above.
+        - All natural-language fields must be written in \(appLanguage.name). Do not write English unless the target language is English.
+        - Write rawText, title, and note in the target language above.
+        - Keep merchant in its original spelling when it is a brand or proper name.
         """
 
         return [
@@ -379,7 +383,7 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
             "messages": [
                 [
                     "role": "system",
-                    "content": "You convert finance-related photos into strict transaction JSON for a budgeting app."
+                    "content": "You convert finance-related photos into strict transaction JSON for a budgeting app. Always write natural-language output fields in the requested target language."
                 ],
                 [
                     "role": "user",
@@ -419,18 +423,24 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         ]
     }
 
-    private func currentAppLanguageCode() -> String {
+    private func currentAppLanguageContext() -> (code: String, name: String) {
         let saved = UserDefaults.standard.string(forKey: LanguageManager.storageKey)
         let selectedLanguage = NotyfiLanguage(rawValue: saved ?? "") ?? .system
 
         if let localeCode = selectedLanguage.localeCode {
-            return localeCode
+            return (localeCode, selectedLanguage.promptLanguageName)
         }
 
         let systemCode = Locale.preferredLanguages.first
             .flatMap { Locale(identifier: $0).language.languageCode?.identifier }
 
-        return systemCode ?? "en"
+        let resolvedCode = systemCode ?? "en"
+        let resolvedName = Locale(identifier: "en_US_POSIX")
+            .localizedString(forLanguageCode: resolvedCode)?
+            .capitalized
+            ?? "English"
+
+        return (resolvedCode, resolvedName)
     }
 
     private func parsedExpenseDraftSchema() -> [String: Any] {

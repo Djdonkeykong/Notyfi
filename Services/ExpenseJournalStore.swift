@@ -8,6 +8,7 @@ import WidgetKit
 final class ExpenseJournalStore: ObservableObject {
     @Published private(set) var entries: [ExpenseEntry] = []
     @Published private(set) var budgetPlan: BudgetPlan = .empty
+    @Published private(set) var trackedCategories: Set<ExpenseCategory> = []
 
     private let parser: ExpenseParsingServicing
     private let defaults: UserDefaults
@@ -15,8 +16,10 @@ final class ExpenseJournalStore: ObservableObject {
     private let calendar: Calendar
     private let storageKey = "notely.expense.entries"
     private let budgetPlanStorageKey = "notely.expense.budget-plan"
+    private let trackedCategoriesStorageKey = "notely.expense.tracked-categories"
     private let parseCacheStorageKey = "notely.expense.parse-cache"
     private let maxParseCacheEntryCount = 300
+    private var hasStoredTrackedCategories = false
     private var parseTasksByEntryID: [UUID: Task<Void, Never>] = [:]
     private var parseCacheByKey: [String: ParsedExpenseDraft] = [:]
 
@@ -34,10 +37,13 @@ final class ExpenseJournalStore: ObservableObject {
         if previewMode {
             entries = Self.mockEntries(calendar: calendar)
             budgetPlan = Self.mockBudgetPlan
+            trackedCategories = Set(Self.mockBudgetPlan.categoryTargets.map(\.category))
+            hasStoredTrackedCategories = true
             updateSharedSurfaces()
         } else {
             load()
             loadBudgetPlan()
+            loadTrackedCategories()
             loadParseCache()
             resumePendingParsesIfNeeded()
             updateSharedSurfaces()
@@ -194,6 +200,20 @@ final class ExpenseJournalStore: ObservableObject {
         persistBudgetPlan()
     }
 
+    func setTrackedCategories(_ categories: Set<ExpenseCategory>) {
+        trackedCategories = Set(categories.filter { $0 != .uncategorized })
+        hasStoredTrackedCategories = true
+        persistTrackedCategories()
+    }
+
+    var effectiveTrackedCategories: Set<ExpenseCategory> {
+        if hasStoredTrackedCategories {
+            return trackedCategories
+        }
+
+        return Set(ExpenseCategory.trackableCases)
+    }
+
     func entries(on date: Date) -> [ExpenseEntry] {
         entries.filter { calendar.isDate($0.date, inSameDayAs: date) }
     }
@@ -278,6 +298,25 @@ final class ExpenseJournalStore: ObservableObject {
         return importedEntries.map(\.id)
     }
 
+    func replaceAll(
+        entries: [ExpenseEntry],
+        budgetPlan: BudgetPlan,
+        trackedCategories: Set<ExpenseCategory>
+    ) {
+        parseTasksByEntryID.values.forEach { $0.cancel() }
+        parseTasksByEntryID.removeAll()
+
+        self.entries = entries
+        self.budgetPlan = budgetPlan
+        self.trackedCategories = Set(trackedCategories.filter { $0 != .uncategorized })
+        hasStoredTrackedCategories = true
+
+        sortAndPersist()
+        persistBudgetPlan()
+        persistTrackedCategories()
+        updateSharedSurfaces()
+    }
+
     private func load() {
         guard let data = defaults.data(forKey: storageKey) else {
             entries = []
@@ -325,6 +364,18 @@ final class ExpenseJournalStore: ObservableObject {
         budgetPlan = decoded
     }
 
+    private func loadTrackedCategories() {
+        guard let data = defaults.data(forKey: trackedCategoriesStorageKey),
+              let decoded = try? JSONDecoder().decode([ExpenseCategory].self, from: data) else {
+            trackedCategories = []
+            hasStoredTrackedCategories = false
+            return
+        }
+
+        trackedCategories = Set(decoded.filter { $0 != .uncategorized })
+        hasStoredTrackedCategories = true
+    }
+
     private func persistBudgetPlan() {
         guard let data = try? JSONEncoder().encode(budgetPlan) else {
             return
@@ -332,6 +383,15 @@ final class ExpenseJournalStore: ObservableObject {
 
         defaults.set(data, forKey: budgetPlanStorageKey)
         updateSharedSurfaces()
+    }
+
+    private func persistTrackedCategories() {
+        let orderedCategories = ExpenseCategory.trackableCases.filter { trackedCategories.contains($0) }
+        guard let data = try? JSONEncoder().encode(orderedCategories) else {
+            return
+        }
+
+        defaults.set(data, forKey: trackedCategoriesStorageKey)
     }
 
     private func updateSharedSurfaces() {
@@ -348,11 +408,14 @@ final class ExpenseJournalStore: ObservableObject {
     }
 
     private func makeFinanceSnapshot(referenceDate: Date) -> NotyfiFinanceSnapshot {
+        let activeCurrencyCode = NotyfiCurrency.currentCode(defaults: defaults)
         let todayEntries = entries.filter {
             calendar.isDate($0.date, inSameDayAs: referenceDate)
+                && $0.currencyCode.caseInsensitiveCompare(activeCurrencyCode) == .orderedSame
         }
         let monthEntries = entries.filter {
             calendar.isDate($0.date, equalTo: referenceDate, toGranularity: .month)
+                && $0.currencyCode.caseInsensitiveCompare(activeCurrencyCode) == .orderedSame
         }
 
         let todaySpent = todayEntries
@@ -370,7 +433,7 @@ final class ExpenseJournalStore: ObservableObject {
 
         return NotyfiFinanceSnapshot(
             generatedAt: referenceDate,
-            currencyCode: monthEntries.first?.currencyCode ?? NotyfiCurrency.currentCode(defaults: defaults),
+            currencyCode: monthEntries.first?.currencyCode ?? activeCurrencyCode,
             todaySpent: todaySpent,
             monthSpent: monthSpent,
             monthIncome: monthIncome,

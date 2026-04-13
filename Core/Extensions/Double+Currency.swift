@@ -4,6 +4,7 @@ extension Double {
     func formattedAmount() -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
+        formatter.locale = NotyfiLocale.current()
         formatter.minimumFractionDigits = 0
         formatter.maximumFractionDigits = 0
         formatter.roundingMode = .halfUp
@@ -14,7 +15,7 @@ extension Double {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = code
-        formatter.locale = .autoupdatingCurrent
+        formatter.locale = NotyfiLocale.current()
         formatter.minimumFractionDigits = 0
         formatter.maximumFractionDigits = 0
         formatter.roundingMode = .halfUp

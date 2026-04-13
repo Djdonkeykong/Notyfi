@@ -21,6 +21,37 @@ enum NotyfiLanguage: String, CaseIterable, Identifiable {
         self == .system ? nil : rawValue
     }
 
+    var localeIdentifier: String? {
+        switch self {
+        case .system:
+            return nil
+        case .english:
+            return "en_US"
+        case .danish:
+            return "da_DK"
+        case .german:
+            return "de_DE"
+        case .spanish:
+            return "es_ES"
+        case .finnish:
+            return "fi_FI"
+        case .french:
+            return "fr_FR"
+        case .italian:
+            return "it_IT"
+        case .norwegian:
+            return "nb_NO"
+        case .dutch:
+            return "nl_NL"
+        case .polish:
+            return "pl_PL"
+        case .portuguese:
+            return "pt_PT"
+        case .swedish:
+            return "sv_SE"
+        }
+    }
+
     var flag: String {
         switch self {
         case .system:      return ""
@@ -54,6 +85,24 @@ enum NotyfiLanguage: String, CaseIterable, Identifiable {
         case .polish:      return "Polski"
         case .portuguese:  return "Português"
         case .swedish:     return "Svenska"
+        }
+    }
+
+    var promptLanguageName: String {
+        switch self {
+        case .system:      return "System language"
+        case .english:     return "English"
+        case .danish:      return "Danish"
+        case .german:      return "German"
+        case .spanish:     return "Spanish"
+        case .finnish:     return "Finnish"
+        case .french:      return "French"
+        case .italian:     return "Italian"
+        case .norwegian:   return "Norwegian"
+        case .dutch:       return "Dutch"
+        case .polish:      return "Polish"
+        case .portuguese:  return "Portuguese"
+        case .swedish:     return "Swedish"
         }
     }
 

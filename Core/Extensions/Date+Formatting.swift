@@ -2,6 +2,8 @@ import Foundation
 
 extension Date {
     func notyfiDayTitle(calendar: Calendar = .autoupdatingCurrent) -> String {
+        let appLocale = NotyfiLocale.current()
+
         if calendar.isDateInToday(self) {
             return "Today".notyfiLocalized
         }
@@ -12,9 +14,9 @@ extension Date {
 
         let formatter = DateFormatter()
         formatter.calendar = calendar
-        formatter.locale = .autoupdatingCurrent
+        formatter.locale = appLocale
         formatter.setLocalizedDateFormatFromTemplate("MMMd")
-        return formatter.string(from: self).uppercased(with: .autoupdatingCurrent)
+        return formatter.string(from: self).uppercased(with: appLocale)
     }
 
     func notyfiSectionTitle(calendar: Calendar = .autoupdatingCurrent) -> String {
@@ -22,14 +24,27 @@ extension Date {
             return "Today".notyfiLocalized
         }
 
-        return formatted(.dateTime.month(.wide).day())
+        return formatted(
+            .dateTime
+                .month(.wide)
+                .day()
+                .locale(NotyfiLocale.current())
+        )
     }
 
     func notyfiTimeLabel() -> String {
-        formatted(date: .omitted, time: .shortened)
+        formatted(.dateTime.hour().minute().locale(NotyfiLocale.current()))
     }
 
     func notyfiDetailLabel() -> String {
-        formatted(.dateTime.weekday(.wide).month(.wide).day().hour().minute())
+        formatted(
+            .dateTime
+                .weekday(.wide)
+                .month(.wide)
+                .day()
+                .hour()
+                .minute()
+                .locale(NotyfiLocale.current())
+        )
     }
 }

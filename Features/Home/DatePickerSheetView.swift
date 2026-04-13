@@ -15,7 +15,9 @@ struct DatePickerSheetView: View {
     private let actionButtonHeight: CGFloat = 44
 
     private var calendar: Calendar {
-        Calendar.autoupdatingCurrent
+        var calendar = Calendar.autoupdatingCurrent
+        calendar.locale = NotyfiLocale.current()
+        return calendar
     }
 
     private var monthStart: Date {
@@ -23,20 +25,25 @@ struct DatePickerSheetView: View {
     }
 
     private var monthTitle: String {
-        monthStart.formatted(.dateTime.month(.abbreviated).year())
+        monthStart.formatted(
+            .dateTime
+                .month(.abbreviated)
+                .year()
+                .locale(NotyfiLocale.current())
+        )
     }
 
     private var monthSymbols: [String] {
         let formatter = DateFormatter()
         formatter.calendar = calendar
-        formatter.locale = .autoupdatingCurrent
+        formatter.locale = NotyfiLocale.current()
         return formatter.shortStandaloneMonthSymbols ?? formatter.shortMonthSymbols ?? []
     }
 
     private var weekdaySymbols: [String] {
         let formatter = DateFormatter()
         formatter.calendar = calendar
-        formatter.locale = .autoupdatingCurrent
+        formatter.locale = NotyfiLocale.current()
         let symbols = formatter.veryShortStandaloneWeekdaySymbols ?? []
 
         guard symbols.count == 7 else {

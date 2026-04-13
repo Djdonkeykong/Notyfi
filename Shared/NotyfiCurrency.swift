@@ -111,6 +111,12 @@ enum NotyfiCurrency {
         currentPreference(defaults: defaults).currencyCode
     }
 
+    static func preference(for currencyCode: String) -> NotyfiCurrencyPreference? {
+        NotyfiCurrencyPreference.allCases.first {
+            $0 != .auto && $0.currencyCode.caseInsensitiveCompare(currencyCode) == .orderedSame
+        }
+    }
+
     /// A locally sensible coffee price for placeholder/example text.
     static func coffeePlaceholderAmount(for code: String) -> Double {
         switch code.uppercased() {

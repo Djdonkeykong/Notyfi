@@ -30,6 +30,15 @@ final class LanguageManager: ObservableObject {
         refreshID = UUID()
     }
 
+    func applyStoredPreference() {
+        let saved = UserDefaults.standard.string(forKey: Self.storageKey)
+        let language = NotyfiLanguage(rawValue: saved ?? "") ?? .system
+        guard language != current else { return }
+        current = language
+        Self.applyBundle(for: language)
+        refreshID = UUID()
+    }
+
     private static func applyBundle(for language: NotyfiLanguage) {
         guard let code = language.localeCode,
               let path = Bundle.main.path(forResource: code, ofType: "lproj"),

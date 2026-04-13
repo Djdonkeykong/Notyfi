@@ -28,7 +28,7 @@ struct EmptyJournalStateView: View {
                     String(
                         format: "Nothing logged format".notyfiLocalized,
                         selectedDate.notyfiSectionTitle().lowercased(
-                            with: .autoupdatingCurrent
+                            with: NotyfiLocale.current()
                         )
                     )
                 )
