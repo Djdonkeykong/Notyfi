@@ -676,10 +676,10 @@ private extension HomeView {
 
         if let parsingError = error as? ExpenseParsingServiceError {
             switch parsingError {
-            case .missingAPIKey:
+            case .serviceUnavailable:
                 return PhotoImportAlert(
                     title: "AI parsing unavailable".notyfiLocalized,
-                    message: "This build is missing the API key needed to read photos.".notyfiLocalized
+                    message: "That photo could not be read right now. Try again with a clearer shot.".notyfiLocalized
                 )
             case .noTransactionsFound:
                 return PhotoImportAlert(

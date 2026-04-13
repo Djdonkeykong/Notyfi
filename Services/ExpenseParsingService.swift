@@ -1,4 +1,5 @@
 import Foundation
+import Supabase
 
 struct ParsedExpenseDraft: Codable {
     var rawText: String
@@ -90,26 +91,37 @@ protocol ExpenseParsingServicing {
     ) async throws -> [ParsedExpenseDraft]
 }
 
-enum ExpenseParsingServiceError: Error {
-    case missingAPIKey
+enum ExpenseParsingServiceError: LocalizedError {
+    case serviceUnavailable
     case emptyModelResponse
     case noTransactionsFound
+
+    var errorDescription: String? {
+        switch self {
+        case .serviceUnavailable:
+            return "AI parsing unavailable".notyfiLocalized
+        case .emptyModelResponse:
+            return "error.api.unknown".notyfiLocalized
+        case .noTransactionsFound:
+            return "Nothing to import".notyfiLocalized
+        }
+    }
 }
 
 struct OpenAIExpenseParsingService: ExpenseParsingServicing {
     enum RequestError: LocalizedError {
-        case http(statusCode: Int, message: String)
+        case http(statusCode: Int, code: String?, message: String)
 
         var errorDescription: String? {
             switch self {
-            case let .http(_, message):
+            case let .http(_, _, message):
                 return message
             }
         }
 
         var isRetryable: Bool {
             switch self {
-            case let .http(statusCode, _):
+            case let .http(statusCode, _, _):
                 return statusCode == 408
                     || statusCode == 409
                     || statusCode == 429
@@ -118,52 +130,11 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         }
     }
 
-    private let apiKey: String?
-    private let textModel: String
-    private let imageModel: String
-    private let endpointURL: URL
-    private let session: URLSession
+    private let functionName: String
     private let decoder = JSONDecoder()
 
-    init(
-        apiKey: String? = OpenAIExpenseParsingService.resolveAPIKey(),
-        textModel: String = "gpt-4.1-mini",
-        imageModel: String = "gpt-4.1",
-        endpointURL: URL = URL(string: "https://api.openai.com/v1/chat/completions")!,
-        session: URLSession = .shared
-    ) {
-        self.apiKey = apiKey?.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.textModel = textModel
-        self.imageModel = imageModel
-        self.endpointURL = endpointURL
-        self.session = session
-    }
-
-    private static func resolveAPIKey() -> String? {
-        let environmentKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"]?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if let environmentKey, !environmentKey.isEmpty {
-            return environmentKey
-        }
-
-        let bundleKey = (Bundle.main.object(forInfoDictionaryKey: "OPENAI_API_KEY") as? String)?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if let bundleKey,
-           !bundleKey.isEmpty,
-           bundleKey != "$(OPENAI_API_KEY)" {
-            return bundleKey
-        }
-
-        let generatedKey = OpenAISecrets.apiKey
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if !generatedKey.isEmpty {
-            return generatedKey
-        }
-
-        return nil
+    init(functionName: String = "parse-expense") {
+        self.functionName = functionName
     }
 
     func parse(
@@ -171,56 +142,34 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         date: Date,
         currencyCode: String
     ) async throws -> ParsedExpenseDraft {
-        guard let apiKey, !apiKey.isEmpty else {
-            throw ExpenseParsingServiceError.missingAPIKey
-        }
-
-        let requestBody = makeRequestBody(
+        let request = TextParseFunctionRequest(
             rawText: rawText,
-            date: date,
-            currencyCode: currencyCode
+            date: ISO8601DateFormatter().string(from: date),
+            currencyCode: currencyCode,
+            targetLanguageCode: currentAppLanguageContext().code
         )
-        let payload = try JSONSerialization.data(withJSONObject: requestBody)
-        var request = URLRequest(url: endpointURL)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.httpBody = payload
 
-        let (data, response) = try await session.data(for: request)
+        do {
+            let response: TextParseFunctionResponse = try await SupabaseService.client.functions.invoke(
+                functionName,
+                options: FunctionInvokeOptions(body: request)
+            )
 
-        if let httpResponse = response as? HTTPURLResponse,
-           !(200...299).contains(httpResponse.statusCode) {
-            let message = String(data: data, encoding: .utf8) ?? "error.api.unknown".notyfiLocalized
-            throw RequestError.http(statusCode: httpResponse.statusCode, message: message)
+            return sanitizeParsedDraft(
+                response.entry,
+                fallbackRawText: rawText,
+                fallbackCurrencyCode: currencyCode
+            )
+        } catch let FunctionsError.httpError(statusCode, data) {
+            throw try parsingError(
+                statusCode: statusCode,
+                data: data
+            )
+        } catch let error as FunctionsError {
+            throw mapFunctionError(error)
+        } catch {
+            throw error
         }
-
-        let completion = try decoder.decode(ChatCompletionResponse.self, from: data)
-        guard let content = completion.choices.first?.message.content else {
-            throw ExpenseParsingServiceError.emptyModelResponse
-        }
-
-        let parsedData = Data(content.utf8)
-        let parsedDraft = try decoder.decode(ParsedExpenseDraft.self, from: parsedData)
-
-        return sanitizeParsedDraft(
-            ParsedExpenseDraft(
-                rawText: rawText,
-                title: parsedDraft.title.trimmingCharacters(in: .whitespacesAndNewlines),
-                amount: max(parsedDraft.amount, 0),
-                currencyCode: parsedDraft.currencyCode.isEmpty ? currencyCode : parsedDraft.currencyCode,
-                transactionKind: parsedDraft.transactionKind,
-                category: parsedDraft.category,
-                merchant: parsedDraft.merchant?.trimmingCharacters(in: .whitespacesAndNewlines),
-                note: parsedDraft.note.trimmingCharacters(in: .whitespacesAndNewlines),
-                confidence: parsedDraft.confidence,
-                isAmountEstimated: parsedDraft.isAmountEstimated,
-                isRecurring: parsedDraft.isRecurring,
-                recurringFrequency: parsedDraft.recurringFrequency
-            ),
-            fallbackRawText: rawText,
-            fallbackCurrencyCode: currencyCode
-        )
     }
 
     func parse(
@@ -229,233 +178,75 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         date: Date,
         currencyCode: String
     ) async throws -> [ParsedExpenseDraft] {
-        guard let apiKey, !apiKey.isEmpty else {
-            throw ExpenseParsingServiceError.missingAPIKey
-        }
-
-        let requestBody = makeImageRequestBody(
-            imageData: imageData,
+        let request = ImageParseFunctionRequest(
+            imageBase64: imageData.base64EncodedString(),
             mimeType: mimeType,
-            date: date,
-            currencyCode: currencyCode
+            date: ISO8601DateFormatter().string(from: date),
+            currencyCode: currencyCode,
+            targetLanguageCode: currentAppLanguageContext().code
         )
-        let payload = try JSONSerialization.data(withJSONObject: requestBody)
-        var request = URLRequest(url: endpointURL)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.httpBody = payload
 
-        let (data, response) = try await session.data(for: request)
+        do {
+            let response: ImageParseFunctionResponse = try await SupabaseService.client.functions.invoke(
+                functionName,
+                options: FunctionInvokeOptions(body: request)
+            )
 
-        if let httpResponse = response as? HTTPURLResponse,
-           !(200...299).contains(httpResponse.statusCode) {
-            let message = String(data: data, encoding: .utf8) ?? "error.api.unknown".notyfiLocalized
-            throw RequestError.http(statusCode: httpResponse.statusCode, message: message)
+            let drafts = response.entries.map { draft in
+                sanitizeParsedDraft(
+                    draft,
+                    fallbackRawText: draft.title,
+                    fallbackCurrencyCode: currencyCode
+                )
+            }
+
+            guard !drafts.isEmpty else {
+                throw ExpenseParsingServiceError.noTransactionsFound
+            }
+
+            return drafts
+        } catch let FunctionsError.httpError(statusCode, data) {
+            throw try parsingError(
+                statusCode: statusCode,
+                data: data
+            )
+        } catch let error as FunctionsError {
+            throw mapFunctionError(error)
+        } catch {
+            throw error
         }
+    }
 
-        let completion = try decoder.decode(ChatCompletionResponse.self, from: data)
-        guard let content = completion.choices.first?.message.content else {
-            throw ExpenseParsingServiceError.emptyModelResponse
-        }
+    private func parsingError(
+        statusCode: Int,
+        data: Data
+    ) throws -> Error {
+        let payload = try? decoder.decode(FunctionErrorPayload.self, from: data)
+        let message = payload?.error.message ?? "error.api.unknown".notyfiLocalized
 
-        let parsedData = Data(content.utf8)
-        let parsedBatch = try decoder.decode(ParsedExpenseDraftBatch.self, from: parsedData)
-        let drafts = parsedBatch.entries.map { draft in
-            sanitizeParsedDraft(
-                draft,
-                fallbackRawText: draft.title,
-                fallbackCurrencyCode: currencyCode
+        switch payload?.error.code {
+        case "no_transactions_found":
+            return ExpenseParsingServiceError.noTransactionsFound
+        case "ai_service_unavailable":
+            return ExpenseParsingServiceError.serviceUnavailable
+        case "empty_model_response":
+            return ExpenseParsingServiceError.emptyModelResponse
+        default:
+            return RequestError.http(
+                statusCode: statusCode,
+                code: payload?.error.code,
+                message: message
             )
         }
+    }
 
-        guard !drafts.isEmpty else {
-            throw ExpenseParsingServiceError.noTransactionsFound
+    private func mapFunctionError(_ error: FunctionsError) -> Error {
+        switch error {
+        case .relayError:
+            return ExpenseParsingServiceError.serviceUnavailable
+        default:
+            return error
         }
-
-        return drafts
-    }
-
-    private func makeRequestBody(
-        rawText: String,
-        date: Date,
-        currencyCode: String
-    ) -> [String: Any] {
-        let appLanguage = currentAppLanguageContext()
-        let userContent = """
-        Note: \(rawText)
-        Date: \(ISO8601DateFormatter().string(from: date))
-        Currency: \(currencyCode)
-        Target language: \(appLanguage.name) (\(appLanguage.code))
-
-        Return one transaction JSON object. Infer a short title, amount as a positive number, transactionKind as expense/income, one allowed category, merchant if explicit, note as "" unless useful, confidence as certain/review/uncertain, isAmountEstimated as true/false, and recurrence intent.
-        All natural-language fields must be written in \(appLanguage.name). Do not write English unless the target language is English.
-        Write title and note in the target language above. Keep merchant in its original spelling when it is a brand or proper name.
-        Keep transactionKind, category, confidence, recurrence, and boolean fields as schema values.
-        Use transactionKind "income" for salary, freelance pay, refunds, reimbursements, gifts received, or money coming in. Use "expense" for spending, bills, purchases, subscriptions, or money going out.
-        Set isRecurring true when the note explicitly says recurring, monthly, weekly, yearly, every month, every week, every year, or otherwise clearly describes a repeating income or expense.
-        When isRecurring is true, recurringFrequency must be one of weekly, monthly, or yearly.
-        If the note says something repeats but does not include a cadence, default recurringFrequency to monthly.
-        If the note does not indicate recurrence, set isRecurring false and recurringFrequency null.
-        If no amount is written but the note mentions a concrete item/place, estimate a plausible amount in the given currency, set confidence "review", and set isAmountEstimated true. If there is not enough context to estimate, use amount 0, confidence "review", and isAmountEstimated false.
-        """
-
-        return [
-            "model": textModel,
-            "temperature": 0,
-            "messages": [
-                [
-                    "role": "system",
-                    "content": "You convert personal finance notes into strict transaction JSON for a budgeting app. Always write natural-language output fields in the requested target language."
-                ],
-                [
-                    "role": "user",
-                    "content": userContent
-                ]
-            ],
-            "response_format": [
-                "type": "json_schema",
-                "json_schema": [
-                    "name": "notely_transaction_parse",
-                    "strict": true,
-                    "schema": [
-                        "type": "object",
-                        "additionalProperties": false,
-                        "properties": [
-                            "rawText": ["type": "string"],
-                            "title": ["type": "string"],
-                            "amount": ["type": "number"],
-                            "currencyCode": ["type": "string"],
-                            "transactionKind": [
-                                "type": "string",
-                                "enum": TransactionKind.allCases.map(\.rawValue)
-                            ],
-                            "category": [
-                                "type": "string",
-                                "enum": ExpenseCategory.allCases.map(\.rawValue)
-                            ],
-                            "merchant": [
-                                "anyOf": [
-                                    ["type": "string"],
-                                    ["type": "null"]
-                                ]
-                            ],
-                            "note": ["type": "string"],
-                            "confidence": [
-                                "type": "string",
-                                "enum": ParsingConfidence.allCases.map(\.rawValue)
-                            ],
-                            "isAmountEstimated": ["type": "boolean"],
-                            "isRecurring": ["type": "boolean"],
-                            "recurringFrequency": [
-                                "anyOf": [
-                                    [
-                                        "type": "string",
-                                        "enum": RecurringFrequency.allCases.map(\.rawValue)
-                                    ],
-                                    ["type": "null"]
-                                ]
-                            ]
-                        ],
-                        "required": [
-                            "rawText",
-                            "title",
-                            "amount",
-                            "currencyCode",
-                            "transactionKind",
-                            "category",
-                            "merchant",
-                            "note",
-                            "confidence",
-                            "isAmountEstimated",
-                            "isRecurring",
-                            "recurringFrequency"
-                        ]
-                    ]
-                ]
-            ]
-        ]
-    }
-
-    private func makeImageRequestBody(
-        imageData: Data,
-        mimeType: String,
-        date: Date,
-        currencyCode: String
-    ) -> [String: Any] {
-        let appLanguage = currentAppLanguageContext()
-        let base64Image = imageData.base64EncodedString()
-        let imageDataURL = "data:\(mimeType);base64,\(base64Image)"
-        let userPrompt = """
-        Analyze this personal-finance photo and return one or more transaction JSON objects.
-        Date context: \(ISO8601DateFormatter().string(from: date))
-        Default currency: \(currencyCode)
-        Target language: \(appLanguage.name) (\(appLanguage.code))
-
-        Rules:
-        - Return one entry per distinct money movement visible in the image.
-        - A receipt, invoice, utility bill, order confirmation, brokerage trade, bank transfer, or payment confirmation is usually one entry.
-        - If the image clearly contains multiple separate purchases, bills, trades, or transfers, return multiple entries.
-        - Do not split a single receipt or bill into separate line-item transactions unless the image clearly shows separate payments.
-        - rawText should be a concise journal note the user could have typed manually.
-        - title should be short and clean.
-        - amount must be positive.
-        - Use the visible currency when explicit, otherwise use the default currency.
-        - Use category uncategorized when no listed category fits well, including stock purchases or investment-related documents.
-        - Use note for useful extra context from the image, such as billing period, share count, ticker, provider, or order details.
-        - If any detail is unclear, keep the entry but lower confidence to review or uncertain.
-        - All natural-language fields must be written in \(appLanguage.name). Do not write English unless the target language is English.
-        - Write rawText, title, and note in the target language above.
-        - Keep merchant in its original spelling when it is a brand or proper name.
-        - Only set isRecurring true when the image clearly indicates a repeating charge or income, such as a subscription, recurring invoice, monthly plan, annual fee, or repeating paycheck.
-        - When isRecurring is true, recurringFrequency must be weekly, monthly, or yearly. If the document looks recurring but does not say how often, default recurringFrequency to monthly.
-        - If recurrence is unclear, set isRecurring false and recurringFrequency null.
-        """
-
-        return [
-            "model": imageModel,
-            "temperature": 0,
-            "messages": [
-                [
-                    "role": "system",
-                    "content": "You convert finance-related photos into strict transaction JSON for a budgeting app. Always write natural-language output fields in the requested target language."
-                ],
-                [
-                    "role": "user",
-                    "content": [
-                        [
-                            "type": "text",
-                            "text": userPrompt
-                        ],
-                        [
-                            "type": "image_url",
-                            "image_url": [
-                                "url": imageDataURL,
-                                "detail": "high"
-                            ]
-                        ]
-                    ]
-                ]
-            ],
-            "response_format": [
-                "type": "json_schema",
-                "json_schema": [
-                    "name": "notely_image_transaction_parse",
-                    "strict": true,
-                    "schema": [
-                        "type": "object",
-                        "additionalProperties": false,
-                        "properties": [
-                            "entries": [
-                                "type": "array",
-                                "items": parsedExpenseDraftSchema()
-                            ]
-                        ],
-                        "required": ["entries"]
-                    ]
-                ]
-            ]
-        ]
     }
 
     private func currentAppLanguageContext() -> (code: String, name: String) {
@@ -478,63 +269,6 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         return (resolvedCode, resolvedName)
     }
 
-    private func parsedExpenseDraftSchema() -> [String: Any] {
-        [
-            "type": "object",
-            "additionalProperties": false,
-            "properties": [
-                "rawText": ["type": "string"],
-                "title": ["type": "string"],
-                "amount": ["type": "number"],
-                "currencyCode": ["type": "string"],
-                "transactionKind": [
-                    "type": "string",
-                    "enum": TransactionKind.allCases.map(\.rawValue)
-                ],
-                "category": [
-                    "type": "string",
-                    "enum": ExpenseCategory.allCases.map(\.rawValue)
-                ],
-                "merchant": [
-                    "anyOf": [
-                        ["type": "string"],
-                        ["type": "null"]
-                    ]
-                ],
-                "note": ["type": "string"],
-                "confidence": [
-                    "type": "string",
-                    "enum": ParsingConfidence.allCases.map(\.rawValue)
-                ],
-                "isAmountEstimated": ["type": "boolean"],
-                "isRecurring": ["type": "boolean"],
-                "recurringFrequency": [
-                    "anyOf": [
-                        [
-                            "type": "string",
-                            "enum": RecurringFrequency.allCases.map(\.rawValue)
-                        ],
-                        ["type": "null"]
-                    ]
-                ]
-            ],
-            "required": [
-                "rawText",
-                "title",
-                "amount",
-                "currencyCode",
-                "transactionKind",
-                "category",
-                "merchant",
-                "note",
-                "confidence",
-                "isAmountEstimated",
-                "isRecurring",
-                "recurringFrequency"
-            ]
-        ]
-    }
-
     private func sanitizeParsedDraft(
         _ draft: ParsedExpenseDraft,
         fallbackRawText: String,
@@ -546,7 +280,7 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
 
         return ParsedExpenseDraft(
             rawText: trimmedRawText.isEmpty ? (trimmedTitle.isEmpty ? fallbackText : trimmedTitle) : trimmedRawText,
-            title: trimmedTitle,
+            title: trimmedTitle.isEmpty ? fallbackText : trimmedTitle,
             amount: max(draft.amount, 0),
             currencyCode: draft.currencyCode.isEmpty ? fallbackCurrencyCode : draft.currencyCode,
             transactionKind: draft.transactionKind,
@@ -561,18 +295,36 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
     }
 }
 
-private struct ChatCompletionResponse: Decodable {
-    struct Choice: Decodable {
-        struct Message: Decodable {
-            let content: String?
-        }
-
-        let message: Message
-    }
-
-    let choices: [Choice]
+private struct TextParseFunctionRequest: Encodable {
+    let kind = "text"
+    let rawText: String
+    let date: String
+    let currencyCode: String
+    let targetLanguageCode: String
 }
 
-private struct ParsedExpenseDraftBatch: Decodable {
+private struct ImageParseFunctionRequest: Encodable {
+    let kind = "image"
+    let imageBase64: String
+    let mimeType: String
+    let date: String
+    let currencyCode: String
+    let targetLanguageCode: String
+}
+
+private struct TextParseFunctionResponse: Decodable {
+    let entry: ParsedExpenseDraft
+}
+
+private struct ImageParseFunctionResponse: Decodable {
     let entries: [ParsedExpenseDraft]
+}
+
+private struct FunctionErrorPayload: Decodable {
+    struct APIError: Decodable {
+        let code: String
+        let message: String
+    }
+
+    let error: APIError
 }

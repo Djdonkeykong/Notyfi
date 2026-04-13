@@ -50,7 +50,6 @@ targets:
         UILaunchStoryboardName: LaunchScreen
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
-        OPENAI_API_KEY: $(OPENAI_API_KEY)
         NSCameraUsageDescription: Notyfi uses the camera so you can turn bills, receipts, and confirmations into money notes.
         NSMicrophoneUsageDescription: Notyfi uses the microphone so you can dictate money notes.
         NSPhotoLibraryUsageDescription: Notyfi can read a photo from your library so you can turn bills, receipts, and confirmations into money notes.

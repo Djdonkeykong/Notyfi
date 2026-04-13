@@ -22,26 +22,8 @@ workflows:
     scripts:
       - name: Write secrets xcconfig
         script: |
-          if [ -z "$OPENAI_API_KEY" ]; then
-            echo "OPENAI_API_KEY is empty or unavailable in Codemagic."
-            exit 1
-          fi
-
           mkdir -p "$CM_BUILD_DIR/Config"
-          printf 'OPENAI_API_KEY = %s\nSUPABASE_URL = https://uupftsuexunuwsdejxrh.supabase.co\nSUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1cGZ0c3VleHVudXdzZGVqeHJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NDk4MTQsImV4cCI6MjA5MTMyNTgxNH0.8mGjFrMj2bqyZuyrQIDcBsYlp7uXITLMyWSXqj-thQ8\n' \
-            "$OPENAI_API_KEY" > "$CM_BUILD_DIR/Config/Secrets.xcconfig"
-
-          python3 - <<'PY'
-          import os
-          from pathlib import Path
-
-          key = os.environ["OPENAI_API_KEY"].replace("\\", "\\\\").replace('"', '\\"')
-          Path("Services/OpenAISecrets.swift").write_text(
-              'enum OpenAISecrets {\n'
-              f'    static let apiKey = "{key}"\n'
-              '}\n'
-          )
-          PY
+          printf 'SUPABASE_URL = https://uupftsuexunuwsdejxrh.supabase.co\nSUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1cGZ0c3VleHVudXdzZGVqeHJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NDk4MTQsImV4cCI6MjA5MTMyNTgxNH0.8mGjFrMj2bqyZuyrQIDcBsYlp7uXITLMyWSXqj-thQ8\n' > "$CM_BUILD_DIR/Config/Secrets.xcconfig"
 
       - name: Install XcodeGen
         script: |
@@ -55,17 +37,6 @@ workflows:
       - name: Generate Xcode project
         script: |
           xcodegen generate
-
-      - name: Verify OpenAI key build setting
-        script: |
-          cd "$CM_BUILD_DIR"
-          value=$(xcodebuild -project "$XCODE_PROJECT" -scheme "$XCODE_SCHEME" -showBuildSettings | awk -F' = ' '/OPENAI_API_KEY/ {print $2; exit}')
-          if [ -z "$value" ]; then
-            echo "OPENAI_API_KEY did not resolve in Xcode build settings."
-            exit 1
-          fi
-
-          echo "OPENAI_API_KEY resolved in Xcode build settings."
 
       - name: Apply App Store signing profiles
         script: |
@@ -119,26 +90,8 @@ workflows:
     scripts:
       - name: Write secrets xcconfig
         script: |
-          if [ -z "$OPENAI_API_KEY" ]; then
-            echo "OPENAI_API_KEY is empty or unavailable in Codemagic."
-            exit 1
-          fi
-
           mkdir -p "$CM_BUILD_DIR/Config"
-          printf 'OPENAI_API_KEY = %s\nSUPABASE_URL = https://uupftsuexunuwsdejxrh.supabase.co\nSUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1cGZ0c3VleHVudXdzZGVqeHJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NDk4MTQsImV4cCI6MjA5MTMyNTgxNH0.8mGjFrMj2bqyZuyrQIDcBsYlp7uXITLMyWSXqj-thQ8\n' \
-            "$OPENAI_API_KEY" > "$CM_BUILD_DIR/Config/Secrets.xcconfig"
-
-          python3 - <<'PY'
-          import os
-          from pathlib import Path
-
-          key = os.environ["OPENAI_API_KEY"].replace("\\", "\\\\").replace('"', '\\"')
-          Path("Services/OpenAISecrets.swift").write_text(
-              'enum OpenAISecrets {\n'
-              f'    static let apiKey = "{key}"\n'
-              '}\n'
-          )
-          PY
+          printf 'SUPABASE_URL = https://uupftsuexunuwsdejxrh.supabase.co\nSUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1cGZ0c3VleHVudXdzZGVqeHJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NDk4MTQsImV4cCI6MjA5MTMyNTgxNH0.8mGjFrMj2bqyZuyrQIDcBsYlp7uXITLMyWSXqj-thQ8\n' > "$CM_BUILD_DIR/Config/Secrets.xcconfig"
 
       - name: Install XcodeGen
         script: |
@@ -152,17 +105,6 @@ workflows:
       - name: Generate Xcode project
         script: |
           xcodegen generate
-
-      - name: Verify OpenAI key build setting
-        script: |
-          cd "$CM_BUILD_DIR"
-          value=$(xcodebuild -project "$XCODE_PROJECT" -scheme "$XCODE_SCHEME" -showBuildSettings | awk -F' = ' '/OPENAI_API_KEY/ {print $2; exit}')
-          if [ -z "$value" ]; then
-            echo "OPENAI_API_KEY did not resolve in Xcode build settings."
-            exit 1
-          fi
-
-          echo "OPENAI_API_KEY resolved in Xcode build settings."
 
       - name: Apply App Store signing profiles
         script: |
