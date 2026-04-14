@@ -19,9 +19,9 @@ struct OnboardingInputMethodsView: View {
                         .font(.notyfi(.title2, weight: .bold))
                         .multilineTextAlignment(.center)
 
-                    Image("onboarding-camera")
-                        .resizable()
-                        .scaledToFit()
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 30, weight: .semibold))
+                        .foregroundStyle(NotyfiTheme.brandPrimary)
                         .frame(width: 36, height: 36)
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
