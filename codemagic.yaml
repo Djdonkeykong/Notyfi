@@ -17,7 +17,7 @@ workflows:
         BUNDLE_ID: "com.djdonkeykong.notely"
         XCODE_PROJECT: "Notyfi.xcodeproj"
         XCODE_SCHEME: "Notyfi"
-      xcode: latest
+      xcode: 16.4
 
     scripts:
       - name: Write secrets xcconfig
@@ -53,9 +53,21 @@ workflows:
 
       - name: Build signed IPA
         script: |
+          set +e
           xcode-project build-ipa \
             --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
+          BUILD_EXIT_CODE=$?
+
+          if [ "$BUILD_EXIT_CODE" -ne 0 ]; then
+            echo "Build failed. Extracting error lines from xcodebuild logs..."
+            if ls /tmp/xcodebuild_logs/*.log >/dev/null 2>&1; then
+              grep -R -n " error: " /tmp/xcodebuild_logs/*.log || true
+              echo "Last 200 lines from the most recent xcodebuild log:"
+              tail -n 200 "$(ls -t /tmp/xcodebuild_logs/*.log | head -n 1)" || true
+            fi
+            exit "$BUILD_EXIT_CODE"
+          fi
 
     artifacts:
       - build/ios/ipa/*.ipa
@@ -85,7 +97,7 @@ workflows:
         BUNDLE_ID: "com.djdonkeykong.notely"
         XCODE_PROJECT: "Notyfi.xcodeproj"
         XCODE_SCHEME: "Notyfi"
-      xcode: latest
+      xcode: 16.4
 
     scripts:
       - name: Write secrets xcconfig
@@ -121,9 +133,21 @@ workflows:
 
       - name: Build signed IPA
         script: |
+          set +e
           xcode-project build-ipa \
             --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
+          BUILD_EXIT_CODE=$?
+
+          if [ "$BUILD_EXIT_CODE" -ne 0 ]; then
+            echo "Build failed. Extracting error lines from xcodebuild logs..."
+            if ls /tmp/xcodebuild_logs/*.log >/dev/null 2>&1; then
+              grep -R -n " error: " /tmp/xcodebuild_logs/*.log || true
+              echo "Last 200 lines from the most recent xcodebuild log:"
+              tail -n 200 "$(ls -t /tmp/xcodebuild_logs/*.log | head -n 1)" || true
+            fi
+            exit "$BUILD_EXIT_CODE"
+          fi
 
     artifacts:
       - build/ios/ipa/*.ipa
