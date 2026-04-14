@@ -203,8 +203,8 @@ final class CloudSyncManager: ObservableObject {
         isApplyingRemoteState = true
 
         if let languageCode = remoteState.user.languageCode {
-            defaults.set(languageCode, forKey: LanguageManager.storageKey)
-            NotyfiSharedStorage.sharedDefaults().set(languageCode, forKey: LanguageManager.storageKey)
+            defaults.set(languageCode, forKey: NotyfiLocale.languageStorageKey)
+            NotyfiSharedStorage.sharedDefaults().set(languageCode, forKey: NotyfiLocale.languageStorageKey)
             languageManager.applyStoredPreference()
         }
 
@@ -243,7 +243,7 @@ final class CloudSyncManager: ObservableObject {
             trackedCategories: store.trackedCategories,
             recurringTransactions: store.recurringTransactions,
             currencyCode: NotyfiCurrency.currentCode(defaults: defaults),
-            languageCode: defaults.string(forKey: LanguageManager.storageKey) ?? NotyfiLanguage.system.rawValue,
+            languageCode: NotyfiLocale.storedLanguageCode(defaults: defaults),
             onboardingCompleted: defaults.bool(forKey: PendingOnboardingBootstrap.onboardingCompletedKey)
         )
     }

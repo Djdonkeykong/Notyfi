@@ -250,8 +250,9 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
     }
 
     private func currentAppLanguageContext() -> (code: String, name: String) {
-        let saved = UserDefaults.standard.string(forKey: LanguageManager.storageKey)
-        let selectedLanguage = NotyfiLanguage(rawValue: saved ?? "") ?? .system
+        let selectedLanguage = NotyfiLanguage(
+            rawValue: NotyfiLocale.storedLanguageCode()
+        ) ?? .system
 
         if let localeCode = selectedLanguage.localeCode {
             return (localeCode, selectedLanguage.promptLanguageName)

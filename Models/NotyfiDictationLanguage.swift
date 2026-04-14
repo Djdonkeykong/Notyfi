@@ -72,7 +72,7 @@ enum NotyfiDictationLanguage: String, CaseIterable, Identifiable {
 
     private func appLanguageLocale(defaults: UserDefaults) -> Locale {
         let selectedLanguage = NotyfiLanguage(
-            rawValue: defaults.string(forKey: LanguageManager.storageKey) ?? ""
+            rawValue: NotyfiLocale.storedLanguageCode(defaults: defaults)
         ) ?? .system
 
         let localeIdentifier: String
