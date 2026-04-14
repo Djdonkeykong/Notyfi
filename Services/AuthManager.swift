@@ -268,6 +268,7 @@ enum AuthError: LocalizedError {
 
 // MARK: - ASAuthorizationController Delegate
 
+@MainActor
 private final class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate {
     // Retained statically so ARC doesn't release it before the callback fires.
     static var activeDelegate: AppleSignInDelegate?

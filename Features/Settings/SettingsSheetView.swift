@@ -1,6 +1,7 @@
 import SwiftUI
 import WebKit
 
+@MainActor
 struct SettingsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: SettingsViewModel

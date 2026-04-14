@@ -3,6 +3,7 @@ import UIKit
 import PDFKit
 import UniformTypeIdentifiers
 
+@MainActor
 struct HomeView: View {
     @ObservedObject private var store: ExpenseJournalStore
     @ObservedObject private var authManager: AuthManager
@@ -391,7 +392,9 @@ private extension HomeView {
 
         let presentationDelay: TimeInterval = hadFocusedEditor ? 0.18 : 0.01
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + presentationDelay) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(presentationDelay))
+
             guard
                 requestGeneration == presentationRequestGeneration,
                 !isPresentingModalSurface
@@ -453,7 +456,9 @@ private extension HomeView {
         editorFocusRequest = nil
         forceResignKeyboard()
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.12))
+
             guard requestGeneration == focusRequestGeneration else {
                 return
             }
@@ -472,7 +477,7 @@ private extension HomeView {
             for: nil
         )
 
-        DispatchQueue.main.async {
+        Task { @MainActor in
             EditableJournalTextView.resignActiveEditor()
 
             UIApplication.shared.sendAction(
@@ -499,7 +504,9 @@ private extension HomeView {
     func handleQuickAddSelection(_ action: QuickAddAction) {
         isQuickAddPresented = false
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.16))
+
             switch action {
             case .attachFiles:
                 isFileImporterPresented = true
@@ -535,12 +542,17 @@ private extension HomeView {
 
         Task { @MainActor in
             do {
+                @MainActor
+                func performImport() async throws -> Int {
+                    try await viewModel.importEntries(
+                        from: imageData,
+                        mimeType: "image/jpeg"
+                    )
+                }
+
                 try await withThrowingTaskGroup(of: Int.self) { group in
                     group.addTask {
-                        try await self.viewModel.importEntries(
-                            from: imageData,
-                            mimeType: "image/jpeg"
-                        )
+                        try await performImport()
                     }
                     group.addTask {
                         try await Task.sleep(for: .seconds(30))
@@ -906,7 +918,8 @@ private struct DayJournalPager: View {
             withAnimation(animation) {
                 dragOffset = 0
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.2))
                 resetDragTracking()
             }
             return
@@ -918,7 +931,9 @@ private struct DayJournalPager: View {
             dragOffset = dayOffset > 0 ? -pageWidth : pageWidth
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.28))
+
             onMoveSelection(dayOffset)
 
             var transaction = Transaction()
@@ -944,7 +959,8 @@ private struct DayJournalPager: View {
     }
 
     private func releaseBlankSpaceFocusBlock(after delay: TimeInterval = 0.18) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(delay))
             isBlankSpaceFocusBlocked = false
         }
     }
@@ -1407,6 +1423,7 @@ private enum PagerDragAxisLock {
     case vertical
 }
 
+@MainActor
 private struct KeyboardAccessoryBar: View {
     let isDictating: Bool
     let onToggleDictation: () async -> Void
@@ -1421,7 +1438,7 @@ private struct KeyboardAccessoryBar: View {
                 systemImage: isDictating ? "waveform.circle.fill" : "mic.fill",
                 tint: isDictating ? Color(red: 0.90, green: 0.22, blue: 0.24) : Color(red: 0.03, green: 0.51, blue: 0.98),
                 action: {
-                    Task {
+                    Task { @MainActor in
                         await onToggleDictation()
                     }
                 }

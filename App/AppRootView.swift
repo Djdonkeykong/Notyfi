@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct AppRootView: View {
     @ObservedObject var store: ExpenseJournalStore
     @StateObject private var authManager = AuthManager()

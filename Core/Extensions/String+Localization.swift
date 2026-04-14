@@ -1,8 +1,24 @@
 import Foundation
 
+private enum NotyfiLocalization {
+    static func bundle() -> Bundle {
+        let selectedLanguage = NotyfiLanguage(
+            rawValue: NotyfiLocale.storedLanguageCode()
+        ) ?? .system
+
+        guard let localeCode = selectedLanguage.localeCode,
+              let path = Bundle.main.path(forResource: localeCode, ofType: "lproj"),
+              let bundle = Bundle(path: path) else {
+            return .main
+        }
+
+        return bundle
+    }
+}
+
 extension String {
     var notyfiLocalized: String {
-        NotyfiBundle.current.localizedString(forKey: self, value: self, table: nil)
+        NotyfiLocalization.bundle().localizedString(forKey: self, value: self, table: nil)
     }
 
     static func notyfiNotesCount(_ count: Int) -> String {

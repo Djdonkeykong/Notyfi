@@ -16,6 +16,7 @@ struct JournalEditorFocusRequest: Equatable {
     var token = UUID()
 }
 
+@MainActor
 final class EditableJournalTextView: UITextView {
     private static weak var activeEditor: EditableJournalTextView?
     private static var lastDeleteTimestamp = Date.distantPast
@@ -105,7 +106,9 @@ final class EditableJournalTextView: UITextView {
     }
 
     private static func dispatchBridgedBackspace() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.02))
+
             guard shouldBridgeBackspace else {
                 pendingBridgeAttempts = 0
                 return

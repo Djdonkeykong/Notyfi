@@ -17,6 +17,7 @@ struct JournalLogLineEdit {
     let trailingText: String
 }
 
+@MainActor
 struct JournalLogTextView: UIViewRepresentable {
     static let paragraphSpacing: CGFloat = 29
     static let estimatedLineHeight: CGFloat = 22
@@ -113,9 +114,8 @@ struct JournalLogTextView: UIViewRepresentable {
                 } else {
                     let coordinator = context.coordinator
 
-                    DispatchQueue.main.async { [weak uiView] in
+                    Task { @MainActor in
                         guard
-                            let uiView,
                             coordinator.parent.focusRequest?.token == focusRequest.token,
                             coordinator.parent.focusRequest?.target == editorTarget,
                             !uiView.isFirstResponder,
@@ -173,6 +173,7 @@ struct JournalLogTextView: UIViewRepresentable {
         textView.selectedRange = NSRange(location: cursorOffset, length: 0)
     }
 
+    @MainActor
     final class Coordinator: NSObject, UITextViewDelegate {
         var parent: JournalLogTextView
         var lastAppliedFocusToken: UUID?
@@ -288,8 +289,8 @@ struct JournalLogTextView: UIViewRepresentable {
 
             lastPublishedLineFrames = lineFrames
 
-            DispatchQueue.main.async { [weak self] in
-                self?.parent.onLineFramesChange(lineFrames)
+            Task { @MainActor in
+                parent.onLineFramesChange(lineFrames)
             }
         }
 

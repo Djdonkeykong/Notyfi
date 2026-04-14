@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct OnboardingFlowView: View {
     @ObservedObject var store: ExpenseJournalStore
     @ObservedObject var authManager: AuthManager
@@ -278,7 +279,8 @@ struct OnboardingFlowView: View {
         // Bottom gradient: immediate on entry/exit.
         if !wasChrome && willBeChrome {
             bottomGradientVisible = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.4))
                 topGradientVisible = true
             }
         } else if wasChrome && !willBeChrome {
@@ -286,7 +288,8 @@ struct OnboardingFlowView: View {
             bottomGradientVisible = false
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.7))
             chromeVisible = willBeChrome
         }
     }
@@ -350,12 +353,14 @@ struct OnboardingFlowView: View {
             bottomGradientVisible = false
         } else if !wasChrome && willBeChrome {
             bottomGradientVisible = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.4))
                 topGradientVisible = true
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.7))
             chromeVisible = willBeChrome
         }
     }
