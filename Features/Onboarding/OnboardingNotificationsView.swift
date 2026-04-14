@@ -1,7 +1,6 @@
 import SwiftUI
 import UserNotifications
 
-@MainActor
 struct OnboardingNotificationsView: View {
     @State private var isEnabled: Bool = false
     @State private var frequency: ReminderFrequency = .regular

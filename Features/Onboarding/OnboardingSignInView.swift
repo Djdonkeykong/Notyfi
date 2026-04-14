@@ -1,7 +1,6 @@
 import SwiftUI
 import AuthenticationServices
 
-@MainActor
 struct OnboardingSignInView: View {
     @ObservedObject var authManager: AuthManager
     var onBack: (() -> Void)? = nil
