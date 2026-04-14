@@ -382,3 +382,15 @@
 "Turn this entry into a repeating rule." = "Turn this entry into a repeating rule.";
 "Update the repeating rule behind this entry." = "Update the repeating rule behind this entry.";
 "Until" = "Until";
+"Active" = "Active";
+"End date" = "End date";
+"Ends" = "Ends";
+"Every %d %@" = "Every %d %@";
+"Frequency" = "Frequency";
+"Monthly" = "Monthly";
+"Rent" = "Rent";
+"Rent 12000" = "Rent 12000";
+"Starts" = "Starts";
+"Streaming 149" = "Streaming 149";
+"Weekly" = "Weekly";
+"Yearly" = "Yearly";
