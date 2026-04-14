@@ -74,6 +74,7 @@ targets:
         product: GoogleSignIn
     settings:
       base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: NotyfiAppIcon
         TARGETED_DEVICE_FAMILY: 1
         CODE_SIGN_ENTITLEMENTS: Config/Notyfi.entitlements
   NotyfiWidget:
@@ -87,6 +88,7 @@ targets:
       - path: Resources/Assets.xcassets
     settings:
       base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: NotyfiAppIcon
         PRODUCT_BUNDLE_IDENTIFIER: com.djdonkeykong.notely.widget
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: NotyfiWidget/Info.plist
