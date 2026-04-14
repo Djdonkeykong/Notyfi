@@ -56,8 +56,7 @@ workflows:
           set +e
           xcode-project build-ipa \
             --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME" \
-            --archive-xcargs "ASSETCATALOG_COMPILER_APPICON_NAME=NotyfiAppIcon"
+            --scheme "$XCODE_SCHEME"
           BUILD_EXIT_CODE=$?
 
           if [ "$BUILD_EXIT_CODE" -ne 0 ]; then
@@ -137,8 +136,7 @@ workflows:
           set +e
           xcode-project build-ipa \
             --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME" \
-            --archive-xcargs "ASSETCATALOG_COMPILER_APPICON_NAME=NotyfiAppIcon"
+            --scheme "$XCODE_SCHEME"
           BUILD_EXIT_CODE=$?
 
           if [ "$BUILD_EXIT_CODE" -ne 0 ]; then
