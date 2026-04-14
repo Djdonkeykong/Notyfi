@@ -9,15 +9,18 @@ final class NotyfiBundle {
 
 @MainActor
 final class LanguageManager: ObservableObject {
-    static let storageKey = "notyfi.language.preference"
+    static let storageKey = NotyfiLocale.languageStorageKey
 
     @Published private(set) var current: NotyfiLanguage
     // Bumped on every language change so observers can force a re-render.
     @Published private(set) var refreshID: UUID = UUID()
 
+    private let sharedDefaults = NotyfiSharedStorage.sharedDefaults()
+
     init() {
-        let saved = UserDefaults.standard.string(forKey: Self.storageKey)
-        let lang = NotyfiLanguage(rawValue: saved ?? "") ?? .system
+        let lang = NotyfiLanguage(
+            rawValue: NotyfiLocale.storedLanguageCode()
+        ) ?? .system
         current = lang
         Self.applyBundle(for: lang)
     }
@@ -26,13 +29,15 @@ final class LanguageManager: ObservableObject {
         guard language != current else { return }
         current = language
         UserDefaults.standard.set(language.rawValue, forKey: Self.storageKey)
+        sharedDefaults.set(language.rawValue, forKey: Self.storageKey)
         Self.applyBundle(for: language)
         refreshID = UUID()
     }
 
     func applyStoredPreference() {
-        let saved = UserDefaults.standard.string(forKey: Self.storageKey)
-        let language = NotyfiLanguage(rawValue: saved ?? "") ?? .system
+        let language = NotyfiLanguage(
+            rawValue: NotyfiLocale.storedLanguageCode()
+        ) ?? .system
         guard language != current else { return }
         current = language
         Self.applyBundle(for: language)

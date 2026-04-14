@@ -204,6 +204,7 @@ final class CloudSyncManager: ObservableObject {
 
         if let languageCode = remoteState.user.languageCode {
             defaults.set(languageCode, forKey: LanguageManager.storageKey)
+            NotyfiSharedStorage.sharedDefaults().set(languageCode, forKey: LanguageManager.storageKey)
             languageManager.applyStoredPreference()
         }
 
