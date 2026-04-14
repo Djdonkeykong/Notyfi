@@ -201,27 +201,21 @@ struct DatePickerSheetView: View {
 
     @ViewBuilder
     private var backgroundSurface: some View {
-        if #available(iOS 26.0, *) {
-            Color.clear
-                .glassEffect(in: .rect(cornerRadius: 0))
-                .ignoresSafeArea()
-        } else {
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    Rectangle()
-                        .fill(Color.black.opacity(0.04))
-                }
-                .overlay {
-                    Rectangle()
-                        .fill(NotyfiTheme.glassOverlay)
-                }
-                .overlay {
-                    Rectangle()
-                        .stroke(NotyfiTheme.glassStroke, lineWidth: 1)
-                }
-                .ignoresSafeArea()
-        }
+        Rectangle()
+            .fill(.ultraThinMaterial)
+            .overlay {
+                Rectangle()
+                    .fill(Color.black.opacity(0.04))
+            }
+            .overlay {
+                Rectangle()
+                    .fill(NotyfiTheme.glassOverlay)
+            }
+            .overlay {
+                Rectangle()
+                    .stroke(NotyfiTheme.glassStroke, lineWidth: 1)
+            }
+            .ignoresSafeArea()
     }
 
     private func dayColor(for date: Date) -> Color {

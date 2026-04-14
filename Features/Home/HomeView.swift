@@ -35,19 +35,7 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
-            if usesScrollEdgeTopBar {
-                if #available(iOS 26.0, *) {
-                    decoratedHomeContent(
-                        homeContent.safeAreaBar(edge: .top, spacing: 0) {
-                            homeTopBar
-                        }
-                    )
-                } else {
-                    decoratedHomeContent(inlineTopBarContent)
-                }
-            } else {
-                decoratedHomeContent(inlineTopBarContent)
-            }
+            decoratedHomeContent(inlineTopBarContent)
         }
         .overlay {
             if isImportingPhoto {
@@ -67,10 +55,6 @@ struct HomeView: View {
 private extension HomeView {
     var appearanceMode: NotyfiAppearanceMode {
         NotyfiAppearanceMode(rawValue: appearanceModeRawValue) ?? .system
-    }
-
-    var homeContent: some View {
-        baseHomeContent(includeInlineTopBar: false)
     }
 
     var inlineTopBarContent: some View {
@@ -296,13 +280,7 @@ private extension HomeView {
             || selectedEntry != nil
     }
 
-    var usesScrollEdgeTopBar: Bool {
-        if #available(iOS 26.0, *) {
-            return true
-        }
-
-        return false
-    }
+    var usesScrollEdgeTopBar: Bool { false }
 
     var homeTopBar: some View {
         HomeTopBar(
