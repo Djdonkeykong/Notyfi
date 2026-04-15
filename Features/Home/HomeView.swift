@@ -146,6 +146,13 @@ private extension HomeView {
                     .presentationBackground(NotyfiTheme.background.opacity(0.98))
                     .presentationCornerRadius(34)
             }
+            .sheet(isPresented: $viewModel.isReportsPresented) {
+                ReportsSheetView(viewModel: viewModel)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                    .presentationBackground(NotyfiTheme.background.opacity(0.98))
+                    .presentationCornerRadius(34)
+            }
             .sheet(isPresented: $isQuickAddPresented) {
                 QuickAddSheetView { action in
                     handleQuickAddSelection(action)
@@ -294,6 +301,7 @@ private extension HomeView {
         viewModel.isDatePickerPresented
             || viewModel.isSettingsPresented
             || viewModel.isStatsPresented
+            || viewModel.isReportsPresented
             || isQuickAddPresented
             || isCameraPresented
             || selectedEntry != nil
@@ -311,6 +319,7 @@ private extension HomeView {
         HomeTopBar(
             selectedDate: viewModel.selectedDate,
             onDateTap: { presentDatePicker() },
+            onReportsTap: { presentReports() },
             onSettingsTap: { presentSettings() }
         )
         .padding(.horizontal, 20)
@@ -352,6 +361,12 @@ private extension HomeView {
     func presentSettings() {
         presentAfterEditorSettles {
             viewModel.isSettingsPresented = true
+        }
+    }
+
+    func presentReports() {
+        presentAfterEditorSettles {
+            viewModel.isReportsPresented = true
         }
     }
 
@@ -1311,19 +1326,21 @@ private struct JournalLineAccessoryView: View {
             return nil
         }
 
+        let baseSecondary: String?
         if entry.category != .uncategorized {
-            if let recurringTransaction {
-                return "\(entry.category.title) · \(recurringTransaction.frequency.title)"
-            }
-
-            return entry.category.title
+            baseSecondary = entry.category.title
+        } else if entry.transactionKind == .income {
+            baseSecondary = TransactionKind.income.title
+        } else {
+            baseSecondary = entry.merchant
         }
 
-        if entry.transactionKind == .income {
-            return TransactionKind.income.title
+        if let recurringTransaction {
+            let prefix = baseSecondary ?? "Recurring".notyfiLocalized
+            return "\(prefix) - \(recurringTransaction.frequency.title)"
         }
 
-        return entry.merchant
+        return baseSecondary
     }
 
     private var trailingPrimaryColor: Color {
@@ -1433,11 +1450,6 @@ private struct JournalRecurringBadge: View {
         Image(systemName: "repeat.circle.fill")
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(tint)
-            .padding(4)
-            .background {
-                Capsule()
-                    .fill(tint.opacity(0.12))
-            }
     }
 }
 

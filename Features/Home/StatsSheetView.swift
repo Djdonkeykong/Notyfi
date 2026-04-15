@@ -235,6 +235,9 @@ struct StatsSheetView: View {
             .scrollDismissesKeyboard(.interactively)
         }
         .onAppear(perform: syncInputs)
+        .onChange(of: viewModel.trackedCategoriesSnapshot) { _, _ in
+            syncInputs()
+        }
         .onChange(of: isCategoryEditorPresented) { _, isPresented in
             if !isPresented {
                 syncInputs()

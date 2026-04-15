@@ -20,10 +20,29 @@ enum NotyfiDictationLanguage: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    static var selectableLanguages: [NotyfiDictationLanguage] {
+        allCases.filter { language in
+            switch language {
+            case .appLanguage, .autoDetect:
+                return false
+            default:
+                return true
+            }
+        }
+    }
+
     static func currentPreference(defaults: UserDefaults = .standard) -> NotyfiDictationLanguage {
-        NotyfiDictationLanguage(
-            rawValue: defaults.string(forKey: storageKey) ?? ""
-        ) ?? .appLanguage
+        guard let rawValue = defaults.string(forKey: storageKey),
+              let preference = NotyfiDictationLanguage(rawValue: rawValue) else {
+            return .autoDetect
+        }
+
+        switch preference {
+        case .appLanguage:
+            return .autoDetect
+        default:
+            return preference
+        }
     }
 
     var title: String {

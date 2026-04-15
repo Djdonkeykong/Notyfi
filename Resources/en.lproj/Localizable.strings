@@ -397,3 +397,29 @@
 "Streaming 149" = "Streaming 149";
 "Weekly" = "Weekly";
 "Yearly" = "Yearly";
+
+// Reports
+"Reports" = "Reports";
+"See patterns in your spending without leaving home." = "See patterns in your spending without leaving home.";
+"Spend vs budget pace" = "Spend vs budget pace";
+"Set a monthly budget to unlock this chart." = "Set a monthly budget to unlock this chart.";
+"Right on pace for this point in the month." = "Right on pace for this point in the month.";
+"%@ over your budget pace" = "%@ over your budget pace";
+"%@ under your budget pace" = "%@ under your budget pace";
+"Budget pace" = "Budget pace";
+"Spent" = "Spent";
+"This month vs last month" = "This month vs last month";
+"No month-to-month comparison yet." = "No month-to-month comparison yet.";
+"Almost identical to the same point last month." = "Almost identical to the same point last month.";
+"%@ higher than the same point last month" = "%@ higher than the same point last month";
+"%@ lower than the same point last month" = "%@ lower than the same point last month";
+"This month" = "This month";
+"Last month" = "Last month";
+"Last 6 months" = "Last 6 months";
+"Add a few entries to start seeing spending trends." = "Add a few entries to start seeing spending trends.";
+"Average %@ across the last 6 months" = "Average %@ across the last 6 months";
+"Recurring load" = "Recurring load";
+"%d active recurring rules" = "%d active recurring rules";
+"No recurring rules yet." = "No recurring rules yet.";
+"Monthly load" = "Monthly load";
+"Upcoming" = "Upcoming";

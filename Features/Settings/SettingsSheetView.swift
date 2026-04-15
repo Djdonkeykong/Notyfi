@@ -436,16 +436,12 @@ private struct DictationLanguageMenuRow: View {
 
     var body: some View {
         Menu {
-            ForEach(NotyfiDictationLanguage.allCases) { language in
-                Button {
-                    onSelect(language)
-                } label: {
-                    if language == selection {
-                        Label(language.title.notyfiLocalized, systemImage: "checkmark")
-                    } else {
-                        Text(language.title.notyfiLocalized)
-                    }
-                }
+            dictationLanguageButton(for: .autoDetect)
+
+            Divider()
+
+            ForEach(NotyfiDictationLanguage.selectableLanguages) { language in
+                dictationLanguageButton(for: language)
             }
         } label: {
             HStack(spacing: 14) {
@@ -480,6 +476,19 @@ private struct DictationLanguageMenuRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func dictationLanguageButton(for language: NotyfiDictationLanguage) -> some View {
+        Button {
+            onSelect(language)
+        } label: {
+            if language == selection {
+                Label(language.title.notyfiLocalized, systemImage: "checkmark")
+            } else {
+                Text(language.title.notyfiLocalized)
+            }
+        }
     }
 }
 

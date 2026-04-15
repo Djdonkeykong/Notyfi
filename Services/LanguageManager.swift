@@ -5,6 +5,58 @@ import Foundation
 // picks a specific language.
 final class NotyfiBundle {
     static var current: Bundle = .main
+    static var usesStrictLocalization = false
+
+    private static let englishFallbackBundle: Bundle = {
+        guard let path = Bundle.main.path(forResource: "en", ofType: "lproj"),
+              let bundle = Bundle(path: path) else {
+            return .main
+        }
+
+        return bundle
+    }()
+
+    private static var stringsCache: [String: [String: String]] = [:]
+
+    static func localizedString(forKey key: String, table: String? = nil) -> String {
+        guard usesStrictLocalization else {
+            return current.localizedString(forKey: key, value: key, table: table)
+        }
+
+        if let localizedValue = exactLocalizedString(forKey: key, in: current, table: table) {
+            return localizedValue
+        }
+
+        if let fallbackValue = exactLocalizedString(forKey: key, in: englishFallbackBundle, table: table) {
+            return fallbackValue
+        }
+
+        return key
+    }
+
+    private static func exactLocalizedString(
+        forKey key: String,
+        in bundle: Bundle,
+        table: String?
+    ) -> String? {
+        let tableName = table ?? "Localizable"
+
+        guard let stringsPath = bundle.path(forResource: tableName, ofType: "strings") else {
+            return nil
+        }
+
+        let cacheKey = "\(stringsPath)|\(tableName)"
+        let tableValues: [String: String]
+        if let cached = stringsCache[cacheKey] {
+            tableValues = cached
+        } else {
+            let parsedValues = NSDictionary(contentsOfFile: stringsPath) as? [String: String] ?? [:]
+            stringsCache[cacheKey] = parsedValues
+            tableValues = parsedValues
+        }
+
+        return tableValues[key]
+    }
 }
 
 @MainActor
@@ -49,8 +101,10 @@ final class LanguageManager: ObservableObject {
               let path = Bundle.main.path(forResource: code, ofType: "lproj"),
               let bundle = Bundle(path: path) else {
             NotyfiBundle.current = .main
+            NotyfiBundle.usesStrictLocalization = false
             return
         }
         NotyfiBundle.current = bundle
+        NotyfiBundle.usesStrictLocalization = true
     }
 }

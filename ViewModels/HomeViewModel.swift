@@ -33,10 +33,13 @@ final class HomeViewModel: ObservableObject {
     @Published var isDatePickerPresented = false
     @Published var isSettingsPresented = false
     @Published var isStatsPresented = false
+    @Published var isReportsPresented = false
     @Published private(set) var displayedEntries: [ExpenseEntry] = []
     @Published private(set) var insight: JournalInsight = .empty
     @Published private(set) var budgetInsight: BudgetInsight = .empty
     @Published private(set) var currencyCode: String
+    @Published private(set) var allEntriesSnapshot: [ExpenseEntry]
+    @Published private(set) var trackedCategoriesSnapshot: Set<ExpenseCategory>
     @Published private(set) var recurringTransactionsSnapshot: [RecurringTransaction] = []
 
     private let store: ExpenseJournalStore
@@ -57,9 +60,12 @@ final class HomeViewModel: ObservableObject {
         self.store = store
         self.calendar = calendar
         self.currencyCode = NotyfiCurrency.currentCode(defaults: defaults)
+        self.allEntriesSnapshot = store.entries
+        self.trackedCategoriesSnapshot = store.effectiveTrackedCategories
 
         Publishers.CombineLatest4(store.$entries, $selectedDate, store.$budgetPlan, store.$trackedCategories)
             .sink { [weak self] entries, date, budgetPlan, _ in
+                self?.allEntriesSnapshot = entries
                 self?.recompute(
                     entries: entries,
                     selectedDate: date,
@@ -82,6 +88,13 @@ final class HomeViewModel: ObservableObject {
                 self?.recurringTransactionsSnapshot = recurringTransactions
             }
             .store(in: &cancellables)
+
+        store.$trackedCategories
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.trackedCategoriesSnapshot = store.effectiveTrackedCategories
+            }
+            .store(in: &cancellables)
     }
 
     var entryCountText: String {
@@ -97,7 +110,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     var trackedCategories: Set<ExpenseCategory> {
-        store.effectiveTrackedCategories
+        trackedCategoriesSnapshot
     }
 
     var orderedTrackedCategories: [ExpenseCategory] {
