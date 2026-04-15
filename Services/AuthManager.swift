@@ -138,11 +138,9 @@ final class AuthManager: ObservableObject {
 
     // MARK: - Sign Out
 
-    func signOut() {
-        Task {
-            try? await SupabaseService.client.auth.signOut()
-            isAuthenticated = false
-        }
+    func signOut() async {
+        try? await SupabaseService.client.auth.signOut()
+        isAuthenticated = false
     }
 
     // MARK: - Delete Account

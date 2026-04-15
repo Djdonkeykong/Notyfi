@@ -10,11 +10,21 @@ struct SettingsSheetView: View {
     @State private var isClearLogConfirmationPresented = false
     @State private var isSignOutConfirmationPresented = false
     @State private var isDeleteAccountConfirmationPresented = false
+    @State private var pendingAccountAction: PendingAccountAction? = nil
+
+    private enum PendingAccountAction {
+        case signOut
+        case deleteAccount
+    }
 
     private var hasAccountInfo: Bool {
         let hasName = !(authManager.userDisplayName?.isEmpty ?? true)
         let hasEmail = !(authManager.userEmail?.isEmpty ?? true)
         return hasName || hasEmail
+    }
+
+    private var isPerformingAccountAction: Bool {
+        pendingAccountAction != nil
     }
 
     var body: some View {
@@ -155,6 +165,11 @@ struct SettingsSheetView: View {
                 .safeAreaPadding(.top, 14)
                 .padding(.bottom, 28)
             }
+            .disabled(isPerformingAccountAction)
+
+            if isPerformingAccountAction {
+                accountActionOverlay
+            }
         }
         .confirmationDialog(
             "Clear your entire log?".notyfiLocalized,
@@ -176,9 +191,12 @@ struct SettingsSheetView: View {
             titleVisibility: .visible
         ) {
             Button("Sign Out".notyfiLocalized, role: .destructive) {
-                authManager.signOut()
-                hasCompletedOnboarding = false
-                dismiss()
+                Task {
+                    pendingAccountAction = .signOut
+                    await authManager.signOut()
+                    hasCompletedOnboarding = false
+                    pendingAccountAction = nil
+                }
             }
             Button("Cancel".notyfiLocalized, role: .cancel) {}
         }
@@ -189,8 +207,9 @@ struct SettingsSheetView: View {
         ) {
             Button("Delete Account".notyfiLocalized, role: .destructive) {
                 Task {
+                    pendingAccountAction = .deleteAccount
                     await authManager.deleteAccount()
-                    dismiss()
+                    pendingAccountAction = nil
                 }
             }
             Button("Cancel".notyfiLocalized, role: .cancel) {}
@@ -229,8 +248,51 @@ struct SettingsSheetView: View {
                     }
             }
             .buttonStyle(.plain)
+            .disabled(isPerformingAccountAction)
         }
         .padding(.top, 22)
+    }
+
+    private var accountActionOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.08)
+                .ignoresSafeArea()
+
+            VStack(spacing: 14) {
+                ProgressView()
+                    .controlSize(.large)
+                    .tint(NotyfiTheme.brandBlue)
+
+                Text(accountActionTitle)
+                    .font(.notyfi(.subheadline, weight: .semibold))
+                    .foregroundStyle(.primary.opacity(0.82))
+            }
+            .padding(.horizontal, 28)
+            .padding(.vertical, 24)
+            .background {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(NotyfiTheme.surface)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
+                    }
+                    .shadow(color: NotyfiTheme.shadow, radius: 16, x: 0, y: 8)
+            }
+            .padding(.horizontal, 40)
+        }
+        .transition(.opacity)
+        .allowsHitTesting(true)
+    }
+
+    private var accountActionTitle: String {
+        switch pendingAccountAction {
+        case .signOut:
+            return "Signing out".notyfiLocalized
+        case .deleteAccount:
+            return "Deleting account".notyfiLocalized
+        case nil:
+            return ""
+        }
     }
 }
 
