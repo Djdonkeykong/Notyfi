@@ -274,7 +274,7 @@
 "Speak it out" = "Speak it out";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Say what you spent out loud. Notyfi transcribes and parses it instantly.";
 "Smart text" = "Smart text";
-"Abbreviations, shorthand, even typos — the AI figures out what you mean." = "Abbreviations, shorthand, even typos — the AI figures out what you mean.";
+"Abbreviations, shorthand, even typos â€” the AI figures out what you mean." = "Abbreviations, shorthand, even typos â€” the AI figures out what you mean.";
 "Stay on track" = "Stay on track";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster.";
 "Enable Notifications" = "Enable Notifications";
@@ -286,7 +286,7 @@
 "Search for \"Notyfi\" and choose a size" = "Search for \"Notyfi\" and choose a size";
 "Tap the widget any time to open the app" = "Tap the widget any time to open the app";
 "Set category limits" = "Set category limits";
-"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Add a monthly limit for each category. Skip any you're not sure about — you can set these later.";
+"Add a monthly limit for each category. Skip any you're not sure about â€” you can set these later." = "Add a monthly limit for each category. Skip any you're not sure about â€” you can set these later.";
 "/mo" = "/mo";
 "Skip for now" = "Skip for now";
 "Follow System" = "Follow System";
@@ -308,7 +308,7 @@
 "per month for \(category.title)" = "per month for \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending — every single day." = "Add the Notyfi widget to stay on top of your spending — every single day.";
+"Add the Notyfi widget to stay on top of your spending â€” every single day." = "Add the Notyfi widget to stay on top of your spending â€” every single day.";
 
 // Category group titles
 "Essentials" = "Essentials";
@@ -407,13 +407,11 @@
 "%@ over your budget pace" = "%@ over your budget pace";
 "%@ under your budget pace" = "%@ under your budget pace";
 "Budget pace" = "Budget pace";
-"Spent" = "Spent";
 "This month vs last month" = "This month vs last month";
 "No month-to-month comparison yet." = "No month-to-month comparison yet.";
 "Almost identical to the same point last month." = "Almost identical to the same point last month.";
 "%@ higher than the same point last month" = "%@ higher than the same point last month";
 "%@ lower than the same point last month" = "%@ lower than the same point last month";
-"This month" = "This month";
 "Last month" = "Last month";
 "Last 6 months" = "Last 6 months";
 "Add a few entries to start seeing spending trends." = "Add a few entries to start seeing spending trends.";
@@ -423,3 +421,6 @@
 "No recurring rules yet." = "No recurring rules yet.";
 "Monthly load" = "Monthly load";
 "Upcoming" = "Upcoming";
+"Day" = "Day";
+"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Add a monthly limit for each category. Skip any you're not sure about — you can set these later.";
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Add the Notyfi widget to stay on top of your spending — every single day.";

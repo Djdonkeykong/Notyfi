@@ -42,7 +42,7 @@
 "Month" = "Maand";
 "Net" = "Netto";
 "Balance" = "Saldo";
-"Top categories" = "TopcategorieÃƒÃƒâ€šÃ‚Â«n";
+"Top categories" = "TopcategorieÃƒÆ’ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â«n";
 "Start adding notes to see where your money goes." = "Begin met notities toevoegen om te zien waar je geld naartoe gaat.";
 "Top category insight format" = "%@ voert deze maand de uitgaven aan met %d%%.";
 "No notes yet this month." = "Nog geen notities deze maand.";
@@ -70,7 +70,7 @@
 "Plan" = "Plan";
 "Money plan" = "Budgetplan";
 "Monthly spending cap" = "Maandelijks uitgavenplafond";
-"One gentle limit for the whole month" = "EÃƒÃƒâ€šÃ‚Â©n rustige limiet voor de hele maand";
+"One gentle limit for the whole month" = "EÃƒÆ’ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©n rustige limiet voor de hele maand";
 "Savings target" = "Spaardoel";
 "How much you want to keep after expenses" = "Hoeveel je wilt overhouden na uitgaven";
 "Category guides" = "Categorierichtlijnen";
@@ -80,7 +80,7 @@
 "Cap" = "Limiet";
 "0" = "0";
 "Use suggested cap %@" = "Gebruik voorgestelde limiet %@";
-"Start with one monthly cap, then add category guides only where they help." = "Begin met ÃƒÃƒâ€šÃ‚Â©ÃƒÃƒâ€šÃ‚Â©n maandelijkse limiet en voeg alleen categorierichtlijnen toe waar ze helpen.";
+"Start with one monthly cap, then add category guides only where they help." = "Begin met ÃƒÆ’ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ÃƒÆ’ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©n maandelijkse limiet en voeg alleen categorierichtlijnen toe waar ze helpen.";
 "Spent %@ over %@ tracked days." = "%@ uitgegeven over %@ geregistreerde dagen.";
 "left" = "over";
 "over" = "over";
@@ -193,8 +193,8 @@
 "Transfer" = "Overboeking";
 "Recurring bill" = "Terugkerende rekening";
 "Attachment from Files" = "Bijlage uit Bestanden";
-"Add one manual expense entry." = "Voeg Ã©Ã©n handmatige uitgave toe.";
-"Add one manual income entry." = "Voeg Ã©Ã©n handmatige inkomenspost toe.";
+"Add one manual expense entry." = "Voeg ÃƒÂ©ÃƒÂ©n handmatige uitgave toe.";
+"Add one manual income entry." = "Voeg ÃƒÂ©ÃƒÂ©n handmatige inkomenspost toe.";
 "Start a transfer entry and adjust the direction." = "Start een overboeking en pas de richting aan.";
 "Create a bill entry you can fill in quickly." = "Maak een rekening aan die je snel kunt invullen.";
 "Import an image or PDF from Files." = "Importeer een afbeelding of pdf uit Bestanden.";
@@ -258,7 +258,7 @@
 "per month" = "per maand";
 "Set Budget" = "Budget instellen";
 "What do you spend on?" = "Waaraan geef je geld uit?";
-"Pick the categories that apply to you. Notyfi will use these to organize your entries." = "Kies de categorieÃ«n die op jou van toepassing zijn. Notyfi gebruikt deze om je vermeldingen te organiseren.";
+"Pick the categories that apply to you. Notyfi will use these to organize your entries." = "Kies de categorieÃƒÂ«n die op jou van toepassing zijn. Notyfi gebruikt deze om je vermeldingen te organiseren.";
 "Pick your currency" = "Kies je valuta";
 "Used to format your entries and budget. You can change this later." = "Wordt gebruikt om je vermeldingen en budget op te maken. Je kunt dit later wijzigen.";
 "Just write what you spent" = "Schrijf gewoon wat je hebt uitgegeven";
@@ -271,19 +271,19 @@
 "Speak it out" = "Zeg het hardop";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Zeg hardop wat je hebt uitgegeven. Notyfi transcribeert en analyseert het direct.";
 "Smart text" = "Slimme tekst";
-"Abbreviations, shorthand, even typos — the AI figures out what you mean." = "Afkortingen, steno, zelfs tikfouten â€” de AI begrijpt wat je bedoelt.";
+"Abbreviations, shorthand, even typos â€” the AI figures out what you mean." = "Afkortingen, steno, zelfs tikfouten Ã¢â‚¬â€ de AI begrijpt wat je bedoelt.";
 "Stay on track" = "Blijf op koers";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Ontvang dagelijks een herinnering om je uitgaven te registreren. Mensen die herinneringen gebruiken, bouwen de gewoonte 3x sneller op.";
 "Enable Notifications" = "Meldingen inschakelen";
 "Daily spending reminders" = "Dagelijkse uitgavenherinneringen";
 "Add the Notyfi widget" = "Voeg de Notyfi-widget toe";
-"People who add the widget are far more consistent. Your spending is always one glance away." = "Mensen die de widget toevoegen, zijn veel consequenter. Je uitgaven zijn altijd Ã©Ã©n blik verwijderd.";
+"People who add the widget are far more consistent. Your spending is always one glance away." = "Mensen die de widget toevoegen, zijn veel consequenter. Je uitgaven zijn altijd ÃƒÂ©ÃƒÂ©n blik verwijderd.";
 "Long press anywhere on your Home Screen" = "Druk lang ergens op je beginscherm";
 "Tap the \"+\" button in the top left corner" = "Tik op de \"+\"-knop linksboven";
 "Search for \"Notyfi\" and choose a size" = "Zoek naar \"Notyfi\" en kies een grootte";
 "Tap the widget any time to open the app" = "Tik op de widget om de app te openen";
 "Set category limits" = "Categorielimieten instellen";
-"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Voeg een maandelijks limiet toe voor elke categorie. Sla de categorieÃ«n over waar je niet zeker van bent â€” je kunt ze later instellen.";
+"Add a monthly limit for each category. Skip any you're not sure about â€” you can set these later." = "Voeg een maandelijks limiet toe voor elke categorie. Sla de categorieÃƒÂ«n over waar je niet zeker van bent Ã¢â‚¬â€ je kunt ze later instellen.";
 "/mo" = "/mnd.";
 "Skip for now" = "Nu overslaan";
 "Follow System" = "Systeem volgen";
@@ -314,7 +314,7 @@
 "per month for \(category.title)" = "per maand voor \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending — every single day." = "Voeg de Notyfi-widget toe om je uitgaven bij te houden â€” elke dag.";
+"Add the Notyfi widget to stay on top of your spending â€” every single day." = "Voeg de Notyfi-widget toe om je uitgaven bij te houden Ã¢â‚¬â€ elke dag.";
 
 // Category group titles
 "Essentials" = "Basisbehoeften";
@@ -340,12 +340,12 @@
 "spent this month" = "uitgegeven deze maand";
 "Left" = "Resterend";
 "Monthly Overview" = "Maandoverzicht";
-"See your monthly spend and budget at a glance." = "Bekijk je maandelijkse uitgaven en budget in Ã©Ã©n oogopslag.";
+"See your monthly spend and budget at a glance." = "Bekijk je maandelijkse uitgaven en budget in ÃƒÂ©ÃƒÂ©n oogopslag.";
 "widget.days.last" = "Laatste dag van de maand";
 "widget.days.one" = "1 dag over";
 "widget.days.many" = "%d dagen over";
-"No categories selected" = "Geen categorieÃ«n geselecteerd";
-"Go back to choose categories, or skip for now." = "Ga terug om categorieÃ«n te kiezen, of sla dit nu over.";
+"No categories selected" = "Geen categorieÃƒÂ«n geselecteerd";
+"Go back to choose categories, or skip for now." = "Ga terug om categorieÃƒÂ«n te kiezen, of sla dit nu over.";
 
 // Errors
 "error.auth.missingToken" = "Aanmelden mislukt: identiteitstoken ontbreekt.";
@@ -371,13 +371,11 @@
 "%@ over your budget pace" = "%@ boven je budgettempo";
 "%@ under your budget pace" = "%@ onder je budgettempo";
 "Budget pace" = "Budgettempo";
-"Spent" = "Uitgegeven";
 "This month vs last month" = "Deze maand vs vorige maand";
 "No month-to-month comparison yet." = "Nog geen maand-op-maandvergelijking.";
 "Almost identical to the same point last month." = "Bijna gelijk aan hetzelfde punt vorige maand.";
 "%@ higher than the same point last month" = "%@ hoger dan op hetzelfde punt vorige maand";
 "%@ lower than the same point last month" = "%@ lager dan op hetzelfde punt vorige maand";
-"This month" = "Deze maand";
 "Last month" = "Vorige maand";
 "Last 6 months" = "Laatste 6 maanden";
 "Add a few entries to start seeing spending trends." = "Voeg een paar items toe om uitgaventrends te gaan zien.";
@@ -387,3 +385,4 @@
 "No recurring rules yet." = "Nog geen terugkerende regels.";
 "Monthly load" = "Maandelijkse last";
 "Upcoming" = "Binnenkort";
+"Day" = "Dag";
