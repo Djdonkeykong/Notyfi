@@ -804,7 +804,7 @@ private extension Array where Element == ReportLinePoint {
             return nil
         }
 
-        let safeIndex = max(0, min(day - 1, count - 1))
+        let safeIndex = Swift.max(0, Swift.min(day - 1, count - 1))
         return self[safeIndex].value
     }
 }
