@@ -124,6 +124,10 @@ private extension ReportsSheetView {
                 && calendar.isDate($0.date, equalTo: monthAnchor, toGranularity: .month)
         }
 
+        guard !monthEntries.isEmpty else {
+            return []
+        }
+
         let totalsByDay = Dictionary(grouping: monthEntries) { entry in
             calendar.component(.day, from: entry.date)
         }
@@ -258,6 +262,10 @@ private struct SpendVsBudgetCard: View {
     let daysInMonth: Int
     let points: [ReportLinePoint]
 
+    private var hasSpendData: Bool {
+        points.contains { $0.value > 0 }
+    }
+
     private var budgetPacePoints: [ReportLinePoint] {
         guard budgetLimit > 0 else {
             return []
@@ -272,6 +280,10 @@ private struct SpendVsBudgetCard: View {
     }
 
     private var takeaway: String {
+        guard hasSpendData else {
+            return "Add a few entries to start seeing spending trends.".notyfiLocalized
+        }
+
         guard budgetLimit > 0 else {
             return "Set a monthly budget to unlock this chart.".notyfiLocalized
         }
@@ -316,7 +328,7 @@ private struct SpendVsBudgetCard: View {
                     ReportLegendItem(title: "Budget pace".notyfiLocalized, color: NotyfiTheme.brandBlue, style: .dashed)
                 ])
 
-                if budgetLimit > 0 {
+                if hasSpendData && budgetLimit > 0 {
                     Chart {
                         ForEach(points) { point in
                             LineMark(
@@ -360,6 +372,8 @@ private struct SpendVsBudgetCard: View {
                         }
                     }
                     .frame(height: 200)
+                } else if !hasSpendData {
+                    ReportEmptyState(message: "Add a few entries to start seeing spending trends.")
                 } else {
                     ReportEmptyState(message: "Set a monthly budget to unlock this chart.")
                 }

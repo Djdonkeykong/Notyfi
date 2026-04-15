@@ -20,10 +20,10 @@ struct HomeTopBar: View {
                             action: onReportsTap
                         )
 
-                        Rectangle()
-                            .fill(NotyfiTheme.surfaceBorder.opacity(0.75))
-                            .frame(width: 1, height: 18)
-                            .padding(.horizontal, 2)
+                        Capsule()
+                            .fill(.primary.opacity(0.12))
+                            .frame(width: 2, height: 22)
+                            .padding(.horizontal, 4)
 
                         topBarIconButton(
                             systemImage: "gearshape.fill",
