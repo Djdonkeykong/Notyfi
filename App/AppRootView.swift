@@ -37,6 +37,13 @@ struct AppRootView: View {
         }
         .environmentObject(languageManager)
         .preferredColorScheme(appearanceMode.colorScheme)
+        .onAppear { syncOnboardingWithAuthState() }
+        .onChange(of: authManager.isReady) { _, _ in
+            syncOnboardingWithAuthState()
+        }
+        .onChange(of: authManager.isAuthenticated) { _, _ in
+            syncOnboardingWithAuthState()
+        }
         .task(id: syncTaskID) {
             await cloudSyncManager.refreshAuthenticationState(
                 isReady: authManager.isReady,
@@ -55,7 +62,7 @@ struct AppRootView: View {
             Color("LaunchBackground")
                 .ignoresSafeArea()
 
-            Image("HomeBrandMark")
+            Image("LaunchImage")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 280, height: 255)
@@ -65,7 +72,6 @@ struct AppRootView: View {
     private var shouldShowSplash: Bool {
         !minimumSplashElapsed
             || !authManager.isReady
-            || (authManager.isAuthenticated && !cloudSyncManager.isReady)
     }
 
     private var appearanceMode: NotyfiAppearanceMode {
@@ -74,6 +80,11 @@ struct AppRootView: View {
 
     private var syncTaskID: String {
         "\(authManager.isReady)-\(authManager.isAuthenticated)"
+    }
+
+    private func syncOnboardingWithAuthState() {
+        guard authManager.isReady, authManager.isAuthenticated, !hasCompletedOnboarding else { return }
+        hasCompletedOnboarding = true
     }
 }
 
