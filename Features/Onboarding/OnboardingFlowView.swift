@@ -4,7 +4,6 @@ struct OnboardingFlowView: View {
     @ObservedObject var store: ExpenseJournalStore
     @ObservedObject var authManager: AuthManager
 
-    @AppStorage("notyfi.onboarding.complete") private var isComplete = false
     @AppStorage(NotyfiCurrency.storageKey) private var currencyRawValue = NotyfiCurrencyPreference.auto.rawValue
 
     @State private var currentStep: OnboardingStep = .welcome
@@ -131,9 +130,6 @@ struct OnboardingFlowView: View {
                 bottomChrome
                     .offset(x: chromeOffset * viewWidth)
             }
-        }
-        .onChange(of: authManager.isAuthenticated) { _, authenticated in
-            if authenticated { isComplete = true }
         }
     }
 

@@ -108,7 +108,7 @@ final class CloudSyncManager: ObservableObject {
         // unless the server already has substantive finance data.
         if shouldBootstrapLocalOnboarding, !remoteState.hasPersistedFinanceData {
             try await pushSnapshot(
-                makeLocalSnapshot(),
+                makeLocalSnapshot(markingOnboardingComplete: true),
                 user: user
             )
             PendingOnboardingBootstrap.clear(defaults: defaults)
@@ -229,7 +229,7 @@ final class CloudSyncManager: ObservableObject {
             defaults.set(preference.rawValue, forKey: NotyfiCurrency.storageKey)
         }
 
-        if remoteState.user.onboardingCompletedAt != nil || remoteState.hasServerData {
+        if remoteState.user.onboardingCompletedAt != nil || remoteState.hasPersistedFinanceData {
             defaults.set(true, forKey: PendingOnboardingBootstrap.onboardingCompletedKey)
         }
 
@@ -240,7 +240,7 @@ final class CloudSyncManager: ObservableObject {
         }
     }
 
-    private func makeLocalSnapshot() -> LocalFinanceSnapshot {
+    private func makeLocalSnapshot(markingOnboardingComplete: Bool = false) -> LocalFinanceSnapshot {
         LocalFinanceSnapshot(
             entries: store.entries,
             budgetPlan: store.budgetPlan,
@@ -248,7 +248,8 @@ final class CloudSyncManager: ObservableObject {
             recurringTransactions: store.recurringTransactions,
             currencyCode: NotyfiCurrency.currentCode(defaults: defaults),
             languageCode: NotyfiLocale.storedLanguageCode(defaults: defaults),
-            onboardingCompleted: defaults.bool(forKey: PendingOnboardingBootstrap.onboardingCompletedKey)
+            onboardingCompleted: markingOnboardingComplete
+                || defaults.bool(forKey: PendingOnboardingBootstrap.onboardingCompletedKey)
         )
     }
 
