@@ -62,6 +62,14 @@ struct JournalLogTextView: UIViewRepresentable {
             blue: 0.96,
             alpha: 1
         )
+        textView.autocorrectionType = .default
+        textView.spellCheckingType = .default
+        textView.smartQuotesType = .default
+        textView.smartDashesType = .default
+        textView.smartInsertDeleteType = .default
+        if #available(iOS 17.0, *) {
+            textView.inlinePredictionType = .no
+        }
         textView.typingAttributes = Self.textAttributes
         textView.isScrollEnabled = false
         textView.isEditable = isEditable
@@ -83,6 +91,14 @@ struct JournalLogTextView: UIViewRepresentable {
         context.coordinator.parent = self
         uiView.isEditable = isEditable
         uiView.isSelectable = isEditable
+        uiView.autocorrectionType = .default
+        uiView.spellCheckingType = .default
+        uiView.smartQuotesType = .default
+        uiView.smartDashesType = .default
+        uiView.smartInsertDeleteType = .default
+        if #available(iOS 17.0, *) {
+            uiView.inlinePredictionType = .no
+        }
         uiView.typingAttributes = Self.textAttributes
         uiView.textContainerInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: trailingInset)
         uiView.onLayoutUpdate = { [weak coordinator = context.coordinator, weak uiView] in
