@@ -179,11 +179,11 @@ struct StatsSheetView: View {
                         .buttonStyle(.plain)
                     }
 
-                    if !viewModel.budgetInsight.categoryStatuses.isEmpty {
+                    if !categoryGuideStatuses.isEmpty {
                         SectionHeader(title: "Category guides")
                         StatsCard {
                             VStack(spacing: 0) {
-                                ForEach(Array(viewModel.budgetInsight.categoryStatuses.enumerated()), id: \.element.id) { index, status in
+                                ForEach(Array(categoryGuideStatuses.enumerated()), id: \.element.id) { index, status in
                                     CategoryBudgetInputRow(
                                         status: status,
                                         text: binding(for: status.category),
@@ -193,7 +193,7 @@ struct StatsSheetView: View {
                                         field: .category(status.category)
                                     )
 
-                                    if index < viewModel.budgetInsight.categoryStatuses.count - 1 {
+                                    if index < categoryGuideStatuses.count - 1 {
                                         Divider()
                                     }
                                 }
@@ -429,6 +429,39 @@ struct StatsSheetView: View {
         }
     }
 
+    private var categoryGuideStatuses: [BudgetCategoryStatus] {
+        let breakdownByCategory = Dictionary(
+            uniqueKeysWithValues: viewModel.insight.categoryBreakdown.map { ($0.category, $0) }
+        )
+
+        var categories = viewModel.orderedTrackedCategories
+        if breakdownByCategory[.uncategorized] != nil || viewModel.budgetPlan.target(for: .uncategorized) > 0 {
+            categories.append(.uncategorized)
+        }
+
+        return categories.map { category in
+            let breakdown = breakdownByCategory[category]
+            return BudgetCategoryStatus(
+                category: category,
+                spent: breakdown?.total ?? 0,
+                target: viewModel.budgetPlan.target(for: category),
+                share: breakdown?.share ?? 0,
+                entryCount: breakdown?.entryCount ?? 0
+            )
+        }
+        .sorted { lhs, rhs in
+            if lhs.isActive != rhs.isActive {
+                return lhs.isActive && !rhs.isActive
+            }
+
+            if lhs.spent == rhs.spent {
+                return lhs.category.title < rhs.category.title
+            }
+
+            return lhs.spent > rhs.spent
+        }
+    }
+
     private func binding(for category: ExpenseCategory) -> Binding<String> {
         Binding(
             get: { categoryBudgetTexts[category] ?? editableAmountString(viewModel.budgetPlan.target(for: category)) },
@@ -444,7 +477,7 @@ struct StatsSheetView: View {
         savingsTargetText = editableAmountString(viewModel.budgetPlan.monthlySavingsTarget)
 
         var nextCategoryTexts: [ExpenseCategory: String] = [:]
-        for status in viewModel.budgetInsight.categoryStatuses {
+        for status in categoryGuideStatuses {
             nextCategoryTexts[status.category] = editableAmountString(status.target)
         }
         categoryBudgetTexts = nextCategoryTexts

@@ -13,32 +13,23 @@ struct HomeTopBar: View {
 
                 Spacer()
 
-                HStack(spacing: 10) {
-                    Button(action: {
-                        Haptics.mediumImpact()
-                        onReportsTap()
-                    }) {
-                        SoftCapsule(horizontalPadding: 14, verticalPadding: 11) {
-                            Image(systemName: "chart.line.uptrend.xyaxis")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.primary.opacity(0.82))
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .contentShape(Capsule())
+                SoftCapsule(horizontalPadding: 8, verticalPadding: 7) {
+                    HStack(spacing: 0) {
+                        topBarIconButton(
+                            systemImage: "chart.line.uptrend.xyaxis",
+                            action: onReportsTap
+                        )
 
-                    Button(action: {
-                        Haptics.mediumImpact()
-                        onSettingsTap()
-                    }) {
-                        SoftCapsule(horizontalPadding: 14, verticalPadding: 11) {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.primary.opacity(0.82))
-                        }
+                        Rectangle()
+                            .fill(NotyfiTheme.surfaceBorder.opacity(0.75))
+                            .frame(width: 1, height: 18)
+                            .padding(.horizontal, 2)
+
+                        topBarIconButton(
+                            systemImage: "gearshape.fill",
+                            action: onSettingsTap
+                        )
                     }
-                    .buttonStyle(.plain)
-                    .contentShape(Capsule())
                 }
             }
 
@@ -54,6 +45,25 @@ struct HomeTopBar: View {
             }
             .buttonStyle(.plain)
         }
+    }
+}
+
+private extension HomeTopBar {
+    func topBarIconButton(
+        systemImage: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: {
+            Haptics.mediumImpact()
+            action()
+        }) {
+            Image(systemName: systemImage)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.primary.opacity(0.82))
+                .frame(width: 38, height: 34)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 

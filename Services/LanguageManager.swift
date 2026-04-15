@@ -16,46 +16,22 @@ final class NotyfiBundle {
         return bundle
     }()
 
-    private static var stringsCache: [String: [String: String]] = [:]
-
     static func localizedString(forKey key: String, table: String? = nil) -> String {
         guard usesStrictLocalization else {
             return current.localizedString(forKey: key, value: key, table: table)
         }
 
-        if let localizedValue = exactLocalizedString(forKey: key, in: current, table: table) {
+        let localizedValue = current.localizedString(forKey: key, value: key, table: table)
+        if localizedValue != key {
             return localizedValue
         }
 
-        if let fallbackValue = exactLocalizedString(forKey: key, in: englishFallbackBundle, table: table) {
+        let fallbackValue = englishFallbackBundle.localizedString(forKey: key, value: key, table: table)
+        if fallbackValue != key {
             return fallbackValue
         }
 
         return key
-    }
-
-    private static func exactLocalizedString(
-        forKey key: String,
-        in bundle: Bundle,
-        table: String?
-    ) -> String? {
-        let tableName = table ?? "Localizable"
-
-        guard let stringsPath = bundle.path(forResource: tableName, ofType: "strings") else {
-            return nil
-        }
-
-        let cacheKey = "\(stringsPath)|\(tableName)"
-        let tableValues: [String: String]
-        if let cached = stringsCache[cacheKey] {
-            tableValues = cached
-        } else {
-            let parsedValues = NSDictionary(contentsOfFile: stringsPath) as? [String: String] ?? [:]
-            stringsCache[cacheKey] = parsedValues
-            tableValues = parsedValues
-        }
-
-        return tableValues[key]
     }
 }
 
