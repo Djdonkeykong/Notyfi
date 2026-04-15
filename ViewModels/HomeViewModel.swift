@@ -941,6 +941,10 @@ final class HomeViewModel: ObservableObject {
                 on: previewDate,
                 currencyCode: previewCurrencyCode
             ) else {
+                guard let self else {
+                    return
+                }
+
                 guard self.composerText.trimmingCharacters(in: .whitespacesAndNewlines) == previewText else {
                     return
                 }
