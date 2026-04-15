@@ -8,6 +8,7 @@
 "Train ticket 299" = "Togbillett 299";
 
 "Checking" = "Sjekker";
+"Offline" = "Offline";
 "Reading" = "Leser";
 "Finding" = "Finner";
 "Thinking" = "Tenker";
@@ -55,7 +56,7 @@
 "Top category" = "Toppkategori";
 "Quiet week" = "Rolig uke";
 "Money pulse" = "Forbruk";
-"Set a gentle budget for this month" = "Sett et rolig budsjett for denne måneden";
+"Set a gentle budget for this month" = "Sett månedsbudsjett";
 "No budget" = "Ingen budsjett";
 "On pace" = "I rute";
 "Watch pace" = "Følg med";

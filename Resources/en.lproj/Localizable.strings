@@ -8,6 +8,7 @@
 "Train ticket 299" = "Train ticket 299";
 
 "Checking" = "Checking";
+"Offline" = "Offline";
 "Reading" = "Reading";
 "Finding" = "Finding";
 "Thinking" = "Thinking";
@@ -55,7 +56,7 @@
 "Top category" = "Top category";
 "Quiet week" = "Quiet week";
 "Money pulse" = "Spending";
-"Set a gentle budget for this month" = "Set a gentle budget for this month";
+"Set a gentle budget for this month" = "Set monthly budget";
 "No budget" = "No budget";
 "On pace" = "On pace";
 "Watch pace" = "Watch pace";

@@ -475,7 +475,7 @@ Deno.serve(async (req) => {
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser(token);
 
   if (userError || !user) {
     console.error("Auth lookup failed", userError);

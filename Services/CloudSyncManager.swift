@@ -102,7 +102,11 @@ final class CloudSyncManager: ObservableObject {
         let remoteState = try await SupabaseFinanceService.fetchFinanceState(userID: user.id)
         let shouldBootstrapLocalOnboarding = PendingOnboardingBootstrap.shouldBootstrap(defaults: defaults)
 
-        if shouldBootstrapLocalOnboarding, !remoteState.hasServerData {
+        // A freshly created backend user can already have default preferences
+        // such as currency_code without having any real finance state yet.
+        // When onboarding has just completed locally, prefer that local snapshot
+        // unless the server already has substantive finance data.
+        if shouldBootstrapLocalOnboarding, !remoteState.hasPersistedFinanceData {
             try await pushSnapshot(
                 makeLocalSnapshot(),
                 user: user
@@ -292,15 +296,19 @@ private struct RemoteFinanceState {
     let recurringTransactions: [RecurringTransaction]
     let entries: [ExpenseEntry]
 
-    var hasServerData: Bool {
+    var hasPersistedFinanceData: Bool {
         user.onboardingCompletedAt != nil
             || user.monthlyBudget != nil
-            || user.currencyCode != nil
-            || user.languageCode != nil
             || activePlan != nil
             || !categoryTargets.isEmpty
             || !recurringTransactions.isEmpty
             || !entries.isEmpty
+    }
+
+    var hasServerData: Bool {
+        hasPersistedFinanceData
+            || user.currencyCode != nil
+            || user.languageCode != nil
     }
 
     var budgetPlan: BudgetPlan {

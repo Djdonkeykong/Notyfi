@@ -43,6 +43,7 @@ final class HomeViewModel: ObservableObject {
     private let draftPreviewDelayNanoseconds: UInt64 = 1_800_000_000
     private var composerDraftsByDay: [Date: String] = [:]
     @Published private var composerPreviewDraft: ParsedExpenseDraft?
+    @Published private var composerPreviewFailedText: String?
     private var composerPreviewTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
 
@@ -148,6 +149,14 @@ final class HomeViewModel: ObservableObject {
                 primaryText: primaryText,
                 secondaryText: secondaryText,
                 primaryColorName: primaryColorName
+            )
+        }
+
+        if composerPreviewFailedText == trimmed {
+            return DraftComposerFeedback(
+                primaryText: "Offline".notyfiLocalized,
+                secondaryText: nil,
+                primaryColorName: .neutral
             )
         }
 
@@ -483,6 +492,7 @@ final class HomeViewModel: ObservableObject {
         composerPreviewTask?.cancel()
         composerPreviewTask = nil
         composerPreviewDraft = nil
+        composerPreviewFailedText = nil
         scheduleComposerPreviewParse()
     }
 
@@ -897,6 +907,7 @@ final class HomeViewModel: ObservableObject {
         composerPreviewTask?.cancel()
         composerPreviewTask = nil
         composerPreviewDraft = nil
+        composerPreviewFailedText = nil
 
         if !normalized.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             scheduleComposerPreviewParse()
@@ -910,6 +921,7 @@ final class HomeViewModel: ObservableObject {
         guard !previewText.isEmpty else {
             composerPreviewTask = nil
             composerPreviewDraft = nil
+            composerPreviewFailedText = nil
             return
         }
 
@@ -929,6 +941,11 @@ final class HomeViewModel: ObservableObject {
                 on: previewDate,
                 currencyCode: previewCurrencyCode
             ) else {
+                guard self.composerText.trimmingCharacters(in: .whitespacesAndNewlines) == previewText else {
+                    return
+                }
+
+                self.composerPreviewFailedText = previewText
                 return
             }
 
@@ -938,6 +955,7 @@ final class HomeViewModel: ObservableObject {
 
             if self.composerText.trimmingCharacters(in: .whitespacesAndNewlines) == previewText {
                 self.composerPreviewDraft = parsedDraft
+                self.composerPreviewFailedText = nil
                 Haptics.lightImpact()
             }
         }

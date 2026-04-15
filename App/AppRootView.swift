@@ -8,7 +8,6 @@ struct AppRootView: View {
 
     @AppStorage("notyfi.onboarding.complete") private var hasCompletedOnboarding = false
     @AppStorage(NotyfiAppearanceMode.storageKey) private var appearanceModeRawValue = NotyfiAppearanceMode.system.rawValue
-    @State private var minimumSplashElapsed = false
 
     init(store: ExpenseJournalStore) {
         self.store = store
@@ -24,8 +23,8 @@ struct AppRootView: View {
 
     var body: some View {
         Group {
-            if shouldShowSplash {
-                splashScreen
+            if isLoadingAppState {
+                loadingView
             } else if !hasCompletedOnboarding {
                 OnboardingFlowView(store: store, authManager: authManager)
                     .id(languageManager.refreshID)
@@ -50,28 +49,20 @@ struct AppRootView: View {
                 isAuthenticated: authManager.isAuthenticated
             )
         }
-        .task {
-            guard !minimumSplashElapsed else { return }
-            try? await Task.sleep(nanoseconds: 500_000_000)
-            minimumSplashElapsed = true
-        }
     }
 
-    private var splashScreen: some View {
+    private var loadingView: some View {
         ZStack {
             Color("LaunchBackground")
                 .ignoresSafeArea()
 
-            Image("LaunchImage")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 280, height: 255)
+            ProgressView()
+                .controlSize(.large)
         }
     }
 
-    private var shouldShowSplash: Bool {
-        !minimumSplashElapsed
-            || !authManager.isReady
+    private var isLoadingAppState: Bool {
+        !authManager.isReady
             || (authManager.isAuthenticated && !cloudSyncManager.isReady)
     }
 

@@ -7,7 +7,6 @@ struct SettingsSheetView: View {
     @ObservedObject var authManager: AuthManager
     @AppStorage("notyfi.onboarding.complete") private var hasCompletedOnboarding = false
     @State private var isFeedbackPresented = false
-    @State private var isRecurringPresented = false
     @State private var isClearLogConfirmationPresented = false
     @State private var isSignOutConfirmationPresented = false
     @State private var isDeleteAccountConfirmationPresented = false
@@ -109,14 +108,6 @@ struct SettingsSheetView: View {
                     SettingsCard {
                         VStack(spacing: 0) {
                             SettingsActionRow(
-                                icon: "repeat.circle",
-                                title: "Recurring",
-                                action: { isRecurringPresented = true }
-                            )
-
-                            Divider()
-
-                            SettingsActionRow(
                                 icon: "star.fill",
                                 title: "Give Feedback",
                                 action: { isFeedbackPresented = true }
@@ -208,13 +199,6 @@ struct SettingsSheetView: View {
         }
         .sheet(isPresented: $isFeedbackPresented) {
             FeedbackSheetView(url: URL(string: "https://snaplook.app/")!)
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
-                .presentationBackground(NotyfiTheme.background.opacity(0.98))
-                .presentationCornerRadius(34)
-        }
-        .sheet(isPresented: $isRecurringPresented) {
-            RecurringTransactionsSheetView(store: viewModel.journalStore)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
                 .presentationBackground(NotyfiTheme.background.opacity(0.98))
