@@ -37,6 +37,7 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var insight: JournalInsight = .empty
     @Published private(set) var budgetInsight: BudgetInsight = .empty
     @Published private(set) var currencyCode: String
+    @Published private(set) var recurringTransactionsSnapshot: [RecurringTransaction] = []
 
     private let store: ExpenseJournalStore
     private let calendar: Calendar
@@ -75,6 +76,12 @@ final class HomeViewModel: ObservableObject {
                 self?.currencyCode = currencyCode
             }
             .store(in: &cancellables)
+
+        store.$recurringTransactions
+            .sink { [weak self] recurringTransactions in
+                self?.recurringTransactionsSnapshot = recurringTransactions
+            }
+            .store(in: &cancellables)
     }
 
     var entryCountText: String {
@@ -95,6 +102,18 @@ final class HomeViewModel: ObservableObject {
 
     var orderedTrackedCategories: [ExpenseCategory] {
         ExpenseCategory.trackableCases.filter { trackedCategories.contains($0) }
+    }
+
+    func activeRecurringExpenseTransactions(for category: ExpenseCategory) -> [RecurringTransaction] {
+        recurringTransactionsSnapshot
+            .filter {
+                $0.isActive
+                    && $0.transactionKind == .expense
+                    && $0.category == category
+            }
+            .sorted { lhs, rhs in
+                lhs.nextOccurrenceAt < rhs.nextOccurrenceAt
+            }
     }
 
     var draftFeedback: DraftComposerFeedback? {

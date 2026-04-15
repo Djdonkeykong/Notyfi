@@ -187,6 +187,7 @@ struct StatsSheetView: View {
                                     CategoryBudgetInputRow(
                                         status: status,
                                         text: binding(for: status.category),
+                                        recurringTransactions: viewModel.activeRecurringExpenseTransactions(for: status.category),
                                         currencyCode: viewModel.currencyCode,
                                         focusedField: $focusedField,
                                         field: .category(status.category)
@@ -234,6 +235,11 @@ struct StatsSheetView: View {
             .scrollDismissesKeyboard(.interactively)
         }
         .onAppear(perform: syncInputs)
+        .onChange(of: isCategoryEditorPresented) { _, isPresented in
+            if !isPresented {
+                syncInputs()
+            }
+        }
         .onChange(of: monthlyBudgetText) { _, newValue in
             viewModel.setMonthlySpendingLimit(parsedAmount(from: newValue))
         }
@@ -264,8 +270,11 @@ struct StatsSheetView: View {
         }
         .sheet(isPresented: $isCategoryEditorPresented) {
             MoneyPlanCategoryTrackingSheet(
-                selectedCategories: viewModel.trackedCategories,
-                onSave: viewModel.setTrackedCategories
+                initialSelectedCategories: viewModel.trackedCategories,
+                onSave: { categories in
+                    viewModel.setTrackedCategories(categories)
+                    syncInputs()
+                }
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
@@ -529,6 +538,7 @@ private struct MoneyPlanCategoryTrackingSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedCategories: Set<ExpenseCategory>
 
+    let initialSelectedCategories: Set<ExpenseCategory>
     let onSave: (Set<ExpenseCategory>) -> Void
 
     private struct CategoryGroup {
@@ -561,10 +571,11 @@ private struct MoneyPlanCategoryTrackingSheet: View {
     ]
 
     init(
-        selectedCategories: Set<ExpenseCategory>,
+        initialSelectedCategories: Set<ExpenseCategory>,
         onSave: @escaping (Set<ExpenseCategory>) -> Void
     ) {
-        _selectedCategories = State(initialValue: selectedCategories)
+        self.initialSelectedCategories = initialSelectedCategories
+        _selectedCategories = State(initialValue: initialSelectedCategories)
         self.onSave = onSave
     }
 
@@ -650,6 +661,9 @@ private struct MoneyPlanCategoryTrackingSheet: View {
                 )
                 .ignoresSafeArea(edges: .bottom)
             }
+        }
+        .onAppear {
+            selectedCategories = initialSelectedCategories
         }
     }
 }
@@ -835,6 +849,7 @@ private struct BudgetAmountInputRow: View {
 private struct CategoryBudgetInputRow: View {
     let status: BudgetCategoryStatus
     @Binding var text: String
+    let recurringTransactions: [RecurringTransaction]
     let currencyCode: String
     @FocusState.Binding var focusedField: MoneyPlanFocusField?
     let field: MoneyPlanFocusField
@@ -879,6 +894,29 @@ private struct CategoryBudgetInputRow: View {
                 }
             }
 
+            if !recurringTransactions.isEmpty {
+                MoneyPlanCategoryFlowLayout(spacing: 8) {
+                    ForEach(Array(recurringTransactions.prefix(2))) { transaction in
+                        RecurringBudgetPill(
+                            amountText: transaction.amount.formattedCurrency(code: transaction.currencyCode),
+                            frequencyText: transaction.frequency.title
+                        )
+                    }
+
+                    if recurringTransactions.count > 2 {
+                        Text("+\(recurringTransactions.count - 2)")
+                            .font(.notyfi(.caption2, weight: .semibold))
+                            .foregroundStyle(NotyfiTheme.secondaryText)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 7)
+                            .background {
+                                Capsule()
+                                    .fill(NotyfiTheme.elevatedSurface)
+                            }
+                    }
+                }
+            }
+
             if status.hasTarget {
                 VStack(alignment: .leading, spacing: 6) {
                     ProgressView(value: status.progress)
@@ -913,6 +951,37 @@ private struct CategoryBudgetInputRow: View {
             abs(status.remaining).formattedCurrency(code: currencyCode),
             status.category.title
         )
+    }
+}
+
+private struct RecurringBudgetPill: View {
+    let amountText: String
+    let frequencyText: String
+
+    var body: some View {
+        HStack(spacing: 7) {
+            Image(systemName: "repeat.circle.fill")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(NotyfiTheme.brandBlue.opacity(0.92))
+
+            Text(amountText)
+                .font(.notyfi(.caption2, weight: .semibold))
+                .foregroundStyle(.primary.opacity(0.82))
+
+            Text(frequencyText)
+                .font(.notyfi(.caption2, weight: .medium))
+                .foregroundStyle(NotyfiTheme.secondaryText)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background {
+            Capsule()
+                .fill(NotyfiTheme.brandBlue.opacity(0.08))
+        }
+        .overlay {
+            Capsule()
+                .stroke(NotyfiTheme.brandBlue.opacity(0.12), lineWidth: 1)
+        }
     }
 }
 

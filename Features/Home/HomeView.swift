@@ -233,6 +233,9 @@ private extension HomeView {
                     previousEntries: viewModel.entries(for: viewModel.date(forDayOffset: -1)),
                     currentEntries: viewModel.displayedEntries,
                     nextEntries: viewModel.entries(for: viewModel.date(forDayOffset: 1)),
+                    recurringTransactionsByID: Dictionary(
+                        uniqueKeysWithValues: store.recurringTransactions.map { ($0.id, $0) }
+                    ),
                     previousJournalText: viewModel.journalDraft(for: viewModel.date(forDayOffset: -1)),
                     journalText: $viewModel.journalText,
                     nextJournalText: viewModel.journalDraft(for: viewModel.date(forDayOffset: 1)),
@@ -705,6 +708,7 @@ private struct DayJournalPager: View {
     let previousEntries: [ExpenseEntry]
     let currentEntries: [ExpenseEntry]
     let nextEntries: [ExpenseEntry]
+    let recurringTransactionsByID: [UUID: RecurringTransaction]
     let previousJournalText: String
     @Binding var journalText: String
     let nextJournalText: String
@@ -783,6 +787,7 @@ private struct DayJournalPager: View {
             editorFocusRequest: $editorFocusRequest,
             journalCursorLineIndex: $journalCursorLineIndex,
             lineFramesByDate: $lineFramesByDate,
+            recurringTransactionsByID: recurringTransactionsByID,
             feedback: feedback,
             contentTopInset: contentTopInset,
             onJournalTextChange: onJournalTextChange,
@@ -811,6 +816,7 @@ private struct DayJournalPager: View {
             editorFocusRequest: .constant(nil),
             journalCursorLineIndex: .constant(0),
             lineFramesByDate: $lineFramesByDate,
+            recurringTransactionsByID: recurringTransactionsByID,
             feedback: nil,
             contentTopInset: contentTopInset,
             onJournalTextChange: { _ in },
@@ -960,6 +966,7 @@ private struct DayJournalPage: View {
     @Binding var editorFocusRequest: JournalEditorFocusRequest?
     @Binding var journalCursorLineIndex: Int
     @Binding var lineFramesByDate: [Date: [JournalTextLineFrame]]
+    let recurringTransactionsByID: [UUID: RecurringTransaction]
     let feedback: DraftComposerFeedback?
     let contentTopInset: CGFloat
     let onJournalTextChange: (String) -> Void
@@ -992,6 +999,7 @@ private struct DayJournalPage: View {
         editorFocusRequest: Binding<JournalEditorFocusRequest?>,
         journalCursorLineIndex: Binding<Int>,
         lineFramesByDate: Binding<[Date: [JournalTextLineFrame]]>,
+        recurringTransactionsByID: [UUID: RecurringTransaction],
         feedback: DraftComposerFeedback?,
         contentTopInset: CGFloat,
         onJournalTextChange: @escaping (String) -> Void,
@@ -1010,6 +1018,7 @@ private struct DayJournalPage: View {
         _editorFocusRequest = editorFocusRequest
         _journalCursorLineIndex = journalCursorLineIndex
         _lineFramesByDate = lineFramesByDate
+        self.recurringTransactionsByID = recurringTransactionsByID
         self.feedback = feedback
         self.contentTopInset = contentTopInset
         self.onJournalTextChange = onJournalTextChange
@@ -1156,6 +1165,9 @@ private struct DayJournalPage: View {
                 } label: {
                     JournalLineAccessoryView(
                         entry: row.entry,
+                        recurringTransaction: row.entry.flatMap { entry in
+                            entry.recurringTransactionID.flatMap { recurringTransactionsByID[$0] }
+                        },
                         composerText: row.composerText,
                         feedback: row.feedback
                     )
@@ -1241,6 +1253,7 @@ private struct JournalAccessoryRow: Identifiable {
 
 private struct JournalLineAccessoryView: View {
     let entry: ExpenseEntry?
+    let recurringTransaction: RecurringTransaction?
     let composerText: String?
     let feedback: DraftComposerFeedback?
 
@@ -1299,6 +1312,10 @@ private struct JournalLineAccessoryView: View {
         }
 
         if entry.category != .uncategorized {
+            if let recurringTransaction {
+                return "\(entry.category.title) · \(recurringTransaction.frequency.title)"
+            }
+
             return entry.category.title
         }
 
@@ -1349,11 +1366,19 @@ private struct JournalLineAccessoryView: View {
                     .multilineTextAlignment(.trailing)
                     .lineLimit(1)
             } else if entry != nil {
-                Text(trailingPrimary)
-                    .font(.notyfi(.body, weight: .semibold))
-                    .foregroundStyle(trailingPrimaryColor)
-                    .multilineTextAlignment(.trailing)
-                    .lineLimit(1)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Spacer(minLength: 0)
+
+                    Text(trailingPrimary)
+                        .font(.notyfi(.body, weight: .semibold))
+                        .foregroundStyle(trailingPrimaryColor)
+                        .multilineTextAlignment(.trailing)
+                        .lineLimit(1)
+
+                    if recurringTransaction != nil {
+                        JournalRecurringBadge(tint: trailingPrimaryColor)
+                    }
+                }
 
                 Text(trailingSecondary ?? " ")
                     .font(.system(size: 10.5, weight: .regular, design: .default))
@@ -1398,6 +1423,21 @@ private struct JournalLineAccessoryView: View {
             ? "+\(formattedAmount)"
             : "-\(formattedAmount)"
         return entry.isAmountEstimated ? "\(signedAmount)*" : signedAmount
+    }
+}
+
+private struct JournalRecurringBadge: View {
+    let tint: Color
+
+    var body: some View {
+        Image(systemName: "repeat.circle.fill")
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(tint)
+            .padding(4)
+            .background {
+                Capsule()
+                    .fill(tint.opacity(0.12))
+            }
     }
 }
 
