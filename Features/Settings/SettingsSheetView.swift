@@ -3,10 +3,12 @@ import WebKit
 
 struct SettingsSheetView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var languageManager: LanguageManager
     @ObservedObject var viewModel: SettingsViewModel
     @ObservedObject var authManager: AuthManager
     @AppStorage("notyfi.onboarding.complete") private var hasCompletedOnboarding = false
     @State private var isFeedbackPresented = false
+    @State private var isLanguagePickerPresented = false
     @State private var isClearLogConfirmationPresented = false
     @State private var isSignOutConfirmationPresented = false
     @State private var isDeleteAccountConfirmationPresented = false
@@ -15,6 +17,13 @@ struct SettingsSheetView: View {
     private enum PendingAccountAction {
         case signOut
         case deleteAccount
+    }
+
+    private var resolvedLanguage: NotyfiLanguage {
+        if languageManager.current != .system { return languageManager.current }
+        let code = Locale.preferredLanguages.first
+            .flatMap { Locale(identifier: $0).language.languageCode?.identifier } ?? "en"
+        return NotyfiLanguage(rawValue: code) ?? .english
     }
 
     private var hasAccountInfo: Bool {
@@ -68,6 +77,15 @@ struct SettingsSheetView: View {
                                 title: "Currency",
                                 selection: $viewModel.currencyPreference,
                                 onSelect: viewModel.setCurrencyPreference
+                            )
+
+                            Divider()
+
+                            LanguageActionRow(
+                                icon: "globe",
+                                title: "Language",
+                                currentLanguage: resolvedLanguage,
+                                action: { isLanguagePickerPresented = true }
                             )
 
                             Divider()
@@ -194,8 +212,10 @@ struct SettingsSheetView: View {
                 Task {
                     pendingAccountAction = .signOut
                     await authManager.signOut()
-                    hasCompletedOnboarding = false
                     pendingAccountAction = nil
+                    dismiss()
+                    try? await Task.sleep(nanoseconds: 400_000_000)
+                    hasCompletedOnboarding = false
                 }
             }
             Button("Cancel".notyfiLocalized, role: .cancel) {}
@@ -210,6 +230,9 @@ struct SettingsSheetView: View {
                     pendingAccountAction = .deleteAccount
                     await authManager.deleteAccount()
                     pendingAccountAction = nil
+                    dismiss()
+                    try? await Task.sleep(nanoseconds: 400_000_000)
+                    hasCompletedOnboarding = false
                 }
             }
             Button("Cancel".notyfiLocalized, role: .cancel) {}
@@ -218,6 +241,14 @@ struct SettingsSheetView: View {
         }
         .sheet(isPresented: $isFeedbackPresented) {
             FeedbackSheetView(url: URL(string: "https://snaplook.app/")!)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(NotyfiTheme.background.opacity(0.98))
+                .presentationCornerRadius(34)
+        }
+        .sheet(isPresented: $isLanguagePickerPresented) {
+            LanguagePickerSheet()
+                .environmentObject(languageManager)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
                 .presentationBackground(NotyfiTheme.background.opacity(0.98))
@@ -328,6 +359,46 @@ private struct FeedbackWebView: UIViewRepresentable {
         }
 
         webView.load(URLRequest(url: url))
+    }
+}
+
+private struct LanguageActionRow: View {
+    let icon: String
+    let title: String
+    let currentLanguage: NotyfiLanguage
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .font(.system(size: 17, weight: .semibold))
+                    .frame(width: 18)
+
+                Text(title.notyfiLocalized)
+                    .font(.notyfi(.body))
+                    .foregroundStyle(.primary.opacity(0.82))
+
+                Spacer()
+
+                HStack(spacing: 5) {
+                    Text(currentLanguage.flag)
+                        .font(.system(size: 14))
+                    Text(currentLanguage.shortLabel)
+                        .font(.notyfi(.subheadline))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.tertiaryText)
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 

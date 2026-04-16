@@ -6,6 +6,7 @@ import UniformTypeIdentifiers
 struct HomeView: View {
     @ObservedObject private var store: ExpenseJournalStore
     @ObservedObject private var authManager: AuthManager
+    @EnvironmentObject private var languageManager: LanguageManager
     @AppStorage(NotyfiAppearanceMode.storageKey) private var appearanceModeRawValue = NotyfiAppearanceMode.system.rawValue
     @StateObject private var viewModel: HomeViewModel
     @StateObject private var speechDictation = SpeechDictationService()
@@ -134,6 +135,7 @@ private extension HomeView {
             }
             .sheet(isPresented: $viewModel.isSettingsPresented) {
                 SettingsSheetView(viewModel: SettingsViewModel(store: store), authManager: authManager)
+                    .environmentObject(languageManager)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
                     .presentationBackground(NotyfiTheme.background.opacity(0.98))

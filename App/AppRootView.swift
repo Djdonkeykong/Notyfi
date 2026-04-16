@@ -36,6 +36,7 @@ struct AppRootView: View {
                 OnboardingSignInView(authManager: authManager)
             } else {
                 HomeView(store: store, authManager: authManager)
+                    .id(languageManager.refreshID)
                     .task(id: authManager.isAuthenticated) {
                         guard authManager.isAuthenticated else {
                             showPaywall = false
