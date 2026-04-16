@@ -37,19 +37,20 @@ struct AppRootView: View {
             } else {
                 HomeView(store: store, authManager: authManager)
                     .id(languageManager.refreshID)
-                    .task(id: authManager.isAuthenticated) {
-                        guard authManager.isAuthenticated else {
-                            showPaywall = false
-                            return
-                        }
-                        await checkSubscriptionStatus()
-                    }
-                    .fullScreenCover(isPresented: $showPaywall) {
-                        PaywallView(displayCloseButton: false)
-                            .interactiveDismissDisabled()
-                            .onPurchaseCompleted { _ in showPaywall = false }
-                            .onRestoreCompleted { _ in showPaywall = false }
-                    }
+                    // PAYWALL TEMPORARILY DISABLED FOR TESTING
+//                    .task(id: authManager.isAuthenticated) {
+//                        guard authManager.isAuthenticated else {
+//                            showPaywall = false
+//                            return
+//                        }
+//                        await checkSubscriptionStatus()
+//                    }
+//                    .fullScreenCover(isPresented: $showPaywall) {
+//                        PaywallView(displayCloseButton: false)
+//                            .interactiveDismissDisabled()
+//                            .onPurchaseCompleted { _ in showPaywall = false }
+//                            .onRestoreCompleted { _ in showPaywall = false }
+//                    }
             }
         }
         .environmentObject(languageManager)
