@@ -136,6 +136,36 @@ final class AuthManager: ObservableObject {
         )
     }
 
+    // MARK: - New-User Detection
+
+    /// Returns true if the authenticated user has no onboarding_completed_at set in
+    /// public.users — meaning they created an account without going through onboarding.
+    /// Safe to call after any sign-in; returns false on network error to avoid blocking.
+    func isNewUserWithoutOnboarding() async -> Bool {
+        guard let userID = SupabaseService.client.auth.currentSession?.user.id else {
+            return false
+        }
+        do {
+            struct OnboardingStatusRow: Decodable {
+                let onboardingCompletedAt: Date?
+                enum CodingKeys: String, CodingKey {
+                    case onboardingCompletedAt = "onboarding_completed_at"
+                }
+            }
+            let rows: [OnboardingStatusRow] = try await SupabaseService.client
+                .from("users")
+                .select("onboarding_completed_at")
+                .eq("id", value: userID.uuidString.lowercased())
+                .execute()
+                .value
+            // Empty rows = trigger hasn't run yet = treat as new user
+            return rows.isEmpty || rows.first?.onboardingCompletedAt == nil
+        } catch {
+            logger.error("Onboarding status check failed: \(error.localizedDescription, privacy: .public)")
+            return false
+        }
+    }
+
     // MARK: - Sign Out
 
     func signOut() async {

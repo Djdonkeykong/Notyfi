@@ -238,6 +238,13 @@ struct StatsSheetView: View {
         .onChange(of: viewModel.trackedCategoriesSnapshot) { _, _ in
             syncInputs()
         }
+        .onChange(of: viewModel.budgetInsight) { _, _ in
+            // Refresh text fields when the budget plan changes from an external
+            // source (e.g. cloud sync) while the sheet is open, but only when
+            // the user is not actively typing in a field.
+            guard focusedField == nil else { return }
+            syncInputs()
+        }
         .onChange(of: isCategoryEditorPresented) { _, isPresented in
             if !isPresented {
                 syncInputs()

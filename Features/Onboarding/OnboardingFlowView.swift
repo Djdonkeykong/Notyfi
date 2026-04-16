@@ -133,7 +133,27 @@ struct OnboardingFlowView: View {
             }
         }
         .onChange(of: authManager.isAuthenticated) { _, authenticated in
-            if authenticated { isComplete = true }
+            guard authenticated else { return }
+            if PendingOnboardingBootstrap.shouldBootstrap() {
+                // Normal path: user authenticated from the .auth step at the end
+                // of onboarding. Local data is pending bootstrap — mark complete.
+                isComplete = true
+            } else {
+                // Came from the .signIn screen (Welcome Back path).
+                // Check Supabase to decide: returning user vs new account that
+                // bypassed onboarding.
+                Task {
+                    let isNewUser = await authManager.isNewUserWithoutOnboarding()
+                    if isNewUser {
+                        // New account with no onboarding data — restart from currency.
+                        navigate(to: .currency, pushCurrent: false)
+                        stepHistory.removeAll()
+                    } else {
+                        // Returning user with existing data — onboarding already done.
+                        isComplete = true
+                    }
+                }
+            }
         }
     }
 
@@ -172,6 +192,14 @@ struct OnboardingFlowView: View {
             OnboardingWidgetView()
         case .auth:
             OnboardingAuthView(authManager: authManager, onBack: { goBack() })
+                .onAppear {
+                    // If the user already has a valid session when the auth step
+                    // appears (e.g. they previously signed in via the sign-in screen
+                    // and were redirected back through onboarding), skip auth entirely.
+                    if authManager.isAuthenticated {
+                        isComplete = true
+                    }
+                }
         case .signIn:
             OnboardingSignInView(authManager: authManager, onBack: { goBack() }, onSignUp: {
                 // Don't push .signIn onto history — back from howItWorks should

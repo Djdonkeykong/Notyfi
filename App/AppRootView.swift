@@ -1,3 +1,5 @@
+import RevenueCat
+import RevenueCatUI
 import SwiftUI
 
 struct AppRootView: View {
@@ -9,6 +11,7 @@ struct AppRootView: View {
     @AppStorage("notyfi.onboarding.complete") private var hasCompletedOnboarding = false
     @AppStorage(NotyfiAppearanceMode.storageKey) private var appearanceModeRawValue = NotyfiAppearanceMode.system.rawValue
     @State private var minimumSplashElapsed = false
+    @State private var showPaywall = false
 
     init(store: ExpenseJournalStore) {
         self.store = store
@@ -33,6 +36,19 @@ struct AppRootView: View {
                 OnboardingSignInView(authManager: authManager)
             } else {
                 HomeView(store: store, authManager: authManager)
+                    .task(id: authManager.isAuthenticated) {
+                        guard authManager.isAuthenticated else {
+                            showPaywall = false
+                            return
+                        }
+                        await checkSubscriptionStatus()
+                    }
+                    .fullScreenCover(isPresented: $showPaywall) {
+                        PaywallView(displayCloseButton: false)
+                            .interactiveDismissDisabled()
+                            .onPurchaseCompleted { _ in showPaywall = false }
+                            .onRestoreCompleted { _ in showPaywall = false }
+                    }
             }
         }
         .environmentObject(languageManager)
@@ -83,8 +99,32 @@ struct AppRootView: View {
     }
 
     private func syncOnboardingWithAuthState() {
-        guard authManager.isReady, authManager.isAuthenticated, !hasCompletedOnboarding else { return }
+        // Safety net: if auth fires while a bootstrap is pending (i.e. the user
+        // just finished onboarding and the isComplete flag hasn't propagated yet),
+        // mark onboarding complete here too. OnboardingFlowView.onChange handles
+        // this in the common case; this catches any edge case where the view
+        // observer fires slightly late.
+        //
+        // We intentionally do NOT auto-complete for users without a pending
+        // bootstrap — that path goes through OnboardingFlowView.onChange which
+        // does a Supabase check to distinguish returning users from bypass cases.
+        guard authManager.isReady,
+              authManager.isAuthenticated,
+              !hasCompletedOnboarding,
+              PendingOnboardingBootstrap.shouldBootstrap() else { return }
         hasCompletedOnboarding = true
+    }
+
+    private func checkSubscriptionStatus() async {
+        do {
+            let info = try await Purchases.shared.customerInfo()
+            if info.entitlements["Notyfi Pro"]?.isActive != true {
+                showPaywall = true
+            }
+        } catch {
+            // RevenueCat unavailable — show paywall so unverified users are gated.
+            showPaywall = true
+        }
     }
 }
 

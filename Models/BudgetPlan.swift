@@ -61,7 +61,7 @@ struct BudgetCategoryTarget: Codable, Identifiable, Hashable {
     }
 }
 
-struct BudgetInsight {
+struct BudgetInsight: Equatable {
     enum Status: Equatable {
         case needsBudget
         case balanced
