@@ -283,7 +283,6 @@ struct StatsSheetView: View {
                 initialSelectedCategories: viewModel.trackedCategories,
                 onSave: { categories in
                     viewModel.setTrackedCategories(categories)
-                    syncInputs()
                 }
             )
             .presentationDetents([.large])
