@@ -15,8 +15,10 @@ final class CloudSyncManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var activeUserID: UUID?
     private var hasCompletedInitialSync = false
+    private var isBootstrapping = false
     private var isApplyingRemoteState = false
     private var pendingUploadTask: Task<Void, Never>?
+    private var pendingLocalTrackedCategories: Set<ExpenseCategory>? = nil
 
     init(
         store: ExpenseJournalStore,
@@ -68,11 +70,22 @@ final class CloudSyncManager: ObservableObject {
         self.isReady = false
 
         do {
+            isBootstrapping = true
             try await bootstrap(for: session.user)
+            isBootstrapping = false
             activeUserID = session.user.id
             hasCompletedInitialSync = true
+
+            // If the user changed categories while bootstrap was fetching remote data,
+            // apply() will have overwritten those changes. Restore them now.
+            if let pending = pendingLocalTrackedCategories {
+                store.setTrackedCategories(pending)
+                pendingLocalTrackedCategories = nil
+            }
+
             await pushLatestLocalStateIfPossible()
         } catch {
+            isBootstrapping = false
             logger.error("Initial cloud sync failed: \(error.localizedDescription, privacy: .public)")
         }
 
@@ -88,6 +101,18 @@ final class CloudSyncManager: ObservableObject {
         )
             .sink { [weak self] _, _, _, _ in
                 self?.scheduleUpload()
+            }
+            .store(in: &cancellables)
+
+        // Capture category changes that happen while bootstrap is fetching remote data.
+        // bootstrap()'s apply() overwrites local state; this lets us restore the user's
+        // intent after bootstrap completes.
+        store.$trackedCategories
+            .sink { [weak self] categories in
+                guard let self else { return }
+                if self.isBootstrapping, !self.isApplyingRemoteState {
+                    self.pendingLocalTrackedCategories = categories
+                }
             }
             .store(in: &cancellables)
 
