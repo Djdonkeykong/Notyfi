@@ -213,7 +213,9 @@ struct SettingsSheetView: View {
             Button("Sign Out".notyfiLocalized, role: .destructive) {
                 Task {
                     pendingAccountAction = .signOut
-                    await authManager.signOut()
+                    async let signOut: Void = authManager.signOut()
+                    async let minDelay: Void = Task.sleep(nanoseconds: 1_500_000_000)
+                    _ = await (signOut, minDelay)
                     pendingAccountAction = nil
                     dismiss()
                     try? await Task.sleep(nanoseconds: 400_000_000)
@@ -230,7 +232,9 @@ struct SettingsSheetView: View {
             Button("Delete Account".notyfiLocalized, role: .destructive) {
                 Task {
                     pendingAccountAction = .deleteAccount
-                    await authManager.deleteAccount()
+                    async let deleteAccount: Void = authManager.deleteAccount()
+                    async let minDelay: Void = Task.sleep(nanoseconds: 1_800_000_000)
+                    _ = await (deleteAccount, minDelay)
                     pendingAccountAction = nil
                     dismiss()
                     try? await Task.sleep(nanoseconds: 400_000_000)

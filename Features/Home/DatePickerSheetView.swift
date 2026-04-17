@@ -327,10 +327,9 @@ struct DatePickerSheetView: View {
                 .fill(NotyfiTheme.surface)
                 .overlay {
                     RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
+                        .stroke(Color.primary.opacity(0.12), lineWidth: 1)
                 }
         }
-        .shadow(color: Color.black.opacity(0.08), radius: 18, y: 8)
     }
 
     private var currentMonthIndex: Int {

@@ -76,12 +76,9 @@ final class CloudSyncManager: ObservableObject {
             activeUserID = session.user.id
             hasCompletedInitialSync = true
 
-            // If the user changed categories while bootstrap was fetching remote data,
-            // apply() will have overwritten those changes. Restore them now.
-            if let pending = pendingLocalTrackedCategories {
-                store.setTrackedCategories(pending)
-                pendingLocalTrackedCategories = nil
-            }
+            // pendingLocalTrackedCategories was already applied inside apply() to
+            // prevent the user's in-flight category change from being overwritten.
+            pendingLocalTrackedCategories = nil
 
             // Upload FCM token now that we have a confirmed authenticated user
             FCMTokenManager.shared.uploadCurrentTokenIfAvailable()
@@ -92,6 +89,7 @@ final class CloudSyncManager: ObservableObject {
             await pushLatestLocalStateIfPossible()
         } catch {
             isBootstrapping = false
+            pendingLocalTrackedCategories = nil
             logger.error("Initial cloud sync failed: \(error.localizedDescription, privacy: .public)")
         }
 
@@ -244,7 +242,9 @@ final class CloudSyncManager: ObservableObject {
         }
 
         let budgetPlan = remoteState.budgetPlan
-        let trackedCategories = remoteState.trackedCategories
+        // Prefer pending local categories if the user changed them while bootstrap was
+        // fetching remote data; this prevents a visible overwrite-then-restore flicker.
+        let trackedCategories = pendingLocalTrackedCategories ?? remoteState.trackedCategories
         let entries = remoteState.entries
         let recurringTransactions = remoteState.recurringTransactions
 
