@@ -83,6 +83,9 @@ final class CloudSyncManager: ObservableObject {
                 pendingLocalTrackedCategories = nil
             }
 
+            // Upload FCM token now that we have a confirmed authenticated user
+            FCMTokenManager.shared.uploadCurrentTokenIfAvailable()
+
             await pushLatestLocalStateIfPossible()
         } catch {
             isBootstrapping = false

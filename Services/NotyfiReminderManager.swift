@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import UserNotifications
 
 @MainActor
@@ -75,6 +76,9 @@ final class NotyfiReminderManager {
         do {
             let granted = try await center.requestAuthorization(options: [.alert, .badge, .sound])
             guard granted else { return false }
+
+            // Register for remote notifications so FCM can deliver push notifications
+            await UIApplication.shared.registerForRemoteNotifications()
 
             defaults.set(frequency.rawValue, forKey: NotyfiSharedStorage.reminderFrequencyKey)
 

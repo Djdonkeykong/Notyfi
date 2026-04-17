@@ -4,6 +4,7 @@ import GoogleSignIn
 
 @main
 struct NotyfiApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var store = ExpenseJournalStore()
 
     init() {
