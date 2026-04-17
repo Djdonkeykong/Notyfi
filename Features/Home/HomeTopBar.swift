@@ -13,7 +13,7 @@ struct HomeTopBar: View {
 
                 Spacer()
 
-                SoftCapsule(horizontalPadding: 8, verticalPadding: 7) {
+                SoftCapsule(horizontalPadding: 8, verticalPadding: 6) {
                     HStack(spacing: 0) {
                         topBarIconButton(
                             systemImage: "chart.line.uptrend.xyaxis",

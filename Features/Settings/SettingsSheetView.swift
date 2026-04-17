@@ -9,6 +9,8 @@ struct SettingsSheetView: View {
     @AppStorage("notyfi.onboarding.complete") private var hasCompletedOnboarding = false
     @State private var isFeedbackPresented = false
     @State private var isLanguagePickerPresented = false
+    @State private var isChangingLanguage = false
+    @State private var languageBeforePicker: NotyfiLanguage = .system
     @State private var isClearLogConfirmationPresented = false
     @State private var isSignOutConfirmationPresented = false
     @State private var isDeleteAccountConfirmationPresented = false
@@ -33,7 +35,7 @@ struct SettingsSheetView: View {
     }
 
     private var isPerformingAccountAction: Bool {
-        pendingAccountAction != nil
+        pendingAccountAction != nil || isChangingLanguage
     }
 
     var body: some View {
@@ -85,7 +87,10 @@ struct SettingsSheetView: View {
                                 icon: "globe",
                                 title: "Language",
                                 currentLanguage: resolvedLanguage,
-                                action: { isLanguagePickerPresented = true }
+                                action: {
+                                    languageBeforePicker = languageManager.current
+                                    isLanguagePickerPresented = true
+                                }
                             )
 
                             Divider()
@@ -246,7 +251,10 @@ struct SettingsSheetView: View {
                 .presentationBackground(NotyfiTheme.background.opacity(0.98))
                 .presentationCornerRadius(34)
         }
-        .sheet(isPresented: $isLanguagePickerPresented) {
+        .sheet(isPresented: $isLanguagePickerPresented, onDismiss: {
+            guard languageManager.current != languageBeforePicker else { return }
+            withAnimation { isChangingLanguage = true }
+        }) {
             LanguagePickerSheet()
                 .environmentObject(languageManager)
                 .presentationDetents([.large])
@@ -316,6 +324,7 @@ struct SettingsSheetView: View {
     }
 
     private var accountActionTitle: String {
+        if isChangingLanguage { return "Applying language".notyfiLocalized }
         switch pendingAccountAction {
         case .signOut:
             return "Signing out".notyfiLocalized

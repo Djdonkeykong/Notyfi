@@ -25,12 +25,17 @@ struct DatePickerSheetView: View {
     }
 
     private var monthTitle: String {
-        monthStart.formatted(
-            .dateTime
-                .month(.abbreviated)
-                .year()
-                .locale(NotyfiLocale.current())
-        )
+        let monthIndex = calendar.component(.month, from: monthStart) - 1
+        let year = calendar.component(.year, from: monthStart)
+        guard monthIndex < monthSymbols.count else {
+            return monthStart.formatted(
+                .dateTime
+                    .month(.abbreviated)
+                    .year()
+                    .locale(NotyfiLocale.current())
+            )
+        }
+        return "\(monthSymbols[monthIndex]) \(year)"
     }
 
     private var monthSymbols: [String] {
