@@ -108,6 +108,7 @@ struct NotificationMessage {
 
 // MARK: - Behavior analysis
 
+@MainActor
 private struct BehaviorAnalysis {
     let store: ExpenseJournalStore
     let calendar = Calendar.current

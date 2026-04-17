@@ -215,7 +215,7 @@ struct SettingsSheetView: View {
                     pendingAccountAction = .signOut
                     async let signOut: Void = authManager.signOut()
                     async let minDelay: Void = Task.sleep(nanoseconds: 1_500_000_000)
-                    _ = await (signOut, minDelay)
+                    _ = try await (signOut, minDelay)
                     pendingAccountAction = nil
                     dismiss()
                     try? await Task.sleep(nanoseconds: 400_000_000)
@@ -234,7 +234,7 @@ struct SettingsSheetView: View {
                     pendingAccountAction = .deleteAccount
                     async let deleteAccount: Void = authManager.deleteAccount()
                     async let minDelay: Void = Task.sleep(nanoseconds: 1_800_000_000)
-                    _ = await (deleteAccount, minDelay)
+                    _ = try await (deleteAccount, minDelay)
                     pendingAccountAction = nil
                     dismiss()
                     try? await Task.sleep(nanoseconds: 400_000_000)
