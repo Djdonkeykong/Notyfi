@@ -335,13 +335,13 @@
 "Freq Light" = "Leggero";
 "Freq Regular" = "Regolare";
 "Freq Often" = "Spesso";
-"Freq Max"
+"Freq Max" = "Max";
 // Reminder frequency menu titles
 "Once a day" = "Una volta al giorno";
 "Twice a day" = "Due volte al giorno";
 "3 times a day" = "3 volte al giorno";
 "5 times a day" = "5 volte al giorno";
-"8 times a day" = "8 volte al giorno"; = "Max";
+"8 times a day" = "8 volte al giorno";
 
 // Widget
 "spent this month" = "speso questo mese";
