@@ -10,7 +10,7 @@ struct SettingsSheetView: View {
     @State private var isFeedbackPresented = false
     @State private var isLanguagePickerPresented = false
     @State private var isChangingLanguage = false
-    @State private var languageBeforePicker: NotyfiLanguage = .system
+    @State private var pendingLanguage: NotyfiLanguage? = nil
     @State private var isClearLogConfirmationPresented = false
     @State private var isSignOutConfirmationPresented = false
     @State private var isDeleteAccountConfirmationPresented = false
@@ -87,10 +87,7 @@ struct SettingsSheetView: View {
                                 icon: "globe",
                                 title: "Language",
                                 currentLanguage: resolvedLanguage,
-                                action: {
-                                    languageBeforePicker = languageManager.current
-                                    isLanguagePickerPresented = true
-                                }
+                                action: { isLanguagePickerPresented = true }
                             )
 
                             Divider()
@@ -252,10 +249,14 @@ struct SettingsSheetView: View {
                 .presentationCornerRadius(34)
         }
         .sheet(isPresented: $isLanguagePickerPresented, onDismiss: {
-            guard languageManager.current != languageBeforePicker else { return }
+            guard let pending = pendingLanguage else { return }
             withAnimation { isChangingLanguage = true }
+            Task {
+                try? await Task.sleep(nanoseconds: 520_000_000)
+                languageManager.set(pending)
+            }
         }) {
-            LanguagePickerSheet()
+            LanguagePickerSheet(onSelect: { lang in pendingLanguage = lang })
                 .environmentObject(languageManager)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)

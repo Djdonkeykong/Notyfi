@@ -3,6 +3,7 @@ import SwiftUI
 struct LanguagePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var languageManager: LanguageManager
+    var onSelect: ((NotyfiLanguage) -> Void)? = nil
 
     var body: some View {
         ZStack {
@@ -67,7 +68,11 @@ struct LanguagePickerSheet: View {
     private func languageRow(_ language: NotyfiLanguage) -> some View {
         Button {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            languageManager.set(language)
+            if let onSelect {
+                onSelect(language)
+            } else {
+                languageManager.set(language)
+            }
             dismiss()
         } label: {
             HStack(spacing: 14) {
