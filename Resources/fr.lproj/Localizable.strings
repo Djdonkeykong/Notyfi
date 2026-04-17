@@ -335,7 +335,7 @@
 "Freq Light" = "LÃƒÂ©ger";
 "Freq Regular" = "RÃƒÂ©gulier";
 "Freq Often" = "Souvent";
-"Freq Max"
+"Freq Max" = "Max";
 // Reminder frequency menu titles
 "Once a day" = "Une fois par jour";
 "Twice a day" = "Deux fois par jour";

@@ -335,7 +335,7 @@
 "Freq Light" = "Kevyt";
 "Freq Regular" = "SÃƒÂ¤ÃƒÂ¤nnÃƒÂ¶llinen";
 "Freq Often" = "Usein";
-"Freq Max"
+"Freq Max" = "Max";
 // Reminder frequency menu titles
 "Once a day" = "Kerran päivässä";
 "Twice a day" = "Kahdesti päivässä";
