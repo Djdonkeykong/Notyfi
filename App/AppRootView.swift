@@ -85,6 +85,7 @@ struct AppRootView: View {
                 .scaledToFit()
                 .frame(width: 280, height: 255)
         }
+        .ignoresSafeArea()
     }
 
     private var shouldShowSplash: Bool {
