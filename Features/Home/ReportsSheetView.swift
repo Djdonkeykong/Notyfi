@@ -5,6 +5,8 @@ struct ReportsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: HomeViewModel
 
+    @State private var reportMonth: Date = Date()
+
     var body: some View {
         ZStack {
             NotyfiTheme.background.ignoresSafeArea()
@@ -13,34 +15,41 @@ struct ReportsSheetView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     header
 
-                    ReportsMetricHero(
-                        title: "Reports",
-                        subtitle: "See patterns in your spending without leaving home.",
-                        amount: viewModel.insight.monthExpenseTotal.formattedCurrency(code: viewModel.currencyCode),
-                        caption: monthCaption
+                    CategoryDonutCard(
+                        currencyCode: viewModel.currencyCode,
+                        breakdown: categoryBreakdown(for: reportMonth),
+                        totalSpend: monthExpenseTotal(for: reportMonth),
+                        monthLabel: monthLabel(for: reportMonth),
+                        isCurrentMonth: calendar.isDate(reportMonth, equalTo: Date(), toGranularity: .month),
+                        onPrevious: {
+                            reportMonth = calendar.date(byAdding: .month, value: -1, to: reportMonth) ?? reportMonth
+                        },
+                        onNext: {
+                            reportMonth = calendar.date(byAdding: .month, value: 1, to: reportMonth) ?? reportMonth
+                        }
                     )
 
                     SpendVsBudgetCard(
                         currencyCode: viewModel.currencyCode,
                         budgetLimit: viewModel.budgetPlan.monthlySpendingLimit,
-                        currentSpend: viewModel.insight.monthExpenseTotal,
-                        daysElapsed: viewModel.budgetInsight.daysElapsed,
-                        daysInMonth: viewModel.budgetInsight.daysInMonth,
-                        points: cumulativeExpenseSeries(for: viewModel.selectedDate)
+                        currentSpend: monthExpenseTotal(for: reportMonth),
+                        daysElapsed: daysElapsed(for: reportMonth),
+                        daysInMonth: daysInMonth(for: reportMonth),
+                        points: cumulativeExpenseSeries(for: reportMonth)
                     )
 
                     MonthComparisonCard(
                         currencyCode: viewModel.currencyCode,
-                        currentMonthLabel: monthShortLabel(for: viewModel.selectedDate),
-                        previousMonthLabel: monthShortLabel(for: previousMonthAnchor),
-                        currentPoints: cumulativeExpenseSeries(for: viewModel.selectedDate),
-                        previousPoints: cumulativeExpenseSeries(for: previousMonthAnchor),
-                        comparisonDay: viewModel.budgetInsight.daysElapsed
+                        currentMonthLabel: monthShortLabel(for: reportMonth),
+                        previousMonthLabel: monthShortLabel(for: previousMonth),
+                        currentPoints: cumulativeExpenseSeries(for: reportMonth),
+                        previousPoints: cumulativeExpenseSeries(for: previousMonth),
+                        comparisonDay: daysElapsed(for: reportMonth)
                     )
 
                     MonthlyTrendCard(
                         currencyCode: viewModel.currencyCode,
-                        bars: recentMonthlySpendBars
+                        bars: recentMonthlySpendBars(relativeTo: reportMonth)
                     )
 
                     RecurringLoadCard(
@@ -56,14 +65,14 @@ struct ReportsSheetView: View {
     }
 }
 
+// MARK: - Helpers
+
 private extension ReportsSheetView {
     var header: some View {
         HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Reports".notyfiLocalized)
-                    .font(.notyfi(.title3, weight: .semibold))
-                    .foregroundStyle(.primary.opacity(0.84))
-            }
+            Text("Reports".notyfiLocalized)
+                .font(.notyfi(.title3, weight: .semibold))
+                .foregroundStyle(.primary.opacity(0.84))
 
             Spacer()
 
@@ -72,10 +81,7 @@ private extension ReportsSheetView {
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .frame(width: 38, height: 38)
-                    .background {
-                        Circle()
-                            .fill(NotyfiTheme.elevatedSurface)
-                    }
+                    .background { Circle().fill(NotyfiTheme.elevatedSurface) }
             }
             .buttonStyle(.plain)
         }
@@ -83,9 +89,9 @@ private extension ReportsSheetView {
     }
 
     var calendar: Calendar {
-        var calendar = Calendar.autoupdatingCurrent
-        calendar.locale = NotyfiLocale.current()
-        return calendar
+        var cal = Calendar.autoupdatingCurrent
+        cal.locale = NotyfiLocale.current()
+        return cal
     }
 
     var filteredEntries: [ExpenseEntry] {
@@ -94,15 +100,15 @@ private extension ReportsSheetView {
         }
     }
 
-    var previousMonthAnchor: Date {
-        calendar.date(byAdding: .month, value: -1, to: viewModel.selectedDate) ?? viewModel.selectedDate
+    var previousMonth: Date {
+        calendar.date(byAdding: .month, value: -1, to: reportMonth) ?? reportMonth
     }
 
-    var monthCaption: String {
+    func monthLabel(for date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = NotyfiLocale.current()
         formatter.setLocalizedDateFormatFromTemplate("MMMM yyyy")
-        return formatter.string(from: viewModel.selectedDate)
+        return formatter.string(from: date)
     }
 
     func monthShortLabel(for date: Date) -> String {
@@ -113,58 +119,91 @@ private extension ReportsSheetView {
         )
     }
 
+    func monthExpenseTotal(for date: Date) -> Double {
+        filteredEntries
+            .filter {
+                $0.transactionKind == .expense
+                    && calendar.isDate($0.date, equalTo: date, toGranularity: .month)
+            }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    func daysInMonth(for date: Date) -> Int {
+        calendar.range(of: .day, in: .month, for: date)?.count ?? 30
+    }
+
+    func daysElapsed(for date: Date) -> Int {
+        if calendar.isDate(date, equalTo: Date(), toGranularity: .month) {
+            return calendar.component(.day, from: Date())
+        }
+        return daysInMonth(for: date)
+    }
+
+    func categoryBreakdown(for date: Date) -> [JournalCategoryBreakdown] {
+        let monthEntries = filteredEntries.filter {
+            $0.transactionKind == .expense
+                && calendar.isDate($0.date, equalTo: date, toGranularity: .month)
+        }
+        let total = monthEntries.reduce(0) { $0 + $1.amount }
+        guard total > 0 else { return [] }
+
+        return Dictionary(grouping: monthEntries) { $0.category }
+            .map { category, entries in
+                let categoryTotal = entries.reduce(0) { $0 + $1.amount }
+                return JournalCategoryBreakdown(
+                    category: category,
+                    total: categoryTotal,
+                    share: categoryTotal / total,
+                    entryCount: entries.count
+                )
+            }
+            .sorted { $0.total > $1.total }
+    }
+
     func cumulativeExpenseSeries(for monthAnchor: Date) -> [ReportLinePoint] {
         guard let monthInterval = calendar.dateInterval(of: .month, for: monthAnchor) else {
             return []
         }
 
-        let daysInMonth = calendar.range(of: .day, in: .month, for: monthInterval.start)?.count ?? 30
+        let days = calendar.range(of: .day, in: .month, for: monthInterval.start)?.count ?? 30
         let monthEntries = filteredEntries.filter {
             $0.transactionKind == .expense
                 && calendar.isDate($0.date, equalTo: monthAnchor, toGranularity: .month)
         }
 
-        guard !monthEntries.isEmpty else {
-            return []
-        }
+        guard !monthEntries.isEmpty else { return [] }
 
-        let totalsByDay = Dictionary(grouping: monthEntries) { entry in
-            calendar.component(.day, from: entry.date)
+        let totalsByDay = Dictionary(grouping: monthEntries) {
+            calendar.component(.day, from: $0.date)
         }
-        .mapValues { entries in
-            entries.reduce(0) { $0 + $1.amount }
-        }
+        .mapValues { $0.reduce(0) { $0 + $1.amount } }
 
-        var runningTotal = 0.0
-        return (1...daysInMonth).map { day in
-            runningTotal += totalsByDay[day] ?? 0
-            return ReportLinePoint(day: day, value: runningTotal)
+        var running = 0.0
+        return (1...days).map { day in
+            running += totalsByDay[day] ?? 0
+            return ReportLinePoint(day: day, value: running)
         }
     }
 
-    var recentMonthlySpendBars: [ReportBarPoint] {
-        guard let currentMonthStart = calendar.dateInterval(of: .month, for: viewModel.selectedDate)?.start else {
+    func recentMonthlySpendBars(relativeTo anchor: Date) -> [ReportBarPoint] {
+        guard let anchorStart = calendar.dateInterval(of: .month, for: anchor)?.start else {
             return []
         }
 
-        return (0..<6).reversed().compactMap { reverseOffset in
-            guard let monthStart = calendar.date(byAdding: .month, value: -reverseOffset, to: currentMonthStart) else {
+        return (0..<6).reversed().compactMap { offset in
+            guard let monthStart = calendar.date(byAdding: .month, value: -offset, to: anchorStart) else {
                 return nil
             }
-
             let total = filteredEntries
                 .filter {
                     $0.transactionKind == .expense
                         && calendar.isDate($0.date, equalTo: monthStart, toGranularity: .month)
                 }
                 .reduce(0) { $0 + $1.amount }
-
             return ReportBarPoint(
                 monthStart: monthStart,
                 label: monthStart.formatted(
-                    .dateTime
-                        .month(.abbreviated)
-                        .locale(NotyfiLocale.current())
+                    .dateTime.month(.abbreviated).locale(NotyfiLocale.current())
                 ),
                 value: total
             )
@@ -172,87 +211,234 @@ private extension ReportsSheetView {
     }
 
     var recurringLoadSummary: RecurringLoadSummary {
-        let activeExpenses = viewModel.recurringTransactionsSnapshot
+        let active = viewModel.recurringTransactionsSnapshot
             .filter {
                 $0.isActive
                     && $0.transactionKind == .expense
                     && $0.currencyCode.caseInsensitiveCompare(viewModel.currencyCode) == .orderedSame
             }
-            .sorted { lhs, rhs in
-                lhs.nextOccurrenceAt < rhs.nextOccurrenceAt
-            }
+            .sorted { $0.nextOccurrenceAt < $1.nextOccurrenceAt }
 
-        let monthlyLoad = activeExpenses.reduce(0.0) { partialResult, transaction in
-            partialResult + monthlyEquivalent(for: transaction)
-        }
-
-        let nextThirtyDays = Date().addingTimeInterval(30 * 24 * 60 * 60)
-        let upcomingTransactions = activeExpenses
-            .filter { $0.nextOccurrenceAt <= nextThirtyDays }
+        let monthlyLoad = active.reduce(0.0) { $0 + monthlyEquivalent(for: $1) }
+        let upcoming = active
+            .filter { $0.nextOccurrenceAt <= Date().addingTimeInterval(30 * 24 * 60 * 60) }
             .prefix(3)
-            .map { transaction in
+            .map {
                 RecurringPreview(
-                    title: transaction.title,
-                    amount: transaction.amount,
-                    category: transaction.category,
-                    schedule: transaction.scheduleSummary,
-                    nextOccurrenceAt: transaction.nextOccurrenceAt
+                    title: $0.title,
+                    amount: $0.amount,
+                    category: $0.category,
+                    schedule: $0.scheduleSummary,
+                    nextOccurrenceAt: $0.nextOccurrenceAt
                 )
             }
 
         return RecurringLoadSummary(
             monthlyLoad: monthlyLoad,
-            activeRuleCount: activeExpenses.count,
-            upcoming: Array(upcomingTransactions)
+            activeRuleCount: active.count,
+            upcoming: Array(upcoming)
         )
     }
 
     func monthlyEquivalent(for transaction: RecurringTransaction) -> Double {
         let interval = max(1, transaction.interval)
-
         switch transaction.frequency {
-        case .weekly:
-            return transaction.amount * (52.0 / 12.0) / Double(interval)
-        case .monthly:
-            return transaction.amount / Double(interval)
-        case .yearly:
-            return transaction.amount / (12.0 * Double(interval))
+        case .weekly:  return transaction.amount * (52.0 / 12.0) / Double(interval)
+        case .monthly: return transaction.amount / Double(interval)
+        case .yearly:  return transaction.amount / (12.0 * Double(interval))
         }
     }
 }
 
-private struct ReportsMetricHero: View {
-    let title: String
-    let subtitle: String
-    let amount: String
-    let caption: String
+// MARK: - Category Donut Card
+
+private struct CategoryDonutCard: View {
+    let currencyCode: String
+    let breakdown: [JournalCategoryBreakdown]
+    let totalSpend: Double
+    let monthLabel: String
+    let isCurrentMonth: Bool
+    let onPrevious: () -> Void
+    let onNext: () -> Void
 
     var body: some View {
         SoftSurface(cornerRadius: 28, padding: 18) {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(title.notyfiLocalized)
-                    .font(.notyfi(.headline, weight: .semibold))
-                    .foregroundStyle(NotyfiTheme.primaryText)
+            VStack(spacing: 0) {
+                monthNavigator
+                    .padding(.bottom, 22)
 
-                Text(subtitle.notyfiLocalized)
-                    .font(.notyfi(.footnote))
-                    .foregroundStyle(NotyfiTheme.secondaryText)
+                donutChart
+                    .padding(.bottom, 22)
 
-                HStack(alignment: .lastTextBaseline) {
-                    Text(amount)
-                        .font(.notyfi(.title2, weight: .semibold))
-                        .foregroundStyle(.primary.opacity(0.84))
+                if !breakdown.isEmpty {
+                    Divider()
+                        .padding(.bottom, 4)
 
-                    Spacer()
-
-                    Text(caption)
-                        .font(.notyfi(.footnote))
-                        .foregroundStyle(NotyfiTheme.secondaryText)
+                    categoryList
+                } else {
+                    emptyState
                 }
             }
         }
     }
+
+    private var monthNavigator: some View {
+        HStack {
+            Button(action: onPrevious) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .frame(width: 32, height: 32)
+                    .background { Circle().fill(NotyfiTheme.elevatedSurface) }
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Text(monthLabel)
+                .font(.notyfi(.subheadline, weight: .semibold))
+                .foregroundStyle(NotyfiTheme.primaryText)
+                .animation(.none, value: monthLabel)
+
+            Spacer()
+
+            Button(action: onNext) {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(isCurrentMonth ? NotyfiTheme.tertiaryText : NotyfiTheme.secondaryText)
+                    .frame(width: 32, height: 32)
+                    .background { Circle().fill(NotyfiTheme.elevatedSurface) }
+            }
+            .disabled(isCurrentMonth)
+            .buttonStyle(.plain)
+        }
+    }
+
+    private var donutChart: some View {
+        ZStack {
+            if breakdown.isEmpty {
+                Circle()
+                    .stroke(NotyfiTheme.inputSurface, lineWidth: 26)
+                    .frame(width: 190, height: 190)
+            } else {
+                Chart(breakdown) { item in
+                    SectorMark(
+                        angle: .value("Amount", item.total),
+                        innerRadius: .ratio(0.62),
+                        angularInset: 2.0
+                    )
+                    .foregroundStyle(item.category.tint)
+                    .cornerRadius(5)
+                }
+                .frame(width: 190, height: 190)
+                .animation(.easeInOut(duration: 0.35), value: breakdown.map(\.total))
+            }
+
+            VStack(spacing: 4) {
+                Text("Spent".notyfiLocalized)
+                    .font(.notyfi(.caption))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+
+                Text(totalSpend.formattedCurrency(code: currencyCode))
+                    .font(.notyfi(.title3, weight: .semibold))
+                    .foregroundStyle(.primary.opacity(0.84))
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                    .frame(maxWidth: 108)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var categoryList: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(breakdown.enumerated()), id: \.element.id) { index, item in
+                CategoryDonutRow(item: item, currencyCode: currencyCode)
+
+                if index < breakdown.count - 1 {
+                    Divider()
+                        .padding(.leading, 46)
+                }
+            }
+        }
+    }
+
+    private var emptyState: some View {
+        Text("No expenses logged this month.")
+            .font(.notyfi(.footnote))
+            .foregroundStyle(NotyfiTheme.secondaryText)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+    }
 }
+
+private struct CategoryDonutRow: View {
+    let item: JournalCategoryBreakdown
+    let currencyCode: String
+
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                Circle()
+                    .fill(item.category.tint.opacity(0.14))
+                    .frame(width: 34, height: 34)
+                    .overlay {
+                        Image(systemName: item.category.symbol)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(item.category.tint)
+                    }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.category.title)
+                        .font(.notyfi(.subheadline, weight: .semibold))
+                        .foregroundStyle(.primary.opacity(0.82))
+
+                    Text(countLabel)
+                        .font(.notyfi(.caption))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(item.total.formattedCurrency(code: currencyCode))
+                        .font(.notyfi(.subheadline, weight: .semibold))
+                        .foregroundStyle(NotyfiTheme.primaryText)
+
+                    Text("\(Int((item.share * 100).rounded()))%")
+                        .font(.notyfi(.caption))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                }
+            }
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.primary.opacity(0.06))
+                        .frame(height: 3)
+
+                    Capsule()
+                        .fill(item.category.tint.opacity(0.75))
+                        .frame(width: max(4, geo.size.width * CGFloat(item.share)), height: 3)
+                }
+            }
+            .frame(height: 3)
+            .padding(.leading, 46)
+        }
+        .padding(.vertical, 12)
+    }
+
+    private var countLabel: String {
+        if item.entryCount == 1 {
+            return String(format: "Single note count format".notyfiLocalized, item.entryCount)
+        }
+        return String(format: "Notes count format".notyfiLocalized, item.entryCount)
+    }
+}
+
+// MARK: - Spend vs Budget Card
 
 private struct SpendVsBudgetCard: View {
     let currencyCode: String
@@ -262,15 +448,10 @@ private struct SpendVsBudgetCard: View {
     let daysInMonth: Int
     let points: [ReportLinePoint]
 
-    private var hasSpendData: Bool {
-        points.contains { $0.value > 0 }
-    }
+    private var hasSpendData: Bool { points.contains { $0.value > 0 } }
 
     private var budgetPacePoints: [ReportLinePoint] {
-        guard budgetLimit > 0 else {
-            return []
-        }
-
+        guard budgetLimit > 0 else { return [] }
         return points.map { point in
             ReportLinePoint(
                 day: point.day,
@@ -283,25 +464,20 @@ private struct SpendVsBudgetCard: View {
         guard hasSpendData else {
             return "Add a few entries to start seeing spending trends.".notyfiLocalized
         }
-
         guard budgetLimit > 0 else {
             return "Set a monthly budget to unlock this chart.".notyfiLocalized
         }
-
         let paceSpend = budgetLimit * (Double(daysElapsed) / Double(max(daysInMonth, 1)))
         let delta = currentSpend - paceSpend
-
         if abs(delta) < 0.5 {
             return "Right on pace for this point in the month.".notyfiLocalized
         }
-
         if delta > 0 {
             return String(
                 format: "%@ over your budget pace".notyfiLocalized,
                 abs(delta).formattedCurrency(code: currencyCode)
             )
         }
-
         return String(
             format: "%@ under your budget pace".notyfiLocalized,
             abs(delta).formattedCurrency(code: currencyCode)
@@ -318,10 +494,7 @@ private struct SpendVsBudgetCard: View {
     }
 
     var body: some View {
-        ReportCard(
-            title: "Spend vs budget pace",
-            subtitle: takeaway
-        ) {
+        ReportCard(title: "Spend vs budget pace", subtitle: takeaway) {
             VStack(alignment: .leading, spacing: 12) {
                 ReportLegendRow(items: [
                     ReportLegendItem(title: "Spent".notyfiLocalized, color: NotyfiTheme.expenseColor, style: .solid),
@@ -338,7 +511,6 @@ private struct SpendVsBudgetCard: View {
                             .foregroundStyle(NotyfiTheme.expenseColor)
                             .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round))
                         }
-
                         ForEach(budgetPacePoints) { point in
                             LineMark(
                                 x: .value("Day".notyfiLocalized, point.day),
@@ -354,9 +526,7 @@ private struct SpendVsBudgetCard: View {
                             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                                 .foregroundStyle(NotyfiTheme.surfaceBorder)
                             AxisValueLabel {
-                                if let day = value.as(Int.self) {
-                                    Text("\(day)")
-                                }
+                                if let day = value.as(Int.self) { Text("\(day)") }
                             }
                         }
                     }
@@ -382,6 +552,8 @@ private struct SpendVsBudgetCard: View {
     }
 }
 
+// MARK: - Month Comparison Card
+
 private struct MonthComparisonCard: View {
     let currencyCode: String
     let currentMonthLabel: String
@@ -402,22 +574,18 @@ private struct MonthComparisonCard: View {
         guard !currentPoints.isEmpty || !previousPoints.isEmpty else {
             return "No month-to-month comparison yet.".notyfiLocalized
         }
-
         let currentValue = currentPoints[valueAt: comparisonDay] ?? 0
         let previousValue = previousPoints[valueAt: comparisonDay] ?? 0
         let delta = currentValue - previousValue
-
         if abs(delta) < 0.5 {
             return "Almost identical to the same point last month.".notyfiLocalized
         }
-
         if delta > 0 {
             return String(
                 format: "%@ higher than the same point last month".notyfiLocalized,
                 abs(delta).formattedCurrency(code: currencyCode)
             )
         }
-
         return String(
             format: "%@ lower than the same point last month".notyfiLocalized,
             abs(delta).formattedCurrency(code: currencyCode)
@@ -425,10 +593,7 @@ private struct MonthComparisonCard: View {
     }
 
     var body: some View {
-        ReportCard(
-            title: "This month vs last month",
-            subtitle: takeaway
-        ) {
+        ReportCard(title: "This month vs last month", subtitle: takeaway) {
             VStack(alignment: .leading, spacing: 12) {
                 ReportLegendRow(items: [
                     ReportLegendItem(title: currentMonthLabel, color: NotyfiTheme.brandBlue, style: .solid),
@@ -446,7 +611,6 @@ private struct MonthComparisonCard: View {
                             .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round))
                             .opacity(0.9)
                         }
-
                         ForEach(currentPoints) { point in
                             LineMark(
                                 x: .value("Day".notyfiLocalized, point.day),
@@ -462,9 +626,7 @@ private struct MonthComparisonCard: View {
                             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                                 .foregroundStyle(NotyfiTheme.surfaceBorder)
                             AxisValueLabel {
-                                if let day = value.as(Int.self) {
-                                    Text("\(day)")
-                                }
+                                if let day = value.as(Int.self) { Text("\(day)") }
                             }
                         }
                     }
@@ -488,15 +650,14 @@ private struct MonthComparisonCard: View {
     }
 }
 
+// MARK: - Monthly Trend Card
+
 private struct MonthlyTrendCard: View {
     let currencyCode: String
     let bars: [ReportBarPoint]
 
     private var averageSpend: Double {
-        guard !bars.isEmpty else {
-            return 0
-        }
-
+        guard !bars.isEmpty else { return 0 }
         return bars.reduce(0) { $0 + $1.value } / Double(bars.count)
     }
 
@@ -504,22 +665,16 @@ private struct MonthlyTrendCard: View {
         guard bars.contains(where: { $0.value > 0 }) else {
             return "Add a few entries to start seeing spending trends.".notyfiLocalized
         }
-
         return String(
             format: "Average %@ across the last 6 months".notyfiLocalized,
             averageSpend.formattedCurrency(code: currencyCode)
         )
     }
 
-    private var maxValue: Double {
-        max(bars.map(\.value).max() ?? 0, 1)
-    }
+    private var maxValue: Double { max(bars.map(\.value).max() ?? 0, 1) }
 
     var body: some View {
-        ReportCard(
-            title: "Last 6 months",
-            subtitle: takeaway
-        ) {
+        ReportCard(title: "Last 6 months", subtitle: takeaway) {
             if bars.contains(where: { $0.value > 0 }) {
                 Chart(bars) { bar in
                     BarMark(
@@ -538,11 +693,7 @@ private struct MonthlyTrendCard: View {
                     )
                 }
                 .chartYScale(domain: 0...maxValue * 1.12)
-                .chartXAxis {
-                    AxisMarks { _ in
-                        AxisValueLabel()
-                    }
-                }
+                .chartXAxis { AxisMarks { _ in AxisValueLabel() } }
                 .chartYAxis {
                     AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { value in
                         AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
@@ -562,36 +713,26 @@ private struct MonthlyTrendCard: View {
     }
 }
 
+// MARK: - Recurring Load Card
+
 private struct RecurringLoadCard: View {
     let currencyCode: String
     let summary: RecurringLoadSummary
-
-    private var monthlyLoadText: String {
-        summary.monthlyLoad.formattedCurrency(code: currencyCode)
-    }
-
-    private var rulesText: String {
-        String(
-            format: "%d active recurring rules".notyfiLocalized,
-            summary.activeRuleCount
-        )
-    }
 
     var body: some View {
         ReportCard(
             title: "Recurring load",
             subtitle: summary.activeRuleCount > 0
-                ? rulesText
+                ? String(format: "%d active recurring rules".notyfiLocalized, summary.activeRuleCount)
                 : "No recurring rules yet.".notyfiLocalized
         ) {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(spacing: 14) {
                     RecurringMetricPill(
                         title: "Monthly load",
-                        value: monthlyLoadText,
+                        value: summary.monthlyLoad.formattedCurrency(code: currencyCode),
                         tint: NotyfiTheme.brandBlue
                     )
-
                     RecurringMetricPill(
                         title: "Upcoming",
                         value: "\(summary.upcoming.count)",
@@ -680,6 +821,8 @@ private struct RecurringMetricPill: View {
     }
 }
 
+// MARK: - Shared Components
+
 private struct ReportCard<Content: View>: View {
     let title: String
     let subtitle: String
@@ -693,7 +836,7 @@ private struct ReportCard<Content: View>: View {
                         .font(.notyfi(.headline, weight: .semibold))
                         .foregroundStyle(NotyfiTheme.primaryText)
 
-                    Text(subtitle.notyfiLocalized)
+                    Text(subtitle)
                         .font(.notyfi(.footnote))
                         .foregroundStyle(NotyfiTheme.secondaryText)
                 }
@@ -748,23 +891,19 @@ private struct ReportEmptyState: View {
     }
 }
 
+// MARK: - Data Models
+
 private struct ReportLinePoint: Identifiable {
     let day: Int
     let value: Double
-
-    var id: Int {
-        day
-    }
+    var id: Int { day }
 }
 
 private struct ReportBarPoint: Identifiable {
     let monthStart: Date
     let label: String
     let value: Double
-
-    var id: Date {
-        monthStart
-    }
+    var id: Date { monthStart }
 }
 
 private struct RecurringLoadSummary {
@@ -779,45 +918,30 @@ private struct RecurringPreview: Identifiable {
     let category: ExpenseCategory
     let schedule: String
     let nextOccurrenceAt: Date
-
-    var id: String {
-        "\(title)|\(nextOccurrenceAt.timeIntervalSinceReferenceDate)"
-    }
+    var id: String { "\(title)|\(nextOccurrenceAt.timeIntervalSinceReferenceDate)" }
 }
 
 private struct ReportLegendItem: Identifiable {
-    enum LineStyle {
-        case solid
-        case dashed
-    }
-
+    enum LineStyle { case solid, dashed }
     let title: String
     let color: Color
     let style: LineStyle
-
-    var id: String {
-        title
-    }
+    var id: String { title }
 }
+
+// MARK: - Utilities
 
 private func strideValues(upTo count: Int) -> [Int] {
     let safeCount = max(count, 1)
     let step = max(1, safeCount / 4)
     var values = Array(stride(from: 1, through: safeCount, by: step))
-
-    if values.last != safeCount {
-        values.append(safeCount)
-    }
-
+    if values.last != safeCount { values.append(safeCount) }
     return values
 }
 
 private extension Array where Element == ReportLinePoint {
     subscript(valueAt day: Int) -> Double? {
-        guard !isEmpty else {
-            return nil
-        }
-
+        guard !isEmpty else { return nil }
         let safeIndex = Swift.max(0, Swift.min(day - 1, count - 1))
         return self[safeIndex].value
     }
@@ -825,14 +949,10 @@ private extension Array where Element == ReportLinePoint {
 
 private extension Double {
     func axisCurrency(code: String) -> String {
-        if self <= 0 {
-            return "0"
-        }
-
+        guard self > 0 else { return "0" }
         let absolute = abs(self)
         let scaledAmount: Double
         let suffix: String
-
         switch absolute {
         case 1_000_000...:
             scaledAmount = self / 1_000_000
@@ -843,7 +963,6 @@ private extension Double {
         default:
             return formattedCurrency(code: code)
         }
-
         return "\(scaledAmount.formatted(.number.precision(.fractionLength(absolute >= 10_000 ? 0 : 1))))\(suffix)"
     }
 }
