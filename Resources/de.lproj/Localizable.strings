@@ -335,7 +335,13 @@
 "Freq Light" = "Leicht";
 "Freq Regular" = "RegelmÃƒÂ¤ÃƒÅ¸ig";
 "Freq Often" = "Oft";
-"Freq Max" = "Max";
+"Freq Max"
+// Reminder frequency menu titles
+"Once a day" = "Einmal am Tag";
+"Twice a day" = "Zweimal am Tag";
+"3 times a day" = "3 Mal am Tag";
+"5 times a day" = "5 Mal am Tag";
+"8 times a day" = "8 Mal am Tag"; = "Max";
 
 // Widget
 "spent this month" = "diesen Monat ausgegeben";

@@ -99,7 +99,8 @@ final class NotyfiReminderManager {
     }
 
     func disableReminder() async {
-        center.removePendingNotificationRequests(withIdentifiers: [reminderIdentifier])
+        let freqIDs = (0..<8).map { "notyfi.reminder.freq.\($0)" }
+        center.removePendingNotificationRequests(withIdentifiers: [reminderIdentifier] + freqIDs)
         let current = loadSettings()
         persist(
             NotyfiReminderSettings(

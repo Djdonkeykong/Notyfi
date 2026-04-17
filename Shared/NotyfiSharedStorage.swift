@@ -56,6 +56,16 @@ enum ReminderFrequency: Int, CaseIterable {
         }
     }
 
+    var menuTitle: String {
+        switch self {
+        case .subtle:  return "Once a day".notyfiLocalized
+        case .light:   return "Twice a day".notyfiLocalized
+        case .regular: return "3 times a day".notyfiLocalized
+        case .often:   return "5 times a day".notyfiLocalized
+        case .max:     return "8 times a day".notyfiLocalized
+        }
+    }
+
     // Hours of the day at which notifications fire
     var notificationHours: [Int] {
         switch self {

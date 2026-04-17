@@ -339,6 +339,13 @@
 "Freq Often" = "Ofte";
 "Freq Max" = "Maks";
 
+// Reminder frequency menu titles
+"Once a day" = "En gang om dagen";
+"Twice a day" = "To ganger om dagen";
+"3 times a day" = "3 ganger om dagen";
+"5 times a day" = "5 ganger om dagen";
+"8 times a day" = "8 ganger om dagen";
+
 // Widget
 "spent this month" = "brukt denne måneden";
 "Left" = "Igjen";

@@ -335,7 +335,13 @@
 "Freq Light" = "Kevyt";
 "Freq Regular" = "SÃƒÂ¤ÃƒÂ¤nnÃƒÂ¶llinen";
 "Freq Often" = "Usein";
-"Freq Max" = "Max";
+"Freq Max"
+// Reminder frequency menu titles
+"Once a day" = "Kerran päivässä";
+"Twice a day" = "Kahdesti päivässä";
+"3 times a day" = "3 kertaa päivässä";
+"5 times a day" = "5 kertaa päivässä";
+"8 times a day" = "8 kertaa päivässä"; = "Max";
 
 // Widget
 "spent this month" = "kÃƒÂ¤ytetty tÃƒÂ¤ssÃƒÂ¤ kuussa";

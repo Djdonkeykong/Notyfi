@@ -6,23 +6,20 @@ final class SettingsViewModel: ObservableObject {
     @Published var currencyPreference: NotyfiCurrencyPreference
     @Published var dictationLanguage: NotyfiDictationLanguage
     @Published var remindersEnabled = false
-    @Published var reminderTime: Date
+    @Published var reminderFrequency: ReminderFrequency
     @Published private(set) var remindersPermissionDenied = false
 
     private let store: ExpenseJournalStore
     private let reminderManager: NotyfiReminderManager
-    private let calendar: Calendar
     private let defaults: UserDefaults
 
     init(
         store: ExpenseJournalStore,
         reminderManager: NotyfiReminderManager? = nil,
-        calendar: Calendar = .current,
         defaults: UserDefaults = .standard
     ) {
         self.store = store
         self.reminderManager = reminderManager ?? .shared
-        self.calendar = calendar
         self.defaults = defaults
         self.appearanceMode = NotyfiAppearanceMode(
             rawValue: defaults.string(forKey: NotyfiAppearanceMode.storageKey) ?? ""
@@ -32,12 +29,7 @@ final class SettingsViewModel: ObservableObject {
 
         let reminderSettings = self.reminderManager.loadSettings()
         self.remindersEnabled = reminderSettings.isEnabled
-        self.reminderTime = calendar.date(
-            from: DateComponents(
-                hour: reminderSettings.hour,
-                minute: reminderSettings.minute
-            )
-        ) ?? .now
+        self.reminderFrequency = self.reminderManager.loadFrequency()
 
         Task {
             await refreshReminderAuthorization()
@@ -74,9 +66,7 @@ final class SettingsViewModel: ObservableObject {
 
     func setRemindersEnabled(_ isEnabled: Bool) async {
         if isEnabled {
-            let granted = await reminderManager.enableReminder(
-                at: reminderDateComponents
-            )
+            let granted = await reminderManager.enableReminders(frequency: reminderFrequency)
             remindersEnabled = granted
             await refreshReminderAuthorization()
         } else {
@@ -86,9 +76,10 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
-    func setReminderTime(_ date: Date) async {
-        reminderTime = date
-        await reminderManager.updateReminderTime(reminderDateComponents)
+    func setReminderFrequency(_ frequency: ReminderFrequency) async {
+        reminderFrequency = frequency
+        guard remindersEnabled else { return }
+        await reminderManager.updateFrequency(frequency)
     }
 
     func clearLog() {
@@ -108,10 +99,6 @@ final class SettingsViewModel: ObservableObject {
     func setDictationLanguage(_ language: NotyfiDictationLanguage) {
         dictationLanguage = language
         defaults.set(language.rawValue, forKey: NotyfiDictationLanguage.storageKey)
-    }
-
-    private var reminderDateComponents: DateComponents {
-        calendar.dateComponents([.hour, .minute], from: reminderTime)
     }
 
     private func refreshReminderAuthorization() async {

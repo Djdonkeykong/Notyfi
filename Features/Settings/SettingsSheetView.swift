@@ -123,12 +123,12 @@ struct SettingsSheetView: View {
                             if viewModel.remindersEnabled {
                                 Divider()
 
-                                ReminderTimeRow(
-                                    icon: "clock",
-                                    title: "Reminder time",
-                                    selection: $viewModel.reminderTime,
-                                    onChange: { nextDate in
-                                        await viewModel.setReminderTime(nextDate)
+                                ReminderFrequencyMenuRow(
+                                    icon: "repeat",
+                                    title: "Frequency",
+                                    selection: $viewModel.reminderFrequency,
+                                    onSelect: { freq in
+                                        Task { await viewModel.setReminderFrequency(freq) }
                                     }
                                 )
                             }
@@ -635,44 +635,51 @@ private struct SettingsToggleRow: View {
     }
 }
 
-private struct ReminderTimeRow: View {
+private struct ReminderFrequencyMenuRow: View {
     let icon: String
     let title: String
-    @Binding var selection: Date
-    var onChange: ((Date) async -> Void)? = nil
+    @Binding var selection: ReminderFrequency
+    let onSelect: (ReminderFrequency) -> Void
 
     var body: some View {
-        HStack(spacing: 14) {
-            Image(systemName: icon)
-                .foregroundStyle(NotyfiTheme.secondaryText)
-                .font(.system(size: 17, weight: .semibold))
-                .frame(width: 18)
-
-            Text(title.notyfiLocalized)
-                .font(.notyfi(.body))
-                .foregroundStyle(.primary.opacity(0.82))
-
-            Spacer()
-
-            DatePicker(
-                title.notyfiLocalized,
-                selection: $selection,
-                displayedComponents: .hourAndMinute
-            )
-            .datePickerStyle(.compact)
-            .labelsHidden()
-        }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 16)
-        .onChange(of: selection) { _, newValue in
-            guard let onChange else {
-                return
+        Menu {
+            ForEach(ReminderFrequency.allCases) { freq in
+                Button {
+                    onSelect(freq)
+                } label: {
+                    if freq == selection {
+                        Label(freq.menuTitle, systemImage: "checkmark")
+                    } else {
+                        Text(freq.menuTitle)
+                    }
+                }
             }
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .font(.system(size: 17, weight: .semibold))
+                    .frame(width: 18)
 
-            Task {
-                await onChange(newValue)
+                Text(title.notyfiLocalized)
+                    .font(.notyfi(.body))
+                    .foregroundStyle(.primary.opacity(0.82))
+
+                Spacer()
+
+                Text(selection.menuTitle)
+                    .font(.notyfi(.subheadline))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.tertiaryText)
             }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
     }
 }
 

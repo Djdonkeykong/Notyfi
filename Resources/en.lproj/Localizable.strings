@@ -331,6 +331,13 @@
 "Freq Often" = "Often";
 "Freq Max" = "Max";
 
+// Reminder frequency menu titles
+"Once a day" = "Once a day";
+"Twice a day" = "Twice a day";
+"3 times a day" = "3 times a day";
+"5 times a day" = "5 times a day";
+"8 times a day" = "8 times a day";
+
 // Forgot password
 "Forgot?" = "Forgot?";
 "Reset password" = "Reset password";

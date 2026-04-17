@@ -335,7 +335,13 @@
 "Freq Light" = "Let";
 "Freq Regular" = "RegelmÃƒÂ¦ssigt";
 "Freq Often" = "Ofte";
-"Freq Max" = "Maks";
+"Freq Max"
+// Reminder frequency menu titles
+"Once a day" = "En gang om dagen";
+"Twice a day" = "To gange om dagen";
+"3 times a day" = "3 gange om dagen";
+"5 times a day" = "5 gange om dagen";
+"8 times a day" = "8 gange om dagen"; = "Maks";
 
 // Widget
 "spent this month" = "brugt denne mÃƒÂ¥ned";
