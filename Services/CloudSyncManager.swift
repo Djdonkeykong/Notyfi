@@ -86,6 +86,9 @@ final class CloudSyncManager: ObservableObject {
             // Upload FCM token now that we have a confirmed authenticated user
             FCMTokenManager.shared.uploadCurrentTokenIfAvailable()
 
+            // Reschedule smart notifications now that store data is up to date
+            await NotificationContentEngine.shared.reschedule(store: store)
+
             await pushLatestLocalStateIfPossible()
         } catch {
             isBootstrapping = false

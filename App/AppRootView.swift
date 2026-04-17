@@ -1,6 +1,7 @@
 import RevenueCat
 import RevenueCatUI
 import SwiftUI
+import UIKit
 
 struct AppRootView: View {
     @ObservedObject var store: ExpenseJournalStore
@@ -72,6 +73,11 @@ struct AppRootView: View {
             guard !minimumSplashElapsed else { return }
             try? await Task.sleep(nanoseconds: 500_000_000)
             minimumSplashElapsed = true
+        }
+        .onReceive(
+            NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
+        ) { _ in
+            Task { await NotificationContentEngine.shared.reschedule(store: store) }
         }
     }
 
