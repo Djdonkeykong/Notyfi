@@ -111,7 +111,7 @@ private extension HomeView {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .overlay(alignment: .bottom) {
+            .safeAreaInset(edge: .bottom, spacing: 0) {
                 if focusedEditor == nil {
                     ZStack(alignment: .bottom) {
                         HomeBottomFadeOverlay()
