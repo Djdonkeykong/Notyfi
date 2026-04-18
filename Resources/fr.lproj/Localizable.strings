@@ -393,3 +393,8 @@
 "Monthly load" = "Charge mensuelle";
 "Upcoming" = "\U00C0 venir";
 "Day" = "Jour";
+
+// AI Insights
+"Spending insights" = "Aper\u00e7us des d\u00e9penses";
+"Monthly summary" = "R\u00e9sum\u00e9 mensuel";
+"Analysing your month..." = "Analyse de ton mois...";

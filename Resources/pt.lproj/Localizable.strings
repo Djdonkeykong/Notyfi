@@ -394,3 +394,8 @@
 "Upcoming" = "Pr\U00F3ximos";
 "Day" = "Dia";
 "No expenses logged this month." = "Nenhuma despesa registada este mes.";
+
+// AI Insights
+"Spending insights" = "Perspetivas de gastos";
+"Monthly summary" = "Resumo mensal";
+"Analysing your month..." = "A analisar o teu m\u00eas...";

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeTopBar: View {
     let selectedDate: Date
+    let showInsightsBadge: Bool
     let onDateTap: () -> Void
     let onReportsTap: () -> Void
     let onSettingsTap: () -> Void
@@ -17,6 +18,7 @@ struct HomeTopBar: View {
                     HStack(spacing: 0) {
                         topBarIconButton(
                             systemImage: "chart.line.uptrend.xyaxis",
+                            showBadge: showInsightsBadge,
                             action: onReportsTap
                         )
 
@@ -27,6 +29,7 @@ struct HomeTopBar: View {
 
                         topBarIconButton(
                             systemImage: "gearshape.fill",
+                            showBadge: false,
                             action: onSettingsTap
                         )
                     }
@@ -51,6 +54,7 @@ struct HomeTopBar: View {
 private extension HomeTopBar {
     func topBarIconButton(
         systemImage: String,
+        showBadge: Bool,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: {
@@ -62,6 +66,14 @@ private extension HomeTopBar {
                 .foregroundStyle(.primary.opacity(0.82))
                 .frame(width: 38, height: 34)
                 .contentShape(Rectangle())
+                .overlay(alignment: .topTrailing) {
+                    if showBadge {
+                        Circle()
+                            .fill(NotyfiTheme.brandBlue)
+                            .frame(width: 8, height: 8)
+                            .offset(x: -2, y: 4)
+                    }
+                }
         }
         .buttonStyle(.plain)
     }
@@ -82,6 +94,7 @@ private struct NotyfiMark: View {
         VStack {
             HomeTopBar(
                 selectedDate: Date(),
+                showInsightsBadge: true,
                 onDateTap: {},
                 onReportsTap: {},
                 onSettingsTap: {}

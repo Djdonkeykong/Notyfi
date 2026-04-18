@@ -9,6 +9,7 @@ final class ExpenseJournalStore: ObservableObject {
     @Published private(set) var entries: [ExpenseEntry] = []
     @Published private(set) var budgetPlan: BudgetPlan = .empty
     @Published private(set) var trackedCategories: Set<ExpenseCategory> = []
+    @Published private(set) var effectiveTrackedCategories: Set<ExpenseCategory> = Set(ExpenseCategory.trackableCases)
     @Published private(set) var recurringTransactions: [RecurringTransaction] = []
 
     private let parser: ExpenseParsingServicing
@@ -42,6 +43,7 @@ final class ExpenseJournalStore: ObservableObject {
             trackedCategories = Set(Self.mockBudgetPlan.categoryTargets.map(\.category))
             recurringTransactions = Self.mockRecurringTransactions(calendar: calendar)
             hasStoredTrackedCategories = true
+            effectiveTrackedCategories = trackedCategories
             _ = materializeDueRecurringEntries(upTo: Date())
             updateSharedSurfaces()
         } else {
@@ -175,10 +177,15 @@ final class ExpenseJournalStore: ObservableObject {
             return
         }
 
+        let recurringID = entries[index].recurringTransactionID
         parseTasksByEntryID[id]?.cancel()
         parseTasksByEntryID[id] = nil
         entries.remove(at: index)
         persist()
+
+        if let recurringID {
+            removeRecurringTransaction(id: recurringID)
+        }
     }
 
     func clearAllEntries() {
@@ -186,8 +193,10 @@ final class ExpenseJournalStore: ObservableObject {
         parseTasksByEntryID.removeAll()
         parseCacheByKey.removeAll()
         entries.removeAll()
+        recurringTransactions.removeAll()
         persist()
         persistParseCache()
+        persistRecurringTransactions()
         updateSharedSurfaces()
     }
 
@@ -207,8 +216,10 @@ final class ExpenseJournalStore: ObservableObject {
     }
 
     func setTrackedCategories(_ categories: Set<ExpenseCategory>) {
-        trackedCategories = Set(categories.filter { $0 != .uncategorized })
         hasStoredTrackedCategories = true
+        let filtered = Set(categories.filter { $0 != .uncategorized })
+        trackedCategories = filtered
+        effectiveTrackedCategories = filtered
         persistTrackedCategories()
     }
 
@@ -323,14 +334,6 @@ final class ExpenseJournalStore: ObservableObject {
         return didChangeEntries || didChangeRecurringTransactions
     }
 
-    var effectiveTrackedCategories: Set<ExpenseCategory> {
-        if hasStoredTrackedCategories {
-            return trackedCategories
-        }
-
-        return Set(ExpenseCategory.trackableCases)
-    }
-
     func entries(on date: Date) -> [ExpenseEntry] {
         entries.filter { calendar.isDate($0.date, inSameDayAs: date) }
     }
@@ -436,9 +439,11 @@ final class ExpenseJournalStore: ObservableObject {
 
         self.entries = entries
         self.budgetPlan = budgetPlan
-        self.trackedCategories = Set(trackedCategories.filter { $0 != .uncategorized })
+        let filteredCategories = Set(trackedCategories.filter { $0 != .uncategorized })
+        self.trackedCategories = filteredCategories
         self.recurringTransactions = sortedRecurringTransactions(recurringTransactions)
         hasStoredTrackedCategories = true
+        effectiveTrackedCategories = filteredCategories
 
         sortAndPersist()
         persistBudgetPlan()
@@ -504,6 +509,7 @@ final class ExpenseJournalStore: ObservableObject {
 
         trackedCategories = Set(decoded.filter { $0 != .uncategorized })
         hasStoredTrackedCategories = true
+        effectiveTrackedCategories = trackedCategories
     }
 
     private func loadRecurringTransactions() {

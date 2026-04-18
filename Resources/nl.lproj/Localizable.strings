@@ -394,3 +394,8 @@
 "Upcoming" = "Binnenkort";
 "Day" = "Dag";
 "No expenses logged this month." = "Geen uitgaven geregistreerd deze maand.";
+
+// AI Insights
+"Spending insights" = "Uitgaven-inzichten";
+"Monthly summary" = "Maandoverzicht";
+"Analysing your month..." = "Jouw maand analyseren...";

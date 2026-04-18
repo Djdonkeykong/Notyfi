@@ -394,3 +394,8 @@
 "Upcoming" = "In arrivo";
 "Day" = "Giorno";
 "No expenses logged this month." = "Nessuna spesa registrata questo mese.";
+
+// AI Insights
+"Spending insights" = "Approfondimenti sulle spese";
+"Monthly summary" = "Riepilogo mensile";
+"Analysing your month..." = "Analisi del tuo mese...";

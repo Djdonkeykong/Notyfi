@@ -149,7 +149,11 @@ final class CloudSyncManager: ObservableObject {
 
         if remoteState.hasServerData {
             PendingOnboardingBootstrap.clear(defaults: defaults)
-            apply(remoteState: remoteState)
+            // Merge any local entries that were created but not yet pushed before
+            // the app closed. Without this, entries whose upload debounce hadn't
+            // fired are silently wiped by replaceAll().
+            let mergedState = remoteState.merging(localOnlyEntries: store.entries)
+            apply(remoteState: mergedState)
             try await backfillMissingProfilePreferencesIfNeeded(
                 remoteState: remoteState,
                 user: user
@@ -377,6 +381,19 @@ private struct RemoteFinanceState {
             categoryTargets: [],
             recurringTransactions: [],
             entries: []
+        )
+    }
+
+    func merging(localOnlyEntries: [ExpenseEntry]) -> RemoteFinanceState {
+        let remoteIDs = Set(entries.map(\.id))
+        let unpushed = localOnlyEntries.filter { !remoteIDs.contains($0.id) }
+        guard !unpushed.isEmpty else { return self }
+        return RemoteFinanceState(
+            user: user,
+            activePlan: activePlan,
+            categoryTargets: categoryTargets,
+            recurringTransactions: recurringTransactions,
+            entries: entries + unpushed
         )
     }
 }

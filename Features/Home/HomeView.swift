@@ -91,6 +91,7 @@ private extension HomeView {
                 if focusedEditor != nil {
                     KeyboardAccessoryBar(
                         isDictating: speechDictation.isRecording,
+                        feedback: viewModel.draftFeedback,
                         onToggleDictation: {
                             EditableJournalTextView.beginActiveDictationSession()
                             await speechDictation.toggleRecording()
@@ -329,6 +330,7 @@ private extension HomeView {
     var homeTopBar: some View {
         HomeTopBar(
             selectedDate: viewModel.selectedDate,
+            showInsightsBadge: viewModel.hasNewInsightsBadge,
             onDateTap: { presentDatePicker() },
             onReportsTap: { presentReports() },
             onSettingsTap: { presentSettings() }
@@ -379,6 +381,7 @@ private extension HomeView {
     func presentReports() {
         presentAfterEditorSettles {
             viewModel.isReportsPresented = true
+            viewModel.clearInsightsBadge()
         }
     }
 
@@ -1098,6 +1101,7 @@ private struct DayJournalPage: View {
                     )
                     .allowsHitTesting(isEditable)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .transaction { $0.animation = nil }
 
                     if journalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         VStack(alignment: .leading, spacing: 6) {
@@ -1115,6 +1119,7 @@ private struct DayJournalPage: View {
 
                     journalAccessoryOverlay(isAccessoryTapEnabled: !scrollDisabled)
                         .animation(nil, value: lineFrames)
+                        .transaction { $0.animation = nil }
                 }
                 .padding(.top, contentTopInset)
                 .padding(.horizontal, 20)
@@ -1473,6 +1478,7 @@ private enum PagerDragAxisLock {
 
 private struct KeyboardAccessoryBar: View {
     let isDictating: Bool
+    let feedback: DraftComposerFeedback?
     let onToggleDictation: () async -> Void
     let onTakePhotoTap: () -> Void
     let onChoosePhotoTap: () -> Void
@@ -1481,28 +1487,39 @@ private struct KeyboardAccessoryBar: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            KeyboardCircleButton(
-                systemImage: isDictating ? "waveform.circle.fill" : "mic.fill",
-                tint: isDictating ? Color(red: 0.90, green: 0.22, blue: 0.24) : Color(red: 0.03, green: 0.51, blue: 0.98),
-                action: {
-                    Task {
-                        await onToggleDictation()
+            HStack(spacing: 12) {
+                KeyboardCircleButton(
+                    systemImage: isDictating ? "waveform.circle.fill" : "mic.fill",
+                    tint: isDictating ? Color(red: 0.90, green: 0.22, blue: 0.24) : Color(red: 0.03, green: 0.51, blue: 0.98),
+                    action: {
+                        Task { await onToggleDictation() }
                     }
-                }
-            )
-            cameraMenuButton
-            KeyboardCircleButton(
-                systemImage: "plus",
-                tint: Color(red: 0.98, green: 0.54, blue: 0.13),
-                action: onQuickAddTap
-            )
+                )
+                cameraMenuButton
+                KeyboardCircleButton(
+                    systemImage: "plus",
+                    tint: Color(red: 0.98, green: 0.54, blue: 0.13),
+                    action: onQuickAddTap
+                )
+            }
+
+            Spacer(minLength: 0)
+
+            if let feedback {
+                KeyboardFeedbackPill(feedback: feedback)
+                    .transition(.opacity.combined(with: .scale(scale: 0.92, anchor: .center)))
+            }
+
+            Spacer(minLength: 0)
+
             KeyboardCircleButton(
                 systemImage: "keyboard.chevron.compact.down",
                 tint: .primary.opacity(0.92),
                 action: onDismissKeyboard
             )
         }
-        .frame(maxWidth: .infinity, alignment: .center)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: feedback?.primaryText)
+        .frame(maxWidth: .infinity)
     }
 
     private var cameraMenuButton: some View {
@@ -1530,6 +1547,55 @@ private struct KeyboardAccessoryBar: View {
         }
         .menuStyle(.button)
         .buttonStyle(.plain)
+    }
+}
+
+private struct KeyboardFeedbackPill: View {
+    let feedback: DraftComposerFeedback
+
+    var body: some View {
+        HStack(spacing: 6) {
+            if feedback.primaryColorName == .neutral {
+                JournalProcessingStatusText(activityText: "")
+                    .font(.notyfi(.footnote, weight: .semibold))
+                    .foregroundStyle(tintColor)
+            } else {
+                Text(feedback.primaryText)
+                    .font(.notyfi(.footnote, weight: .semibold))
+                    .foregroundStyle(tintColor)
+                    .lineLimit(1)
+
+                if let secondary = feedback.secondaryText {
+                    Text(secondary)
+                        .font(.notyfi(.caption2, weight: .medium))
+                        .foregroundStyle(tintColor.opacity(0.65))
+                        .lineLimit(1)
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background {
+            Capsule(style: .continuous)
+                .fill(tintColor.opacity(0.12))
+                .overlay {
+                    Capsule(style: .continuous)
+                        .stroke(tintColor.opacity(0.28), lineWidth: 1)
+                }
+        }
+    }
+
+    private var tintColor: Color {
+        switch feedback.primaryColorName {
+        case .income:
+            return NotyfiTheme.incomeColor
+        case .expense:
+            return NotyfiTheme.expenseColor
+        case .accent:
+            return Color(red: 0.26, green: 0.56, blue: 0.96)
+        case .neutral:
+            return NotyfiTheme.secondaryText
+        }
     }
 }
 

@@ -433,3 +433,8 @@
 "No expenses logged this month." = "No expenses logged this month.";
 "Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Add a monthly limit for each category. Skip any you're not sure about — you can set these later.";
 "Add the Notyfi widget to stay on top of your spending — every single day." = "Add the Notyfi widget to stay on top of your spending — every single day.";
+
+// AI Insights
+"Spending insights" = "Spending insights";
+"Monthly summary" = "Monthly summary";
+"Analysing your month..." = "Analysing your month...";

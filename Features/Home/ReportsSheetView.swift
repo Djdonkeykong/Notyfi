@@ -6,6 +6,10 @@ struct ReportsSheetView: View {
     @ObservedObject var viewModel: HomeViewModel
 
     @State private var reportMonth: Date = Date()
+    @State private var insightsResults: [String: InsightsResult] = [:]
+    @State private var insightsLoadingKey: String? = nil
+
+    private let insightsService = SpendingInsightsService()
 
     var body: some View {
         ZStack {
@@ -14,6 +18,9 @@ struct ReportsSheetView: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 20) {
                     header
+
+                    let key = insightCacheKey(for: reportMonth)
+                    let hasData = !categoryBreakdown(for: reportMonth).isEmpty
 
                     CategoryDonutCard(
                         currencyCode: viewModel.currencyCode,
@@ -28,6 +35,14 @@ struct ReportsSheetView: View {
                             reportMonth = calendar.date(byAdding: .month, value: 1, to: reportMonth) ?? reportMonth
                         }
                     )
+
+                    if hasData {
+                        MonthlyNarrativeCard(
+                            narrative: insightsResults[key]?.narrative,
+                            isLoading: insightsLoadingKey == key,
+                            monthLabel: monthLabel(for: reportMonth)
+                        )
+                    }
 
                     MonthlySpendCard(
                         currencyCode: viewModel.currencyCode,
@@ -50,11 +65,22 @@ struct ReportsSheetView: View {
                         currencyCode: viewModel.currencyCode,
                         summary: recurringLoadSummary
                     )
+
+                    if hasData {
+                        SpendingInsightsCard(
+                            insights: insightsResults[key]?.insights ?? [],
+                            isLoading: insightsLoadingKey == key,
+                            monthLabel: monthLabel(for: reportMonth)
+                        )
+                    }
                 }
                 .padding(.horizontal, 20)
                 .safeAreaPadding(.top, 14)
                 .padding(.bottom, 28)
             }
+        }
+        .task(id: insightCacheKey(for: reportMonth)) {
+            await loadInsights(for: reportMonth)
         }
     }
 }
@@ -242,6 +268,90 @@ private extension ReportsSheetView {
         case .yearly:  return transaction.amount / (12.0 * Double(interval))
         }
     }
+
+    func insightCacheKey(for date: Date) -> String {
+        let components = calendar.dateComponents([.year, .month], from: date)
+        let yearMonth = "\(components.year ?? 0)-\(components.month ?? 0)"
+        let breakdown = categoryBreakdown(for: date)
+        let bucketedTotal = Int(monthExpenseTotal(for: date) / 100) * 100
+        return "\(yearMonth).\(viewModel.currencyCode).\(bucketedTotal).\(breakdown.count)"
+    }
+
+    func loadInsights(for month: Date) async {
+        let key = insightCacheKey(for: month)
+
+        if insightsResults[key] != nil { return }
+
+        if let cached = loadCachedInsights(key: key) {
+            insightsResults[key] = cached
+            return
+        }
+
+        let breakdown = categoryBreakdown(for: month)
+        guard !breakdown.isEmpty else { return }
+
+        insightsLoadingKey = key
+
+        let prevExpenseTotal = monthExpenseTotal(for: calendar.date(byAdding: .month, value: -1, to: month) ?? month)
+        let monthEntries = filteredEntries.filter {
+            calendar.isDate($0.date, equalTo: month, toGranularity: .month)
+        }
+        let incomeTotal = monthEntries
+            .filter { $0.transactionKind == .income }
+            .reduce(0) { $0 + $1.amount }
+        let topMerchants = Array(
+            Dictionary(grouping: monthEntries.filter { $0.transactionKind == .expense }) { $0.merchant ?? "" }
+                .filter { !$0.key.isEmpty }
+                .sorted { $0.value.count > $1.value.count }
+                .prefix(5)
+                .map(\.key)
+        )
+        let categoryTotals = breakdown.map {
+            SpendingInsightsService.CategoryTotal(
+                category: $0.category.rawValue,
+                total: $0.total,
+                entryCount: $0.entryCount
+            )
+        }
+
+        do {
+            let result = try await insightsService.generate(
+                monthLabel: monthLabel(for: month),
+                currencyCode: viewModel.currencyCode,
+                expenseTotal: monthExpenseTotal(for: month),
+                incomeTotal: incomeTotal,
+                budgetLimit: viewModel.budgetPlan.monthlySpendingLimit,
+                categoryTotals: categoryTotals,
+                previousMonthExpenseTotal: prevExpenseTotal,
+                topMerchants: topMerchants
+            )
+            insightsResults[key] = result
+            saveCachedInsights(result, key: key)
+            let isCurrentMonth = calendar.isDate(month, equalTo: Date(), toGranularity: .month)
+            if isCurrentMonth {
+                viewModel.markInsightsGenerated(forMonthKey: key)
+            }
+        } catch {
+            // Silently ignore — cards stay hidden on failure
+        }
+
+        if insightsLoadingKey == key {
+            insightsLoadingKey = nil
+        }
+    }
+
+    private func loadCachedInsights(key: String) -> InsightsResult? {
+        guard let data = UserDefaults.standard.data(forKey: "notyfi.insights.\(key)"),
+              let decoded = try? JSONDecoder().decode(InsightsResult.self, from: data) else {
+            return nil
+        }
+        return decoded
+    }
+
+    private func saveCachedInsights(_ result: InsightsResult, key: String) {
+        guard let data = try? JSONEncoder().encode(result) else { return }
+        UserDefaults.standard.set(data, forKey: "notyfi.insights.\(key)")
+    }
 }
 
 // MARK: - Category Donut Card
@@ -354,6 +464,7 @@ private struct CategoryDonutCard: View {
                 CategoryDonutGridCell(item: item, currencyCode: currencyCode)
             }
         }
+        .transaction { $0.animation = nil }
     }
 
     private var emptyState: some View {
@@ -730,6 +841,128 @@ private struct RecurringMetricPill: View {
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
                         .stroke(tint.opacity(0.22), lineWidth: 1)
                 }
+        }
+    }
+}
+
+// MARK: - Monthly Narrative Card
+
+private struct MonthlyNarrativeCard: View {
+    let narrative: String?
+    let isLoading: Bool
+    let monthLabel: String
+
+    var body: some View {
+        if isLoading || narrative != nil {
+            SoftSurface(cornerRadius: 28, padding: 20) {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 8) {
+                        Text("Monthly summary".notyfiLocalized)
+                            .font(.notyfi(.subheadline, weight: .semibold))
+                            .foregroundStyle(NotyfiTheme.primaryText)
+
+                        Spacer(minLength: 0)
+
+                        Text("AI")
+                            .font(.notyfi(.caption2, weight: .bold))
+                            .foregroundStyle(NotyfiTheme.brandBlue)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background {
+                                Capsule(style: .continuous)
+                                    .fill(NotyfiTheme.brandBlue.opacity(0.12))
+                            }
+                    }
+
+                    if isLoading {
+                        HStack(spacing: 10) {
+                            ProgressView().scaleEffect(0.8)
+                            Text("Analysing your month...".notyfiLocalized)
+                                .font(.notyfi(.footnote))
+                                .foregroundStyle(NotyfiTheme.secondaryText)
+                        }
+                    } else if let narrative {
+                        Text(narrative)
+                            .font(.notyfi(.subheadline))
+                            .foregroundStyle(.primary.opacity(0.78))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .lineSpacing(3)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Spending Insights Card
+
+private struct SpendingInsightsCard: View {
+    let insights: [SpendingInsight]
+    let isLoading: Bool
+    let monthLabel: String
+
+    var body: some View {
+        if isLoading || !insights.isEmpty {
+            ReportCard(title: "Spending insights", subtitle: monthLabel) {
+                if isLoading {
+                    HStack(spacing: 10) {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Analysing your month...".notyfiLocalized)
+                            .font(.notyfi(.footnote))
+                            .foregroundStyle(NotyfiTheme.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 6)
+                } else {
+                    VStack(spacing: 12) {
+                        ForEach(insights) { insight in
+                            InsightRow(insight: insight)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct InsightRow: View {
+    let insight: SpendingInsight
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            RoundedRectangle(cornerRadius: 3, style: .continuous)
+                .fill(tint)
+                .frame(width: 3)
+                .padding(.vertical, 2)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(insight.headline)
+                    .font(.notyfi(.subheadline, weight: .semibold))
+                    .foregroundStyle(.primary.opacity(0.84))
+
+                Text(insight.body)
+                    .font(.notyfi(.footnote))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(tint.opacity(0.06))
+        }
+    }
+
+    private var tint: Color {
+        switch insight.tag {
+        case .overspending:      return NotyfiTheme.expenseColor
+        case .savingOpportunity: return NotyfiTheme.brandBlue
+        case .pattern:           return NotyfiTheme.secondaryText
+        case .positive:          return NotyfiTheme.incomeColor
         }
     }
 }

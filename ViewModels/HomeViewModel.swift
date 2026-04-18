@@ -41,9 +41,12 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var allEntriesSnapshot: [ExpenseEntry]
     @Published private(set) var trackedCategoriesSnapshot: Set<ExpenseCategory>
     @Published private(set) var recurringTransactionsSnapshot: [RecurringTransaction] = []
+    @Published private(set) var hasNewInsightsBadge = false
 
     private let store: ExpenseJournalStore
     private let calendar: Calendar
+    private let insightsBadgeGeneratedKey = "notyfi.insights.badge.generated"
+    private let insightsBadgeViewedKey = "notyfi.insights.badge.viewed"
     private let draftPreviewDelayNanoseconds: UInt64 = 1_800_000_000
     private var composerDraftsByDay: [Date: String] = [:]
     @Published private var composerPreviewDraft: ParsedExpenseDraft?
@@ -63,14 +66,19 @@ final class HomeViewModel: ObservableObject {
         self.allEntriesSnapshot = store.entries
         self.trackedCategoriesSnapshot = store.effectiveTrackedCategories
 
-        Publishers.CombineLatest4(store.$entries, $selectedDate, store.$budgetPlan, store.$trackedCategories)
-            .sink { [weak self] entries, date, budgetPlan, _ in
-                self?.allEntriesSnapshot = entries
-                self?.recompute(
+        let generated = defaults.string(forKey: insightsBadgeGeneratedKey) ?? ""
+        let viewed = defaults.string(forKey: insightsBadgeViewedKey) ?? ""
+        self.hasNewInsightsBadge = !generated.isEmpty && generated != viewed
+
+        Publishers.CombineLatest4(store.$entries, $selectedDate, store.$budgetPlan, store.$effectiveTrackedCategories)
+            .sink { [weak self] entries, date, budgetPlan, trackedCategories in
+                guard let self else { return }
+                self.allEntriesSnapshot = entries
+                self.recompute(
                     entries: entries,
                     selectedDate: date,
                     budgetPlan: budgetPlan,
-                    trackedCategories: store.effectiveTrackedCategories
+                    trackedCategories: trackedCategories
                 )
             }
             .store(in: &cancellables)
@@ -89,12 +97,23 @@ final class HomeViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        store.$trackedCategories
-            .sink { [weak self] _ in
-                guard let self else { return }
-                self.trackedCategoriesSnapshot = store.effectiveTrackedCategories
+        store.$effectiveTrackedCategories
+            .sink { [weak self] newCategories in
+                self?.trackedCategoriesSnapshot = newCategories
             }
             .store(in: &cancellables)
+    }
+
+    func markInsightsGenerated(forMonthKey key: String) {
+        UserDefaults.standard.set(key, forKey: insightsBadgeGeneratedKey)
+        let viewed = UserDefaults.standard.string(forKey: insightsBadgeViewedKey) ?? ""
+        hasNewInsightsBadge = key != viewed
+    }
+
+    func clearInsightsBadge() {
+        let generated = UserDefaults.standard.string(forKey: insightsBadgeGeneratedKey) ?? ""
+        UserDefaults.standard.set(generated, forKey: insightsBadgeViewedKey)
+        hasNewInsightsBadge = false
     }
 
     var entryCountText: String {

@@ -394,3 +394,8 @@
 "Upcoming" = "Kommande";
 "Day" = "Dag";
 "No expenses logged this month." = "Inga utgifter registrerade denna manad.";
+
+// AI Insights
+"Spending insights" = "Utgiftsinsikter";
+"Monthly summary" = "M\u00e5nadssammanfattning";
+"Analysing your month..." = "Analyserar din m\u00e5nad...";

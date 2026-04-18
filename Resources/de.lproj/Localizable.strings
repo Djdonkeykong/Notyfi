@@ -393,3 +393,8 @@
 "Monthly load" = "Monatliche Belastung";
 "Upcoming" = "Anstehend";
 "Day" = "Tag";
+
+// AI Insights
+"Spending insights" = "Ausgaben-Einblicke";
+"Monthly summary" = "Monatszusammenfassung";
+"Analysing your month..." = "Analysiere deinen Monat...";

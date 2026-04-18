@@ -394,3 +394,8 @@
 "Upcoming" = "Nadchodz\U0105ce";
 "Day" = "Dzień";
 "No expenses logged this month." = "Brak wydatków w tym miesiącu.";
+
+// AI Insights
+"Spending insights" = "Wgl\u0105d w wydatki";
+"Monthly summary" = "Miesi\u0119czne podsumowanie";
+"Analysing your month..." = "Analizowanie twojego miesi\u0105ca...";

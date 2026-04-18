@@ -393,3 +393,8 @@
 "Monthly load" = "Kuukausikuorma";
 "Upcoming" = "Tulossa";
 "Day" = "Päivä";
+
+// AI Insights
+"Spending insights" = "Menon\u00e4kemykset";
+"Monthly summary" = "Kuukausikatsaus";
+"Analysing your month..." = "Analysoidaan kuutasi...";
