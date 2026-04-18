@@ -348,7 +348,8 @@ private extension HomeView {
     }
 
     func datePickerSheetHeight(for date: Date) -> CGFloat {
-        let calendar = Calendar.autoupdatingCurrent
+        var calendar = Calendar.autoupdatingCurrent
+        calendar.locale = NotyfiLocale.current()
         guard let monthInterval = calendar.dateInterval(of: .month, for: date) else {
             return 430
         }
