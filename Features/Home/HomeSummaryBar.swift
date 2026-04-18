@@ -92,7 +92,7 @@ struct HomeSummaryBar: View {
             .padding(.top, 8)
             .padding(.bottom, 12)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NoHighlightButtonStyle())
     }
 
     private var accentColor: Color {
@@ -164,6 +164,12 @@ struct HomeSummaryBar: View {
         }
 
         return formattedAmount
+    }
+}
+
+private struct NoHighlightButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
     }
 }
 
