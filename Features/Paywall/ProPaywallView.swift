@@ -592,7 +592,7 @@ private struct PlanCard: View {
         let monthly = package.storeProduct.price / 12
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.locale = package.storeProduct.priceLocale
+        formatter.locale = Locale.current
         guard let formatted = formatter.string(from: monthly as NSDecimalNumber) else { return "" }
         return "\(formatted)/mo"
     }
