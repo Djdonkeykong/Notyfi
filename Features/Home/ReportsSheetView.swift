@@ -29,27 +29,21 @@ struct ReportsSheetView: View {
                         }
                     )
 
-                    SpendVsBudgetCard(
+                    MonthlySpendCard(
                         currencyCode: viewModel.currencyCode,
                         budgetLimit: viewModel.budgetPlan.monthlySpendingLimit,
-                        currentSpend: monthExpenseTotal(for: reportMonth),
-                        daysElapsed: daysElapsed(for: reportMonth),
-                        daysInMonth: daysInMonth(for: reportMonth),
-                        points: cumulativeExpenseSeries(for: reportMonth)
-                    )
-
-                    MonthComparisonCard(
-                        currencyCode: viewModel.currencyCode,
                         currentMonthLabel: monthShortLabel(for: reportMonth),
                         previousMonthLabel: monthShortLabel(for: previousMonth),
                         currentPoints: cumulativeExpenseSeries(for: reportMonth),
                         previousPoints: cumulativeExpenseSeries(for: previousMonth),
-                        comparisonDay: daysElapsed(for: reportMonth)
+                        daysElapsed: daysElapsed(for: reportMonth),
+                        daysInMonth: daysInMonth(for: reportMonth),
+                        currentSpend: monthExpenseTotal(for: reportMonth)
                     )
 
                     MonthlyTrendCard(
                         currencyCode: viewModel.currencyCode,
-                        bars: recentMonthlySpendBars(relativeTo: reportMonth)
+                        bars: recentMonthlySpendBars(relativeTo: Date())
                     )
 
                     RecurringLoadCard(
@@ -272,9 +266,9 @@ private struct CategoryDonutCard: View {
 
                 if !breakdown.isEmpty {
                     Divider()
-                        .padding(.bottom, 4)
 
-                    categoryList
+                    categoryGrid
+                        .padding(.top, 14)
                 } else {
                     emptyState
                 }
@@ -351,15 +345,13 @@ private struct CategoryDonutCard: View {
         .frame(maxWidth: .infinity)
     }
 
-    private var categoryList: some View {
-        VStack(spacing: 0) {
-            ForEach(Array(breakdown.enumerated()), id: \.element.id) { index, item in
-                CategoryDonutRow(item: item, currencyCode: currencyCode)
-
-                if index < breakdown.count - 1 {
-                    Divider()
-                        .padding(.leading, 46)
-                }
+    private var categoryGrid: some View {
+        LazyVGrid(
+            columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)],
+            spacing: 8
+        ) {
+            ForEach(breakdown, id: \.id) { item in
+                CategoryDonutGridCell(item: item, currencyCode: currencyCode)
             }
         }
     }
@@ -374,208 +366,106 @@ private struct CategoryDonutCard: View {
     }
 }
 
-private struct CategoryDonutRow: View {
+private struct CategoryDonutGridCell: View {
     let item: JournalCategoryBreakdown
     let currencyCode: String
 
     var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 12) {
-                Circle()
-                    .fill(item.category.tint.opacity(0.14))
-                    .frame(width: 34, height: 34)
-                    .overlay {
-                        Image(systemName: item.category.symbol)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(item.category.tint)
-                    }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(item.category.title)
-                        .font(.notyfi(.subheadline, weight: .semibold))
-                        .foregroundStyle(.primary.opacity(0.82))
-
-                    Text(countLabel)
-                        .font(.notyfi(.caption))
-                        .foregroundStyle(NotyfiTheme.secondaryText)
+        HStack(spacing: 10) {
+            Circle()
+                .fill(item.category.tint.opacity(0.14))
+                .frame(width: 30, height: 30)
+                .overlay {
+                    Image(systemName: item.category.symbol)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(item.category.tint)
                 }
 
-                Spacer()
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.category.title)
+                    .font(.notyfi(.caption, weight: .semibold))
+                    .foregroundStyle(.primary.opacity(0.82))
+                    .lineLimit(1)
 
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(item.total.formattedCurrency(code: currencyCode))
-                        .font(.notyfi(.subheadline, weight: .semibold))
-                        .foregroundStyle(NotyfiTheme.primaryText)
-
-                    Text("\(Int((item.share * 100).rounded()))%")
-                        .font(.notyfi(.caption))
-                        .foregroundStyle(NotyfiTheme.secondaryText)
-                }
+                Text(item.total.formattedCurrency(code: currencyCode))
+                    .font(.notyfi(.caption2, weight: .medium))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
 
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color.primary.opacity(0.06))
-                        .frame(height: 3)
+            Spacer(minLength: 0)
 
-                    Capsule()
-                        .fill(item.category.tint.opacity(0.75))
-                        .frame(width: max(4, geo.size.width * CGFloat(item.share)), height: 3)
-                }
-            }
-            .frame(height: 3)
-            .padding(.leading, 46)
+            Text("\(Int((item.share * 100).rounded()))%")
+                .font(.notyfi(.caption2, weight: .semibold))
+                .foregroundStyle(item.category.tint)
         }
-        .padding(.vertical, 12)
-    }
-
-    private var countLabel: String {
-        if item.entryCount == 1 {
-            return String(format: "Single note count format".notyfiLocalized, item.entryCount)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 9)
+        .background {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(item.category.tint.opacity(0.07))
         }
-        return String(format: "Notes count format".notyfiLocalized, item.entryCount)
     }
 }
 
-// MARK: - Spend vs Budget Card
+// MARK: - Monthly Spend Card
 
-private struct SpendVsBudgetCard: View {
+private struct MonthlySpendCard: View {
     let currencyCode: String
     let budgetLimit: Double
-    let currentSpend: Double
-    let daysElapsed: Int
-    let daysInMonth: Int
-    let points: [ReportLinePoint]
-
-    private var hasSpendData: Bool { points.contains { $0.value > 0 } }
-
-    private var budgetPacePoints: [ReportLinePoint] {
-        guard budgetLimit > 0 else { return [] }
-        return points.map { point in
-            ReportLinePoint(
-                day: point.day,
-                value: budgetLimit * (Double(point.day) / Double(max(daysInMonth, 1)))
-            )
-        }
-    }
-
-    private var takeaway: String {
-        guard hasSpendData else {
-            return "Add a few entries to start seeing spending trends.".notyfiLocalized
-        }
-        guard budgetLimit > 0 else {
-            return "Set a monthly budget to unlock this chart.".notyfiLocalized
-        }
-        let paceSpend = budgetLimit * (Double(daysElapsed) / Double(max(daysInMonth, 1)))
-        let delta = currentSpend - paceSpend
-        if abs(delta) < 0.5 {
-            return "Right on pace for this point in the month.".notyfiLocalized
-        }
-        if delta > 0 {
-            return String(
-                format: "%@ over your budget pace".notyfiLocalized,
-                abs(delta).formattedCurrency(code: currencyCode)
-            )
-        }
-        return String(
-            format: "%@ under your budget pace".notyfiLocalized,
-            abs(delta).formattedCurrency(code: currencyCode)
-        )
-    }
-
-    private var maxValue: Double {
-        max(
-            points.map(\.value).max() ?? 0,
-            budgetPacePoints.map(\.value).max() ?? 0,
-            budgetLimit,
-            1
-        )
-    }
-
-    var body: some View {
-        ReportCard(title: "Spend vs budget pace", subtitle: takeaway) {
-            VStack(alignment: .leading, spacing: 12) {
-                ReportLegendRow(items: [
-                    ReportLegendItem(title: "Spent".notyfiLocalized, color: NotyfiTheme.expenseColor, style: .solid),
-                    ReportLegendItem(title: "Budget pace".notyfiLocalized, color: NotyfiTheme.brandBlue, style: .dashed)
-                ])
-
-                if hasSpendData && budgetLimit > 0 {
-                    Chart {
-                        ForEach(points) { point in
-                            LineMark(
-                                x: .value("Day".notyfiLocalized, point.day),
-                                y: .value("Spent".notyfiLocalized, point.value)
-                            )
-                            .foregroundStyle(NotyfiTheme.expenseColor)
-                            .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round))
-                        }
-                        ForEach(budgetPacePoints) { point in
-                            LineMark(
-                                x: .value("Day".notyfiLocalized, point.day),
-                                y: .value("Budget pace".notyfiLocalized, point.value)
-                            )
-                            .foregroundStyle(NotyfiTheme.brandBlue)
-                            .lineStyle(StrokeStyle(lineWidth: 2, dash: [6, 5]))
-                        }
-                    }
-                    .chartYScale(domain: 0...maxValue * 1.08)
-                    .chartXAxis {
-                        AxisMarks(values: strideValues(upTo: max(points.last?.day ?? 1, 1))) { value in
-                            AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                                .foregroundStyle(NotyfiTheme.surfaceBorder)
-                            AxisValueLabel {
-                                if let day = value.as(Int.self) { Text("\(day)") }
-                            }
-                        }
-                    }
-                    .chartYAxis {
-                        AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { value in
-                            AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                                .foregroundStyle(NotyfiTheme.surfaceBorder)
-                            AxisValueLabel {
-                                if let amount = value.as(Double.self) {
-                                    Text(amount.axisCurrency(code: currencyCode))
-                                }
-                            }
-                        }
-                    }
-                    .frame(height: 200)
-                } else if !hasSpendData {
-                    ReportEmptyState(message: "Add a few entries to start seeing spending trends.")
-                } else {
-                    ReportEmptyState(message: "Set a monthly budget to unlock this chart.")
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Month Comparison Card
-
-private struct MonthComparisonCard: View {
-    let currencyCode: String
     let currentMonthLabel: String
     let previousMonthLabel: String
     let currentPoints: [ReportLinePoint]
     let previousPoints: [ReportLinePoint]
-    let comparisonDay: Int
+    let daysElapsed: Int
+    let daysInMonth: Int
+    let currentSpend: Double
+
+    private var budgetPacePoints: [ReportLinePoint] {
+        guard budgetLimit > 0 else { return [] }
+        let days = max(daysInMonth, 1)
+        return (1...days).map { day in
+            ReportLinePoint(day: day, value: budgetLimit * Double(day) / Double(days))
+        }
+    }
+
+    private var hasData: Bool {
+        currentPoints.contains { $0.value > 0 } || previousPoints.contains { $0.value > 0 }
+    }
 
     private var maxValue: Double {
         max(
             currentPoints.map(\.value).max() ?? 0,
             previousPoints.map(\.value).max() ?? 0,
+            budgetLimit,
             1
         )
     }
 
     private var takeaway: String {
-        guard !currentPoints.isEmpty || !previousPoints.isEmpty else {
-            return "No month-to-month comparison yet.".notyfiLocalized
+        guard hasData else {
+            return "Add a few entries to start seeing spending trends.".notyfiLocalized
         }
-        let currentValue = currentPoints[valueAt: comparisonDay] ?? 0
-        let previousValue = previousPoints[valueAt: comparisonDay] ?? 0
+        if budgetLimit > 0 {
+            let paceSpend = budgetLimit * (Double(daysElapsed) / Double(max(daysInMonth, 1)))
+            let delta = currentSpend - paceSpend
+            if abs(delta) < 0.5 {
+                return "Right on pace for this point in the month.".notyfiLocalized
+            }
+            if delta > 0 {
+                return String(
+                    format: "%@ over your budget pace".notyfiLocalized,
+                    abs(delta).formattedCurrency(code: currencyCode)
+                )
+            }
+            return String(
+                format: "%@ under your budget pace".notyfiLocalized,
+                abs(delta).formattedCurrency(code: currencyCode)
+            )
+        }
+        let currentValue = currentPoints[valueAt: daysElapsed] ?? 0
+        let previousValue = previousPoints[valueAt: daysElapsed] ?? 0
         let delta = currentValue - previousValue
         if abs(delta) < 0.5 {
             return "Almost identical to the same point last month.".notyfiLocalized
@@ -592,24 +482,35 @@ private struct MonthComparisonCard: View {
         )
     }
 
-    var body: some View {
-        ReportCard(title: "This month vs last month", subtitle: takeaway) {
-            VStack(alignment: .leading, spacing: 12) {
-                ReportLegendRow(items: [
-                    ReportLegendItem(title: currentMonthLabel, color: NotyfiTheme.brandBlue, style: .solid),
-                    ReportLegendItem(title: previousMonthLabel, color: NotyfiTheme.secondaryText, style: .solid)
-                ])
+    private var legendItems: [ReportLegendItem] {
+        var items = [
+            ReportLegendItem(title: currentMonthLabel, color: NotyfiTheme.brandBlue, style: .solid),
+            ReportLegendItem(title: previousMonthLabel, color: NotyfiTheme.secondaryText, style: .solid)
+        ]
+        if budgetLimit > 0 {
+            items.append(ReportLegendItem(
+                title: "Budget pace".notyfiLocalized,
+                color: NotyfiTheme.expenseColor,
+                style: .dashed
+            ))
+        }
+        return items
+    }
 
-                if !currentPoints.isEmpty || !previousPoints.isEmpty {
+    var body: some View {
+        ReportCard(title: "Monthly spend", subtitle: takeaway) {
+            VStack(alignment: .leading, spacing: 12) {
+                ReportLegendRow(items: legendItems)
+
+                if hasData {
                     Chart {
                         ForEach(previousPoints) { point in
                             LineMark(
                                 x: .value("Day".notyfiLocalized, point.day),
                                 y: .value("Last month".notyfiLocalized, point.value)
                             )
-                            .foregroundStyle(NotyfiTheme.secondaryText)
-                            .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round))
-                            .opacity(0.9)
+                            .foregroundStyle(NotyfiTheme.secondaryText.opacity(0.45))
+                            .lineStyle(StrokeStyle(lineWidth: 1.5, lineCap: .round))
                         }
                         ForEach(currentPoints) { point in
                             LineMark(
@@ -619,10 +520,22 @@ private struct MonthComparisonCard: View {
                             .foregroundStyle(NotyfiTheme.brandBlue)
                             .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round))
                         }
+                        ForEach(budgetPacePoints) { point in
+                            LineMark(
+                                x: .value("Day".notyfiLocalized, point.day),
+                                y: .value("Budget pace".notyfiLocalized, point.value)
+                            )
+                            .foregroundStyle(NotyfiTheme.expenseColor.opacity(0.7))
+                            .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [6, 5]))
+                        }
                     }
                     .chartYScale(domain: 0...maxValue * 1.08)
                     .chartXAxis {
-                        AxisMarks(values: strideValues(upTo: max(currentPoints.last?.day ?? 1, previousPoints.last?.day ?? 1))) { value in
+                        AxisMarks(values: strideValues(upTo: max(
+                            currentPoints.last?.day ?? 1,
+                            previousPoints.last?.day ?? 1,
+                            1
+                        ))) { value in
                             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                                 .foregroundStyle(NotyfiTheme.surfaceBorder)
                             AxisValueLabel {
@@ -643,7 +556,7 @@ private struct MonthComparisonCard: View {
                     }
                     .frame(height: 200)
                 } else {
-                    ReportEmptyState(message: "No month-to-month comparison yet.")
+                    ReportEmptyState(message: "Add a few entries to start seeing spending trends.")
                 }
             }
         }

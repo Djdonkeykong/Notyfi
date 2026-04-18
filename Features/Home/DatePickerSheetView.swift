@@ -175,14 +175,11 @@ struct DatePickerSheetView: View {
                             }
                         }
                     }
+                    .opacity(isMonthChooserPresented ? 0.28 : 1)
+                    .animation(.easeInOut(duration: 0.2), value: isMonthChooserPresented)
                     .allowsHitTesting(!isMonthChooserPresented)
 
                     if isMonthChooserPresented {
-                        Rectangle()
-                            .fill(Color.black.opacity(0.06))
-                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                            .transition(.opacity)
-
                         monthChooserCard
                             .padding(.top, 2)
                             .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .top)))

@@ -8,6 +8,7 @@ struct HomeView: View {
     @ObservedObject private var authManager: AuthManager
     @EnvironmentObject private var languageManager: LanguageManager
     @AppStorage(NotyfiAppearanceMode.storageKey) private var appearanceModeRawValue = NotyfiAppearanceMode.system.rawValue
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @StateObject private var viewModel: HomeViewModel
     @StateObject private var speechDictation = SpeechDictationService()
     @State private var selectedEntry: ExpenseEntry?
@@ -41,6 +42,8 @@ struct HomeView: View {
                     decoratedHomeContent(
                         homeContent.safeAreaBar(edge: .top, spacing: 0) {
                             homeTopBar
+                                .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
+                                .frame(maxWidth: .infinity, alignment: .center)
                         }
                     )
                 } else {
@@ -103,6 +106,8 @@ private extension HomeView {
                     .padding(.horizontal, 8)
                     .padding(.top, 10)
                     .padding(.bottom, 14)
+                    .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
+                    .frame(maxWidth: .infinity, alignment: .center)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -118,6 +123,8 @@ private extension HomeView {
                             currencyCode: viewModel.currencyCode,
                             onTap: { presentStats() }
                         )
+                        .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
+                        .frame(maxWidth: .infinity, alignment: .center)
                     }
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
@@ -295,6 +302,8 @@ private extension HomeView {
                     }
                 )
             }
+            .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
+            .frame(maxWidth: .infinity, alignment: .center)
 
         }
     }

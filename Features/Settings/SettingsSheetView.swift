@@ -217,9 +217,8 @@ struct SettingsSheetView: View {
                     async let minDelay: Void = Task.sleep(nanoseconds: 1_500_000_000)
                     _ = try await (signOut, minDelay)
                     pendingAccountAction = nil
-                    dismiss()
-                    try? await Task.sleep(nanoseconds: 400_000_000)
                     hasCompletedOnboarding = false
+                    dismiss()
                 }
             }
             Button("Cancel".notyfiLocalized, role: .cancel) {}
@@ -236,9 +235,8 @@ struct SettingsSheetView: View {
                     async let minDelay: Void = Task.sleep(nanoseconds: 1_800_000_000)
                     _ = try await (deleteAccount, minDelay)
                     pendingAccountAction = nil
-                    dismiss()
-                    try? await Task.sleep(nanoseconds: 400_000_000)
                     hasCompletedOnboarding = false
+                    dismiss()
                 }
             }
             Button("Cancel".notyfiLocalized, role: .cancel) {}

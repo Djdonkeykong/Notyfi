@@ -1,5 +1,4 @@
 import RevenueCat
-import RevenueCatUI
 import SwiftUI
 import UIKit
 
@@ -38,20 +37,17 @@ struct AppRootView: View {
             } else {
                 HomeView(store: store, authManager: authManager)
                     .id(languageManager.refreshID)
-                    // PAYWALL TEMPORARILY DISABLED FOR TESTING
-//                    .task(id: authManager.isAuthenticated) {
-//                        guard authManager.isAuthenticated else {
-//                            showPaywall = false
-//                            return
-//                        }
-//                        await checkSubscriptionStatus()
-//                    }
-//                    .fullScreenCover(isPresented: $showPaywall) {
-//                        PaywallView(displayCloseButton: false)
-//                            .interactiveDismissDisabled()
-//                            .onPurchaseCompleted { _ in showPaywall = false }
-//                            .onRestoreCompleted { _ in showPaywall = false }
-//                    }
+                    .task(id: authManager.isAuthenticated) {
+                        guard authManager.isAuthenticated else {
+                            showPaywall = false
+                            return
+                        }
+                        await checkSubscriptionStatus()
+                    }
+                    .fullScreenCover(isPresented: $showPaywall) {
+                        ProPaywallView(onDismiss: { showPaywall = false })
+                            .interactiveDismissDisabled()
+                    }
             }
         }
         .environmentObject(languageManager)

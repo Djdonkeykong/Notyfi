@@ -76,25 +76,25 @@ enum ExpenseCategory: String, CaseIterable, Codable, Identifiable {
     var tint: Color {
         switch self {
         case .food:
-            return Color(red: 0.93, green: 0.55, blue: 0.34)
+            return Color(red: 1.00, green: 0.44, blue: 0.16)   // vivid orange
         case .groceries:
-            return Color(red: 0.35, green: 0.63, blue: 0.40)
+            return Color(red: 0.16, green: 0.76, blue: 0.38)   // vivid emerald
         case .transport:
-            return Color(red: 0.38, green: 0.58, blue: 0.86)
+            return Color(red: 0.20, green: 0.48, blue: 0.98)   // bold blue
         case .housing:
-            return Color(red: 0.64, green: 0.55, blue: 0.83)
+            return Color(red: 0.60, green: 0.36, blue: 0.96)   // vivid violet
         case .travel:
-            return Color(red: 0.31, green: 0.67, blue: 0.74)
+            return Color(red: 0.06, green: 0.74, blue: 0.84)   // vivid cyan
         case .shopping:
-            return Color(red: 0.88, green: 0.56, blue: 0.72)
+            return Color(red: 0.98, green: 0.24, blue: 0.58)   // hot pink
         case .bills:
-            return Color(red: 0.70, green: 0.62, blue: 0.44)
+            return Color(red: 0.96, green: 0.68, blue: 0.08)   // vivid amber
         case .health:
-            return Color(red: 0.87, green: 0.32, blue: 0.40)
+            return Color(red: 0.96, green: 0.18, blue: 0.26)   // vivid red
         case .social:
-            return Color(red: 0.87, green: 0.69, blue: 0.33)
+            return Color(red: 0.98, green: 0.55, blue: 0.08)   // vivid saffron
         case .entertainment:
-            return Color(red: 0.48, green: 0.44, blue: 0.88)
+            return Color(red: 0.40, green: 0.22, blue: 0.96)   // vivid indigo
         case .uncategorized:
             return NotyfiTheme.tertiaryText
         }

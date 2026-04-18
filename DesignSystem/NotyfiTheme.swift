@@ -41,7 +41,7 @@ enum NotyfiTheme {
         light: UIColor.white.withAlphaComponent(0.95),
         dark: UIColor.white.withAlphaComponent(0.36)
     )
-    static let accent = Color(red: 0.93, green: 0.72, blue: 0.51)
+    static let accent = Color(red: 1.00, green: 0.66, blue: 0.28)
     static let circleButtonBackground = adaptiveColor(
         light: UIColor(red: 0.88, green: 0.88, blue: 0.90, alpha: 1),
         dark: UIColor(red: 0.34, green: 0.34, blue: 0.36, alpha: 1)
@@ -52,9 +52,9 @@ enum NotyfiTheme {
         light: UIColor(red: 242.0 / 255.0, green: 242.0 / 255.0, blue: 249.0 / 255.0, alpha: 1),
         dark: UIColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1)
     )
-    static let reviewTint = Color(red: 0.90, green: 0.60, blue: 0.29)
-    static let incomeColor = Color(red: 0.28, green: 0.71, blue: 0.45)
-    static let expenseColor = Color(red: 0.90, green: 0.36, blue: 0.34)
+    static let reviewTint = Color(red: 1.00, green: 0.60, blue: 0.14)
+    static let incomeColor = Color(red: 0.14, green: 0.78, blue: 0.42)
+    static let expenseColor = Color(red: 0.96, green: 0.22, blue: 0.20)
 
     private static func adaptiveColor(light: UIColor, dark: UIColor) -> Color {
         Color(

@@ -11,6 +11,7 @@ struct StatsSheetView: View {
     @ObservedObject var viewModel: HomeViewModel
 
     @State private var isCategoryEditorPresented = false
+    @State private var categoryEditorSessionID = UUID()
     @State private var monthlyBudgetText = ""
     @State private var savingsTargetText = ""
     @State private var categoryBudgetTexts: [ExpenseCategory: String] = [:]
@@ -135,7 +136,10 @@ struct StatsSheetView: View {
 
                     SectionHeader(title: "Category")
                     StatsCard {
-                        Button(action: { isCategoryEditorPresented = true }) {
+                        Button(action: {
+                            categoryEditorSessionID = UUID()
+                            isCategoryEditorPresented = true
+                        }) {
                             VStack(alignment: .leading, spacing: 16) {
                                 HStack(alignment: .top, spacing: 14) {
                                     Image(systemName: "square.grid.2x2.fill")
@@ -285,6 +289,7 @@ struct StatsSheetView: View {
                     viewModel.setTrackedCategories(categories)
                 }
             )
+            .id(categoryEditorSessionID)
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             .presentationBackground(NotyfiTheme.background.opacity(0.98))
@@ -703,9 +708,6 @@ private struct MoneyPlanCategoryTrackingSheet: View {
                 )
                 .ignoresSafeArea(edges: .bottom)
             }
-        }
-        .onAppear {
-            selectedCategories = initialSelectedCategories
         }
     }
 }
