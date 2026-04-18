@@ -186,12 +186,12 @@ private struct FooterMetricPill: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title.notyfiLocalized)
                 .font(.notyfi(.caption2, weight: .semibold))
-                .foregroundStyle(NotyfiTheme.secondaryText)
+                .foregroundStyle(tint.opacity(0.7))
                 .frame(height: titleHeight, alignment: .topLeading)
 
             Text(value)
-                .font(.notyfi(.footnote, weight: .semibold))
-                .foregroundStyle(.primary.opacity(0.84))
+                .font(.notyfi(.footnote, weight: .bold))
+                .foregroundStyle(tint)
                 .lineLimit(1)
                 .minimumScaleFactor(0.76)
                 .monospacedDigit()
@@ -203,10 +203,10 @@ private struct FooterMetricPill: View {
         .frame(maxWidth: .infinity, minHeight: pillHeight, maxHeight: pillHeight, alignment: .topLeading)
         .background {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(tint.opacity(0.08))
+                .fill(tint.opacity(0.12))
                 .overlay {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(tint.opacity(0.16), lineWidth: 1)
+                        .stroke(tint.opacity(0.24), lineWidth: 1)
                 }
         }
     }

@@ -689,7 +689,7 @@ private struct RecurringLoadCard: View {
                                 VStack(alignment: .trailing, spacing: 2) {
                                     Text(transaction.amount.formattedCurrency(code: currencyCode))
                                         .font(.notyfi(.subheadline, weight: .semibold))
-                                        .foregroundStyle(NotyfiTheme.primaryText)
+                                        .foregroundStyle(NotyfiTheme.expenseColor)
 
                                     Text(transaction.schedule)
                                         .font(.notyfi(.caption))
@@ -713,22 +713,22 @@ private struct RecurringMetricPill: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title.notyfiLocalized)
-                .font(.notyfi(.caption, weight: .medium))
-                .foregroundStyle(NotyfiTheme.secondaryText)
+                .font(.notyfi(.caption, weight: .semibold))
+                .foregroundStyle(tint.opacity(0.7))
 
             Text(value)
-                .font(.notyfi(.headline, weight: .semibold))
-                .foregroundStyle(.primary.opacity(0.84))
+                .font(.notyfi(.headline, weight: .bold))
+                .foregroundStyle(tint)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
         .background {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(tint.opacity(0.08))
+                .fill(tint.opacity(0.12))
                 .overlay {
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(tint.opacity(0.12), lineWidth: 1)
+                        .stroke(tint.opacity(0.22), lineWidth: 1)
                 }
         }
     }
