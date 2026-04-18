@@ -340,7 +340,7 @@ struct DatePickerSheetView: View {
     private func monthButtonBackground(for index: Int) -> Color {
         currentMonthIndex == index && chooserYear == currentVisibleYear
             ? selectedRingColor.opacity(0.18)
-            : NotyfiTheme.surface
+            : NotyfiTheme.inputSurface
     }
 
     private func monthButtonBorder(for index: Int) -> Color {
