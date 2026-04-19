@@ -85,7 +85,7 @@ struct AppRootView: View {
             Image("LaunchImage")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 140, height: 128)
+                .frame(width: 280, height: 96)
         }
         .ignoresSafeArea()
     }

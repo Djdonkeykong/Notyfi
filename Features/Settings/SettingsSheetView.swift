@@ -15,7 +15,6 @@ struct SettingsSheetView: View {
     @State private var isSignOutConfirmationPresented = false
     @State private var isDeleteAccountConfirmationPresented = false
     @State private var pendingAccountAction: PendingAccountAction? = nil
-    @State private var isPaywallPreviewPresented = false
 
     private enum PendingAccountAction {
         case signOut
@@ -151,8 +150,8 @@ struct SettingsSheetView: View {
                             SettingsActionRow(
                                 icon: "trash",
                                 title: "Clear Log",
-                                isDestructive: true,
                                 showsChevron: false,
+                                tint: NotyfiTheme.brandBlue,
                                 action: {
                                     isClearLogConfirmationPresented = true
                                 }
@@ -161,7 +160,7 @@ struct SettingsSheetView: View {
                             SettingsActionRow(
                                 icon: "rectangle.portrait.and.arrow.right",
                                 title: "Sign Out",
-                                isDestructive: false,
+                                isDestructive: true,
                                 showsChevron: false,
                                 action: { isSignOutConfirmationPresented = true }
                             )
@@ -174,14 +173,6 @@ struct SettingsSheetView: View {
                                 action: { isDeleteAccountConfirmationPresented = true }
                             )
                         }
-                    }
-
-                    SettingsCard {
-                        SettingsActionRow(
-                            icon: "creditcard",
-                            title: "Preview Paywall",
-                            action: { isPaywallPreviewPresented = true }
-                        )
                     }
 
                     Text("Notyfi \(viewModel.versionText)")
@@ -273,9 +264,6 @@ struct SettingsSheetView: View {
                 .presentationDragIndicator(.visible)
                 .presentationBackground(NotyfiTheme.background.opacity(0.98))
                 .presentationCornerRadius(34)
-        }
-        .fullScreenCover(isPresented: $isPaywallPreviewPresented) {
-            ProPaywallView(onDismiss: { isPaywallPreviewPresented = false })
         }
         .id(viewModel.appearanceMode.id)
         .preferredColorScheme(viewModel.appearanceMode.colorScheme)
@@ -732,19 +720,30 @@ private struct SettingsActionRow: View {
     let title: String
     var isDestructive = false
     var showsChevron = true
+    var tint: Color? = nil
     var action: () -> Void = {}
+
+    private var iconColor: Color {
+        if let tint { return tint.opacity(0.9) }
+        return isDestructive ? .red.opacity(0.75) : NotyfiTheme.brandBlue.opacity(0.9)
+    }
+
+    private var textColor: Color {
+        if let tint { return tint.opacity(0.85) }
+        return isDestructive ? .red.opacity(0.78) : .primary.opacity(0.82)
+    }
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 14) {
                 Image(systemName: icon)
-                    .foregroundStyle(isDestructive ? .red.opacity(0.75) : NotyfiTheme.brandBlue.opacity(0.9))
+                    .foregroundStyle(iconColor)
                     .font(.system(size: 17, weight: .semibold))
                     .frame(width: 18)
 
                 Text(title.notyfiLocalized)
                     .font(.notyfi(.body))
-                    .foregroundStyle(isDestructive ? .red.opacity(0.78) : .primary.opacity(0.82))
+                    .foregroundStyle(textColor)
 
                 Spacer()
 

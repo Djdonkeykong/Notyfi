@@ -1489,31 +1489,25 @@ private struct KeyboardAccessoryBar: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            HStack(spacing: 12) {
-                KeyboardCircleButton(
-                    systemImage: isDictating ? "waveform.circle.fill" : "mic.fill",
-                    tint: isDictating ? Color(red: 0.90, green: 0.22, blue: 0.24) : Color(red: 0.03, green: 0.51, blue: 0.98),
-                    action: {
-                        Task { await onToggleDictation() }
-                    }
-                )
-                cameraMenuButton
-                KeyboardCircleButton(
-                    systemImage: "plus",
-                    tint: Color(red: 0.98, green: 0.54, blue: 0.13),
-                    action: onQuickAddTap
-                )
-            }
-
-            Spacer(minLength: 0)
-
+            KeyboardCircleButton(
+                systemImage: isDictating ? "waveform.circle.fill" : "mic.fill",
+                tint: isDictating ? Color(red: 0.90, green: 0.22, blue: 0.24) : Color(red: 0.03, green: 0.51, blue: 0.98),
+                action: {
+                    Task { await onToggleDictation() }
+                }
+            )
+            cameraMenuButton
+            KeyboardCircleButton(
+                systemImage: "plus",
+                tint: Color(red: 0.98, green: 0.54, blue: 0.13),
+                action: onQuickAddTap
+            )
             KeyboardCircleButton(
                 systemImage: "keyboard.chevron.compact.down",
                 tint: .primary.opacity(0.92),
                 action: onDismissKeyboard
             )
         }
-        .frame(maxWidth: .infinity)
     }
 
     private var cameraMenuButton: some View {

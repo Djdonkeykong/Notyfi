@@ -84,7 +84,7 @@ private struct NotyfiMark: View {
         Image("app-mascot-homeTab")
             .resizable()
             .scaledToFit()
-            .frame(height: 43)
+            .frame(height: 22)
     }
 }
 

@@ -24,8 +24,8 @@
                         <constraints>
                             <constraint firstItem="launch-image-view" firstAttribute="centerX" secondItem="launch-screen-view" secondAttribute="centerX" id="launch-image-center-x"/>
                             <constraint firstItem="launch-image-view" firstAttribute="centerY" secondItem="launch-screen-view" secondAttribute="centerY" id="launch-image-center-y"/>
-                            <constraint firstItem="launch-image-view" firstAttribute="width" constant="140" id="launch-image-width"/>
-                            <constraint firstItem="launch-image-view" firstAttribute="height" constant="128" id="launch-image-height"/>
+                            <constraint firstItem="launch-image-view" firstAttribute="width" constant="280" id="launch-image-width"/>
+                            <constraint firstItem="launch-image-view" firstAttribute="height" constant="96" id="launch-image-height"/>
                         </constraints>
                     </view>
                 </viewController>
@@ -35,7 +35,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="LaunchImage" width="643" height="360"/>
+        <image name="LaunchImage" width="794" height="272"/>
         <namedColor name="LaunchBackground">
             <color red="0.00000" green="0.00000" blue="0.99608" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
