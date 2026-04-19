@@ -9,9 +9,11 @@ private enum MoneyPlanFocusField: Hashable {
 struct StatsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: HomeViewModel
+    let store: ExpenseJournalStore
 
     @State private var isCategoryEditorPresented = false
     @State private var categoryEditorSessionID = UUID()
+    @State private var isNeedsReviewPresented = false
     @State private var monthlyBudgetText = ""
     @State private var savingsTargetText = ""
     @State private var categoryBudgetTexts: [ExpenseCategory: String] = [:]
@@ -208,12 +210,21 @@ struct StatsSheetView: View {
                     SectionHeader(title: "Attention")
                     StatsCard {
                         VStack(spacing: 0) {
-                            HighlightRow(
-                                icon: "eye",
-                                tint: NotyfiTheme.reviewTint,
-                                title: "Needs review",
-                                value: "\(viewModel.insight.reviewCount)"
-                            )
+                            Button {
+                                guard !reviewEntries.isEmpty else { return }
+                                Haptics.mediumImpact()
+                                isNeedsReviewPresented = true
+                            } label: {
+                                HighlightRow(
+                                    icon: "eye",
+                                    tint: NotyfiTheme.reviewTint,
+                                    title: "Needs review",
+                                    value: "\(reviewEntries.count)",
+                                    showChevron: !reviewEntries.isEmpty
+                                )
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
 
                             if viewModel.budgetPlan.hasSavingsTarget {
                                 Divider()
@@ -294,6 +305,13 @@ struct StatsSheetView: View {
             .presentationDragIndicator(.visible)
             .presentationBackground(NotyfiTheme.background.opacity(0.98))
             .presentationCornerRadius(34)
+        }
+        .sheet(isPresented: $isNeedsReviewPresented) {
+            NeedsReviewSheet(viewModel: viewModel, store: store)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(NotyfiTheme.background.opacity(0.98))
+                .presentationCornerRadius(34)
         }
     }
 
@@ -517,6 +535,15 @@ struct StatsSheetView: View {
         }
 
         return String(format: "%.2f", amount)
+    }
+
+    private var reviewEntries: [ExpenseEntry] {
+        viewModel.allEntriesSnapshot
+            .filter {
+                $0.confidence.needsReview
+                    && !$0.rawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            }
+            .sorted { $0.date > $1.date }
     }
 
     private func signedCurrency(_ amount: Double) -> String {
@@ -1034,6 +1061,7 @@ private struct HighlightRow: View {
     let tint: Color
     let title: String
     let value: String
+    var showChevron: Bool = false
 
     var body: some View {
         HStack(spacing: 14) {
@@ -1051,6 +1079,12 @@ private struct HighlightRow: View {
                 .font(.notyfi(.subheadline, weight: .semibold))
                 .foregroundStyle(.primary.opacity(0.82))
                 .multilineTextAlignment(.trailing)
+
+            if showChevron {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.tertiaryText)
+            }
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
@@ -1097,6 +1131,207 @@ private struct MoneyPlanBadge: View {
     }
 }
 
+private struct NeedsReviewSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var viewModel: HomeViewModel
+    let store: ExpenseJournalStore
+
+    @State private var selectedEntry: ExpenseEntry?
+
+    private var reviewEntries: [ExpenseEntry] {
+        viewModel.allEntriesSnapshot
+            .filter {
+                $0.confidence.needsReview
+                    && !$0.rawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            }
+            .sorted { $0.date > $1.date }
+    }
+
+    var body: some View {
+        ZStack {
+            NotyfiTheme.background.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                header
+
+                if reviewEntries.isEmpty {
+                    emptyState
+                } else {
+                    entryList
+                }
+            }
+        }
+        .sheet(item: $selectedEntry) { entry in
+            EntryDetailView(entry: entry, store: store)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(NotyfiTheme.background.opacity(0.98))
+                .presentationCornerRadius(34)
+        }
+    }
+
+    private var header: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Needs review".notyfiLocalized)
+                    .font(.notyfi(.title3, weight: .semibold))
+                    .foregroundStyle(.primary.opacity(0.84))
+
+                Text(
+                    reviewEntries.count == 1
+                        ? "1 entry needs attention"
+                        : String(format: "%d entries need attention", reviewEntries.count)
+                )
+                .font(.notyfi(.footnote, weight: .medium))
+                .foregroundStyle(NotyfiTheme.secondaryText)
+            }
+
+            Spacer()
+
+            Button(action: { dismiss() }) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                    .frame(width: 38, height: 38)
+                    .background {
+                        Circle()
+                            .fill(NotyfiTheme.elevatedSurface)
+                    }
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 22)
+        .padding(.bottom, 20)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 10) {
+            Spacer()
+
+            Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 38, weight: .light))
+                .foregroundStyle(NotyfiTheme.incomeColor.opacity(0.7))
+
+            Text("All entries are clear")
+                .font(.notyfi(.subheadline, weight: .medium))
+                .foregroundStyle(NotyfiTheme.secondaryText)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var entryList: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 0) {
+                ForEach(Array(reviewEntries.enumerated()), id: \.element.id) { index, entry in
+                    Button {
+                        Haptics.mediumImpact()
+                        selectedEntry = entry
+                    } label: {
+                        ReviewEntryRow(entry: entry)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+
+                    if index < reviewEntries.count - 1 {
+                        Divider()
+                            .padding(.leading, 72)
+                    }
+                }
+            }
+            .background {
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    .fill(NotyfiTheme.surface)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 26, style: .continuous)
+                            .stroke(NotyfiTheme.surfaceBorder, lineWidth: 1)
+                    }
+                    .shadow(color: NotyfiTheme.shadow, radius: 16, x: 0, y: 8)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 28)
+        }
+    }
+}
+
+private struct ReviewEntryRow: View {
+    let entry: ExpenseEntry
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Circle()
+                .fill(entry.category.tint.opacity(0.14))
+                .frame(width: 40, height: 40)
+                .overlay {
+                    Image(systemName: entry.category.symbol)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(entry.category.tint)
+                }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(entry.rawText.trimmingCharacters(in: .whitespacesAndNewlines))
+                    .font(.notyfi(.subheadline, weight: .semibold))
+                    .foregroundStyle(.primary.opacity(0.84))
+                    .lineLimit(1)
+
+                Text(formattedDate)
+                    .font(.notyfi(.caption))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+            }
+
+            Spacer(minLength: 8)
+
+            VStack(alignment: .trailing, spacing: 5) {
+                if entry.amount > 0 {
+                    Text(signedAmount)
+                        .font(.notyfi(.subheadline, weight: .semibold))
+                        .foregroundStyle(
+                            entry.transactionKind == .income
+                                ? NotyfiTheme.incomeColor
+                                : NotyfiTheme.expenseColor
+                        )
+                        .monospacedDigit()
+                        .lineLimit(1)
+                }
+
+                Text(entry.confidence.title)
+                    .font(.notyfi(.caption2, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.reviewTint)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background {
+                        Capsule()
+                            .fill(NotyfiTheme.reviewTint.opacity(0.12))
+                    }
+            }
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(NotyfiTheme.tertiaryText)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 14)
+    }
+
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.locale = NotyfiLocale.current()
+        let isCurrentYear = Calendar.autoupdatingCurrent.isDate(entry.date, equalTo: Date(), toGranularity: .year)
+        formatter.setLocalizedDateFormatFromTemplate(isCurrentYear ? "MMMd" : "MMMdyyyy")
+        return formatter.string(from: entry.date)
+    }
+
+    private var signedAmount: String {
+        let formatted = entry.amount.formattedCurrency(code: entry.currencyCode)
+        return entry.transactionKind == .income ? "+\(formatted)" : "-\(formatted)"
+    }
+}
+
 #Preview {
-    StatsSheetView(viewModel: HomeViewModel(store: ExpenseJournalStore(previewMode: true)))
+    StatsSheetView(
+        viewModel: HomeViewModel(store: ExpenseJournalStore(previewMode: true)),
+        store: ExpenseJournalStore(previewMode: true)
+    )
 }

@@ -168,6 +168,7 @@ private extension ReportsSheetView {
         guard total > 0 else { return [] }
 
         return Dictionary(grouping: monthEntries) { $0.category }
+            .filter { $0.key != .uncategorized }
             .map { category, entries in
                 let categoryTotal = entries.reduce(0) { $0 + $1.amount }
                 return JournalCategoryBreakdown(
@@ -853,7 +854,7 @@ private struct MonthlyNarrativeCard: View {
     let monthLabel: String
 
     var body: some View {
-        if isLoading || narrative != nil {
+        if narrative != nil {
             SoftSurface(cornerRadius: 28, padding: 20) {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 8) {
@@ -902,7 +903,7 @@ private struct SpendingInsightsCard: View {
     let monthLabel: String
 
     var body: some View {
-        if isLoading || !insights.isEmpty {
+        if !insights.isEmpty {
             ReportCard(title: "Spending insights", subtitle: monthLabel) {
                 if isLoading {
                     HStack(spacing: 10) {

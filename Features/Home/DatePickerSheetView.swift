@@ -8,7 +8,7 @@ struct DatePickerSheetView: View {
     @State private var isMonthChooserPresented = false
     @State private var chooserYear = Calendar.autoupdatingCurrent.component(.year, from: Date())
 
-    private let selectedRingColor = Color(red: 0.0, green: 0.0, blue: 0.996)
+    private var selectedRingColor: Color { NotyfiTheme.brandBlue }
     private let entryFillColor = Color(red: 0.58, green: 0.88, blue: 0.62)
     private let dayCellSize: CGFloat = 46
     private let actionButtonWidth: CGFloat = 94
@@ -92,7 +92,7 @@ struct DatePickerSheetView: View {
                 HStack {
                     CalendarPillButton(
                         title: "Today",
-                        foregroundStyle: AnyShapeStyle(Color(red: 0.12, green: 0.46, blue: 0.98)),
+                        foregroundStyle: AnyShapeStyle(NotyfiTheme.brandBlue),
                         width: actionButtonWidth,
                         height: actionButtonHeight,
                         action: {

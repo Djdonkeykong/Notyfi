@@ -46,15 +46,24 @@ enum NotyfiTheme {
         light: UIColor(red: 0.88, green: 0.88, blue: 0.90, alpha: 1),
         dark: UIColor(red: 0.34, green: 0.34, blue: 0.36, alpha: 1)
     )
-    static let brandBlue = Color(red: 22.0 / 255.0, green: 45.0 / 255.0, blue: 249.0 / 255.0)
-    static let brandPrimary = Color(red: 22.0 / 255.0, green: 45.0 / 255.0, blue: 249.0 / 255.0)
+    static let brandBlue = adaptiveColor(
+        light: UIColor(red: 22.0 / 255.0, green: 45.0 / 255.0, blue: 249.0 / 255.0, alpha: 1),
+        dark: UIColor(red: 0.12, green: 0.46, blue: 0.98, alpha: 1)
+    )
+    static let brandPrimary = adaptiveColor(
+        light: UIColor(red: 22.0 / 255.0, green: 45.0 / 255.0, blue: 249.0 / 255.0, alpha: 1),
+        dark: UIColor(red: 0.12, green: 0.46, blue: 0.98, alpha: 1)
+    )
     static let brandLight = adaptiveColor(
         light: UIColor(red: 242.0 / 255.0, green: 242.0 / 255.0, blue: 249.0 / 255.0, alpha: 1),
         dark: UIColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1)
     )
     static let reviewTint = Color(red: 1.00, green: 0.60, blue: 0.14)
     static let incomeColor = Color(red: 0.14, green: 0.78, blue: 0.42)
-    static let expenseColor = Color(red: 0.96, green: 0.22, blue: 0.20)
+    static let expenseColor = adaptiveColor(
+        light: UIColor(red: 0.96, green: 0.22, blue: 0.20, alpha: 1),
+        dark: UIColor(red: 1.00, green: 0.42, blue: 0.40, alpha: 1)
+    )
 
     private static func adaptiveColor(light: UIColor, dark: UIColor) -> Color {
         Color(

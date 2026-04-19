@@ -33,7 +33,7 @@ struct AppRootView: View {
                 OnboardingFlowView(store: store, authManager: authManager)
                     .id(languageManager.refreshID)
             } else if !authManager.isAuthenticated {
-                OnboardingSignInView(authManager: authManager)
+                OnboardingFlowView(store: store, authManager: authManager)
             } else {
                 HomeView(store: store, authManager: authManager)
                     .id(languageManager.refreshID)

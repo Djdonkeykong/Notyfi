@@ -213,12 +213,12 @@
 "AI parsing unavailable" = "AI-tolking utilgjengelig";
 "Imported note" = "Importert notat";
 "No clear money-related entry was found in that photo." = "Fant ingen tydelig pengerelatert post i det bildet.";
-"Nothing to import" = "Ingenting Ã¥ importere";
+"Nothing to import" = "Ingenting å importere";
 "Photo import issue" = "Problem med bildeimport";
-"That photo could not be prepared for AI parsing." = "Det bildet kunne ikke klargjÃ¸res for AI-tolking.";
-"That photo could not be read right now. Try again with a clearer shot." = "Det bildet kunne ikke leses akkurat nÃ¥. PrÃ¸v igjen med et tydeligere bilde.";
-"This build is missing the API key needed to read photos." = "Denne byggen mangler API-nÃ¸kkelen som trengs for Ã¥ lese bilder.";
-"Turning it into notes" = "GjÃ¸r det om til notater";
+"That photo could not be prepared for AI parsing." = "Det bildet kunne ikke klargjøres for AI-tolking.";
+"That photo could not be read right now. Try again with a clearer shot." = "Det bildet kunne ikke leses akkurat nå. Prøv igjen med et tydeligere bilde.";
+"This build is missing the API key needed to read photos." = "Denne byggen mangler API-nøkkelen som trengs for å lese bilder.";
+"Turning it into notes" = "Gjør det om til notater";
 "Add photo" = "Legg til bilde";
 "Take Photo" = "Ta bilde";
 "Choose Photo" = "Velg bilde";
@@ -295,10 +295,10 @@
 
 "Forgot?" = "Glemt?";
 "Reset password" = "Tilbakestill passord";
-"Enter your email and we'll send you a reset link." = "Skriv inn e-posten din, sa sender vi deg en tilbakestillingslenke.";
+"Enter your email and we'll send you a reset link." = "Skriv inn e-posten din, så sender vi deg en tilbakestillingslenke.";
 "Please enter your email." = "Skriv inn e-postadressen din.";
 "Check your inbox" = "Sjekk innboksen din";
-"We sent a reset link to \(email). Follow it to set a new password." = "Vi sendte en tilbakestillingslenke til \(email). Folg den for a angi et nytt passord.";
+"We sent a reset link to \(email). Follow it to set a new password." = "Vi sendte en tilbakestillingslenke til \(email). Følg den for å angi et nytt passord.";
 
 // OTP auth flow
 "Continue with email" = "Fortsett med e-post";
@@ -382,13 +382,13 @@
 "Save recurring item" = "Lagre gjentakende post";
 "Update recurring item" = "Oppdater gjentakende post";
 "Delete recurring item" = "Slett gjentakende post";
-"No recurring items yet" = "Ingen gjentakende poster enn\U00E5";
-"Manage bills, paychecks, and anything that repeats." = "Administrer regninger, l\U00F8nninger og alt som gjentar seg.";
-"Create one from quick add, from an entry, or tap the plus button here." = "Opprett en via hurtigvalg, fra en post, eller trykk p\U00E5 pluss her.";
+"No recurring items yet" = "Ingen gjentakende poster ennå";
+"Manage bills, paychecks, and anything that repeats." = "Administrer regninger, lønninger og alt som gjentar seg.";
+"Create one from quick add, from an entry, or tap the plus button here." = "Opprett en via hurtigvalg, fra en post, eller trykk på pluss her.";
 "Active rules" = "Aktive regler";
-"Make recurring" = "Gj\U00F8r gjentakende";
+"Make recurring" = "Gjør gjentakende";
 "Edit recurring" = "Rediger gjentakende";
-"Turn this entry into a repeating rule." = "Gj\U00F8r denne posten om til en regel som gjentar seg.";
+"Turn this entry into a repeating rule." = "Gjør denne posten om til en regel som gjentar seg.";
 "Update the repeating rule behind this entry." = "Oppdater regelen som ligger bak denne posten.";
 "Until" = "Til";
 "Active" = "Aktiv";
@@ -401,31 +401,31 @@
 "Weekly" = "Ukentlig";
 "Yearly" = "Årlig";
 "Reports" = "Rapporter";
-"See patterns in your spending without leaving home." = "Se m\U00F8nstre i forbruket ditt uten \U00E5 forlate hjemskjermen.";
+"See patterns in your spending without leaving home." = "Se mønstre i forbruket ditt uten å forlate hjemskjermen.";
 "Spend vs budget pace" = "Forbruk mot budsjettfart";
-"Set a monthly budget to unlock this chart." = "Sett et m\U00E5nedsbudsjett for \U00E5 l\U00E5se opp denne grafen.";
-"Right on pace for this point in the month." = "Helt i rute for dette punktet i m\U00E5neden.";
+"Set a monthly budget to unlock this chart." = "Sett et månedsbudsjett for å låse opp denne grafen.";
+"Right on pace for this point in the month." = "Helt i rute for dette punktet i måneden.";
 "%@ over your budget pace" = "%@ over budsjettfarten din";
 "%@ under your budget pace" = "%@ under budsjettfarten din";
 "Budget pace" = "Budsjettfart";
 "Spent" = "Brukt";
-"This month vs last month" = "Denne m\U00E5neden mot forrige";
-"No month-to-month comparison yet." = "Ingen m\U00E5ned-til-m\U00E5ned-sammenligning enn\U00E5.";
-"Almost identical to the same point last month." = "Nesten identisk med samme punkt forrige m\U00E5ned.";
-"%@ higher than the same point last month" = "%@ h\U00F8yere enn samme punkt forrige m\U00E5ned";
-"%@ lower than the same point last month" = "%@ lavere enn samme punkt forrige m\U00E5ned";
-"Last month" = "Forrige m\U00E5ned";
-"Last 6 months" = "Siste 6 m\U00E5neder";
-"Add a few entries to start seeing spending trends." = "Legg til noen poster for \U00E5 begynne \U00E5 se forbrukstrender.";
-"Average %@ across the last 6 months" = "I snitt %@ de siste 6 m\U00E5nedene";
+"This month vs last month" = "Denne måneden mot forrige";
+"No month-to-month comparison yet." = "Ingen måned-til-måned-sammenligning ennå.";
+"Almost identical to the same point last month." = "Nesten identisk med samme punkt forrige måned.";
+"%@ higher than the same point last month" = "%@ høyere enn samme punkt forrige måned";
+"%@ lower than the same point last month" = "%@ lavere enn samme punkt forrige måned";
+"Last month" = "Forrige måned";
+"Last 6 months" = "Siste 6 måneder";
+"Add a few entries to start seeing spending trends." = "Legg til noen poster for å begynne å se forbrukstrender.";
+"Average %@ across the last 6 months" = "I snitt %@ de siste 6 månedene";
 "Recurring load" = "Gjentakende belastning";
 "%d active recurring rules" = "%d aktive gjentakende regler";
-"No recurring rules yet." = "Ingen gjentakende regler enn\U00E5.";
-"Monthly load" = "M\U00E5nedlig belastning";
+"No recurring rules yet." = "Ingen gjentakende regler ennå.";
+"Monthly load" = "Månedlig belastning";
 "Upcoming" = "Kommer";
 "Day" = "Dag";
 
 // AI Insights
 "Spending insights" = "Forbruksinnsikt";
-"Monthly summary" = "M\u00e5nedlig sammendrag";
-"Analysing your month..." = "Analyserer m\u00e5neden din...";
+"Monthly summary" = "Månedlig sammendrag";
+"Analysing your month..." = "Analyserer måneden din...";

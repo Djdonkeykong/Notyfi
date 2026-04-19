@@ -43,7 +43,7 @@
 "Month" = "Maand";
 "Net" = "Netto";
 "Balance" = "Saldo";
-"Top categories" = "TopcategorieÃƒÆ’ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â«n";
+"Top categories" = "Topcategorieën";
 "Start adding notes to see where your money goes." = "Begin met notities toevoegen om te zien waar je geld naartoe gaat.";
 "Top category insight format" = "%@ voert deze maand de uitgaven aan met %d%%.";
 "No notes yet this month." = "Nog geen notities deze maand.";
@@ -71,7 +71,7 @@
 "Plan" = "Plan";
 "Money plan" = "Budgetplan";
 "Monthly spending cap" = "Maandelijks uitgavenplafond";
-"One gentle limit for the whole month" = "EÃƒÆ’ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©n rustige limiet voor de hele maand";
+"One gentle limit for the whole month" = "Eén rustige limiet voor de hele maand";
 "Savings target" = "Spaardoel";
 "How much you want to keep after expenses" = "Hoeveel je wilt overhouden na uitgaven";
 "Category guides" = "Categorierichtlijnen";
@@ -81,7 +81,7 @@
 "Cap" = "Limiet";
 "0" = "0";
 "Use suggested cap %@" = "Gebruik voorgestelde limiet %@";
-"Start with one monthly cap, then add category guides only where they help." = "Begin met ÃƒÆ’ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ÃƒÆ’ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©n maandelijkse limiet en voeg alleen categorierichtlijnen toe waar ze helpen.";
+"Start with one monthly cap, then add category guides only where they help." = "Begin met één maandelijkse limiet en voeg alleen categorierichtlijnen toe waar ze helpen.";
 "Spent %@ over %@ tracked days." = "%@ uitgegeven over %@ geregistreerde dagen.";
 "left" = "over";
 "over" = "over";
@@ -194,8 +194,8 @@
 "Transfer" = "Overboeking";
 "Recurring bill" = "Terugkerende rekening";
 "Attachment from Files" = "Bijlage uit Bestanden";
-"Add one manual expense entry." = "Voeg ÃƒÂ©ÃƒÂ©n handmatige uitgave toe.";
-"Add one manual income entry." = "Voeg ÃƒÂ©ÃƒÂ©n handmatige inkomenspost toe.";
+"Add one manual expense entry." = "Voeg één handmatige uitgave toe.";
+"Add one manual income entry." = "Voeg één handmatige inkomenspost toe.";
 "Start a transfer entry and adjust the direction." = "Start een overboeking en pas de richting aan.";
 "Create a bill entry you can fill in quickly." = "Maak een rekening aan die je snel kunt invullen.";
 "Import an image or PDF from Files." = "Importeer een afbeelding of pdf uit Bestanden.";
@@ -208,18 +208,18 @@
 "That file could not be prepared for AI parsing." = "Dat bestand kon niet worden voorbereid voor AI-analyse.";
 "Reading attachment" = "Bijlage lezen";
 "Start with a money note..." = "Begin met een geldnotitie...";
-"AI parsing unavailable" = "AI parsing unavailable";
-"Imported note" = "Imported note";
-"No clear money-related entry was found in that photo." = "No clear money-related entry was found in that photo.";
-"Nothing to import" = "Nothing to import";
-"Photo import issue" = "Photo import issue";
-"That photo could not be prepared for AI parsing." = "That photo could not be prepared for AI parsing.";
-"That photo could not be read right now. Try again with a clearer shot." = "That photo could not be read right now. Try again with a clearer shot.";
-"This build is missing the API key needed to read photos." = "This build is missing the API key needed to read photos.";
-"Turning it into notes" = "Turning it into notes";
-"Add photo" = "Add photo";
-"Take Photo" = "Take Photo";
-"Choose Photo" = "Choose Photo";
+"AI parsing unavailable" = "AI-analyse niet beschikbaar";
+"Imported note" = "Geïmporteerde notitie";
+"No clear money-related entry was found in that photo." = "Er is geen duidelijke geldgerelateerde notitie gevonden in die foto.";
+"Nothing to import" = "Niets om te importeren";
+"Photo import issue" = "Probleem bij foto importeren";
+"That photo could not be prepared for AI parsing." = "Die foto kon niet worden voorbereid voor AI-analyse.";
+"That photo could not be read right now. Try again with a clearer shot." = "Die foto kon nu niet worden gelezen. Probeer het opnieuw met een duidelijkere opname.";
+"This build is missing the API key needed to read photos." = "Deze versie mist de API-sleutel die nodig is om foto’s te lezen.";
+"Turning it into notes" = "Omzetten naar notities";
+"Add photo" = "Foto toevoegen";
+"Take Photo" = "Foto maken";
+"Choose Photo" = "Foto kiezen";
 
 // Onboarding & Auth
 "Welcome to Notyfi" = "Welkom bij Notyfi";
@@ -259,7 +259,7 @@
 "per month" = "per maand";
 "Set Budget" = "Budget instellen";
 "What do you spend on?" = "Waaraan geef je geld uit?";
-"Pick the categories that apply to you. Notyfi will use these to organize your entries." = "Kies de categorieÃƒÂ«n die op jou van toepassing zijn. Notyfi gebruikt deze om je vermeldingen te organiseren.";
+"Pick the categories that apply to you. Notyfi will use these to organize your entries." = "Kies de categorieën die op jou van toepassing zijn. Notyfi gebruikt deze om je vermeldingen te organiseren.";
 "Pick your currency" = "Kies je valuta";
 "Used to format your entries and budget. You can change this later." = "Wordt gebruikt om je vermeldingen en budget op te maken. Je kunt dit later wijzigen.";
 "Just write what you spent" = "Schrijf gewoon wat je hebt uitgegeven";
@@ -272,19 +272,19 @@
 "Speak it out" = "Zeg het hardop";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Zeg hardop wat je hebt uitgegeven. Notyfi transcribeert en analyseert het direct.";
 "Smart text" = "Slimme tekst";
-"Abbreviations, shorthand, even typos â€” the AI figures out what you mean." = "Afkortingen, steno, zelfs tikfouten Ã¢â‚¬â€ de AI begrijpt wat je bedoelt.";
+"Abbreviations, shorthand, even typos – the AI figures out what you mean." = "Afkortingen, steno, zelfs tikfouten – de AI begrijpt wat je bedoelt.";
 "Stay on track" = "Blijf op koers";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Ontvang dagelijks een herinnering om je uitgaven te registreren. Mensen die herinneringen gebruiken, bouwen de gewoonte 3x sneller op.";
 "Enable Notifications" = "Meldingen inschakelen";
 "Daily spending reminders" = "Dagelijkse uitgavenherinneringen";
 "Add the Notyfi widget" = "Voeg de Notyfi-widget toe";
-"People who add the widget are far more consistent. Your spending is always one glance away." = "Mensen die de widget toevoegen, zijn veel consequenter. Je uitgaven zijn altijd ÃƒÂ©ÃƒÂ©n blik verwijderd.";
+"People who add the widget are far more consistent. Your spending is always one glance away." = "Mensen die de widget toevoegen, zijn veel consequenter. Je uitgaven zijn altijd één blik verwijderd.";
 "Long press anywhere on your Home Screen" = "Druk lang ergens op je beginscherm";
 "Tap the \"+\" button in the top left corner" = "Tik op de \"+\"-knop linksboven";
 "Search for \"Notyfi\" and choose a size" = "Zoek naar \"Notyfi\" en kies een grootte";
 "Tap the widget any time to open the app" = "Tik op de widget om de app te openen";
 "Set category limits" = "Categorielimieten instellen";
-"Add a monthly limit for each category. Skip any you're not sure about â€” you can set these later." = "Voeg een maandelijks limiet toe voor elke categorie. Sla de categorieÃƒÂ«n over waar je niet zeker van bent Ã¢â‚¬â€ je kunt ze later instellen.";
+"Add a monthly limit for each category. Skip any you're not sure about – you can set these later." = "Voeg een maandelijks limiet toe voor elke categorie. Sla de categorieën over waar je niet zeker van bent – je kunt ze later instellen.";
 "/mo" = "/mnd.";
 "Skip for now" = "Nu overslaan";
 "Follow System" = "Systeem volgen";
@@ -303,19 +303,19 @@
 "We'll send a 6-digit code to sign you in or create your account." = "We sturen je een code van 6 cijfers om in te loggen of een account aan te maken.";
 "Send code" = "Code versturen";
 "Enter the 6-digit code we sent to \(email)." = "Voer de 6-cijferige code in die we naar \(email) hebben gestuurd.";
-"Verify" = "Verifieren";
+"Verify" = "Verifiëren";
 "Didn't get it?" = "Niet ontvangen?";
 "Resend" = "Opnieuw verzenden";
 "Change email" = "E-mail wijzigen";
 
 // Categories & limits
-"Pick the categories that apply to you. You can always add or edit these later." = "Kies de categorieen die op jou van toepassing zijn. Je kunt deze altijd later toevoegen of aanpassen.";
+"Pick the categories that apply to you. You can always add or edit these later." = "Kies de categorieën die op jou van toepassing zijn. Je kunt deze altijd later toevoegen of aanpassen.";
 "Tap to set limit" = "Tik om limiet in te stellen";
 "Set Limit" = "Limiet instellen";
 "per month for \(category.title)" = "per maand voor \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending â€” every single day." = "Voeg de Notyfi-widget toe om je uitgaven bij te houden Ã¢â‚¬â€ elke dag.";
+"Add the Notyfi widget to stay on top of your spending – every single day." = "Voeg de Notyfi-widget toe om je uitgaven bij te houden – elke dag.";
 
 // Category group titles
 "Essentials" = "Basisbehoeften";
@@ -347,12 +347,12 @@
 "spent this month" = "uitgegeven deze maand";
 "Left" = "Resterend";
 "Monthly Overview" = "Maandoverzicht";
-"See your monthly spend and budget at a glance." = "Bekijk je maandelijkse uitgaven en budget in ÃƒÂ©ÃƒÂ©n oogopslag.";
+"See your monthly spend and budget at a glance." = "Bekijk je maandelijkse uitgaven en budget in één oogopslag.";
 "widget.days.last" = "Laatste dag van de maand";
 "widget.days.one" = "1 dag over";
 "widget.days.many" = "%d dagen over";
-"No categories selected" = "Geen categorieÃƒÂ«n geselecteerd";
-"Go back to choose categories, or skip for now." = "Ga terug om categorieÃƒÂ«n te kiezen, of sla dit nu over.";
+"No categories selected" = "Geen categorieën geselecteerd";
+"Go back to choose categories, or skip for now." = "Ga terug om categorieën te kiezen, of sla dit nu over.";
 
 // Errors
 "error.auth.missingToken" = "Aanmelden mislukt: identiteitstoken ontbreekt.";
