@@ -24,12 +24,13 @@ struct OnboardingCurrencyView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Image("mascot-currency")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 260)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
+                SketchAnimatedImage(
+                    frames: ["mascot-currency-f1","mascot-currency-f2","mascot-currency-f3","mascot-currency-f4"],
+                    fps: 6
+                )
+                .frame(height: 260)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
 
                 Text("Pick your currency".notyfiLocalized)
                     .font(.notyfi(.title2, weight: .bold))

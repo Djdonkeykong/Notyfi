@@ -99,11 +99,12 @@ struct OnboardingAllocateView: View {
 
     private var emptyState: some View {
         VStack(spacing: 12) {
-            Image("mascot-allocate-empty")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 120)
-                .padding(.bottom, 4)
+            SketchAnimatedImage(
+                frames: ["mascot-allocate-empty-f1","mascot-allocate-empty-f2","mascot-allocate-empty-f3","mascot-allocate-empty-f4"],
+                fps: 6
+            )
+            .frame(height: 156)
+            .padding(.bottom, 4)
 
             Text("No categories selected".notyfiLocalized)
                 .font(.notyfi(.title3, weight: .semibold))

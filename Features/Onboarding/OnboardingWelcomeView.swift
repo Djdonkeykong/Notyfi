@@ -73,10 +73,11 @@ struct OnboardingWelcomeView: View {
     }
 
     private var illustration: some View {
-        Image("mascot-welcome")
-            .resizable()
-            .scaledToFit()
-            .frame(width: 216, height: 216)
+        SketchAnimatedImage(
+            frames: ["mascot-welcome-f1","mascot-welcome-f2","mascot-welcome-f3","mascot-welcome-f4"],
+            fps: 6
+        )
+        .frame(width: 346, height: 346)
     }
 
     private var headline: some View {

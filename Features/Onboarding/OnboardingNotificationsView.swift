@@ -8,12 +8,13 @@ struct OnboardingNotificationsView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Image("mascot-notifications")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 260)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
+                SketchAnimatedImage(
+                    frames: ["mascot-notifications-f1","mascot-notifications-f2","mascot-notifications-f3","mascot-notifications-f4"],
+                    fps: 6
+                )
+                .frame(height: 260)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
 
                 Text("Stay on track".notyfiLocalized)
                     .font(.notyfi(.title2, weight: .bold))

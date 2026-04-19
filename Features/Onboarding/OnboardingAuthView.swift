@@ -83,11 +83,12 @@ struct OnboardingAuthView: View {
     // MARK: - Subviews
 
     private var illustration: some View {
-        Image("mascot-auth")
-            .resizable()
-            .scaledToFit()
-            .frame(height: 260)
-            .frame(maxWidth: .infinity)
+        SketchAnimatedImage(
+            frames: ["mascot-auth-f1","mascot-auth-f2","mascot-auth-f3","mascot-auth-f4"],
+            fps: 6
+        )
+        .frame(height: 260)
+        .frame(maxWidth: .infinity)
     }
 
     private var authButtons: some View {

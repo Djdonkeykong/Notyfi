@@ -17,11 +17,12 @@ struct OnboardingSignInView: View {
             VStack(spacing: 0) {
                 Spacer()
 
-                Image("mascot-welcome")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 216, height: 216)
-                    .frame(maxWidth: .infinity)
+                SketchAnimatedImage(
+                    frames: ["mascot-welcome-f1","mascot-welcome-f2","mascot-welcome-f3","mascot-welcome-f4"],
+                    fps: 6
+                )
+                .frame(width: 346, height: 346)
+                .frame(maxWidth: .infinity)
 
                 Spacer().frame(height: 36)
 

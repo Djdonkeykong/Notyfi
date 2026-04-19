@@ -24,8 +24,8 @@
                         <constraints>
                             <constraint firstItem="launch-image-view" firstAttribute="centerX" secondItem="launch-screen-view" secondAttribute="centerX" id="launch-image-center-x"/>
                             <constraint firstItem="launch-image-view" firstAttribute="centerY" secondItem="launch-screen-view" secondAttribute="centerY" id="launch-image-center-y"/>
-                            <constraint firstItem="launch-image-view" firstAttribute="width" constant="280" id="launch-image-width"/>
-                            <constraint firstItem="launch-image-view" firstAttribute="height" constant="255" id="launch-image-height"/>
+                            <constraint firstItem="launch-image-view" firstAttribute="width" constant="140" id="launch-image-width"/>
+                            <constraint firstItem="launch-image-view" firstAttribute="height" constant="128" id="launch-image-height"/>
                         </constraints>
                     </view>
                 </viewController>
