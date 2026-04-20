@@ -485,3 +485,6 @@
 "notif.weekly.body" = "You've logged %@ in expenses over the past week.";
 "notif.missed.title" = "Yesterday unlogged";
 "notif.missed.body" = "Nothing logged for yesterday \U2014 want to add anything from memory?";
+
+"Dictation Language" = "Dictation Language";
+"Notyfi will try to detect your language automatically based on your device settings. For best accuracy, pick your preferred language manually." = "Notyfi will try to detect your language automatically based on your device settings. For best accuracy, pick your preferred language manually.";
