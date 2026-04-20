@@ -112,6 +112,18 @@ final class EditableJournalTextView: UITextView {
         return rect
     }
 
+    override func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
+        let rects = super.selectionRects(for: range)
+        let targetHeight = font?.lineHeight ?? UIFont.notyfiBody.lineHeight
+        return rects.map { r in
+            guard r.rect.height > targetHeight * 1.4 else { return r }
+            return ClampedSelectionRect(
+                source: r,
+                rect: CGRect(x: r.rect.minX, y: r.rect.minY, width: r.rect.width, height: targetHeight)
+            )
+        }
+    }
+
     private static func dispatchBridgedBackspace() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
             guard shouldBridgeBackspace else {
@@ -170,6 +182,22 @@ final class EditableJournalTextView: UITextView {
     private func endDictationSession() {
         dictatedRange = nil
     }
+}
+
+private final class ClampedSelectionRect: UITextSelectionRect {
+    private let source: UITextSelectionRect
+    private let clampedRect: CGRect
+
+    init(source: UITextSelectionRect, rect: CGRect) {
+        self.source = source
+        self.clampedRect = rect
+    }
+
+    override var rect: CGRect { clampedRect }
+    override var writingDirection: NSWritingDirection { source.writingDirection }
+    override var containsStart: Bool { source.containsStart }
+    override var containsEnd: Bool { source.containsEnd }
+    override var isVertical: Bool { source.isVertical }
 }
 
 extension UIFont {

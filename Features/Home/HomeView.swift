@@ -111,21 +111,23 @@ private extension HomeView {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            .overlay(alignment: .bottom) {
+                if focusedEditor == nil {
+                    HomeBottomFadeOverlay()
+                        .allowsHitTesting(false)
+                        .transition(.opacity)
+                }
+            }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if focusedEditor == nil {
-                    ZStack(alignment: .bottom) {
-                        HomeBottomFadeOverlay()
-                            .allowsHitTesting(false)
-
-                        HomeSummaryBar(
-                            insight: viewModel.insight,
-                            budgetInsight: viewModel.budgetInsight,
-                            currencyCode: viewModel.currencyCode,
-                            onTap: { presentStats() }
-                        )
-                        .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                    }
+                    HomeSummaryBar(
+                        insight: viewModel.insight,
+                        budgetInsight: viewModel.budgetInsight,
+                        currencyCode: viewModel.currencyCode,
+                        onTap: { presentStats() }
+                    )
+                    .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
+                    .frame(maxWidth: .infinity, alignment: .center)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -1830,34 +1832,16 @@ private struct KeyboardCircleButtonLabel: View {
 
 private struct HomeBottomFadeOverlay: View {
     var body: some View {
-        Rectangle()
-            .fill(.ultraThinMaterial)
-            .overlay {
-                LinearGradient(
-                    colors: [
-                        Color.clear,
-                        NotyfiTheme.background.opacity(0.18),
-                        NotyfiTheme.background.opacity(0.56),
-                        NotyfiTheme.background.opacity(0.88)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            }
-            .mask {
-                LinearGradient(
-                    colors: [
-                        .clear,
-                        .black.opacity(0.2),
-                        .black.opacity(0.7),
-                        .black
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            }
-            .frame(height: 260)
-            .ignoresSafeArea(edges: .bottom)
+        LinearGradient(
+            stops: [
+                .init(color: .clear, location: 0),
+                .init(color: NotyfiTheme.background.opacity(0.72), location: 0.6),
+                .init(color: NotyfiTheme.background, location: 1)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .frame(height: 80)
     }
 }
 
