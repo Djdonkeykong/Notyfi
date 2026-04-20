@@ -1180,11 +1180,7 @@ private struct DayJournalPage: View {
     }
 
     private func scrollInteractionDisabled(in availableHeight: CGFloat) -> Bool {
-        if scrollDisabled || contentHeight <= availableHeight + 1 {
-            return true
-        }
-
-        return isEditable && focusedEditor != nil
+        scrollDisabled || contentHeight <= availableHeight + 1
     }
 
     private func journalAccessoryOverlay(isAccessoryTapEnabled: Bool) -> some View {

@@ -93,6 +93,14 @@ final class EditableJournalTextView: UITextView {
         onLayoutUpdate?()
     }
 
+    override func scrollRectToVisible(_ rect: CGRect, animated: Bool) {
+        // UITextView fires this synchronously when the cursor moves to a new line,
+        // before SwiftUI has had a chance to commit the grown content size. That
+        // premature call causes the outer SwiftUI ScrollView to jump to a wrong
+        // position and then snap back. Suppressing it here is safe because
+        // SwiftUI's keyboard-avoidance system already keeps the cursor in view.
+    }
+
     override func caretRect(for position: UITextPosition) -> CGRect {
         var rect = super.caretRect(for: position)
         let targetHeight = font?.lineHeight ?? UIFont.notyfiBody.lineHeight
