@@ -83,6 +83,9 @@ enum NotyfiDictationLanguage: String, CaseIterable, Identifiable {
         case .appLanguage:
             return appLanguageLocale(defaults: defaults)
         case .autoDetect:
+            if let preferred = Locale.preferredLanguages.first {
+                return Locale(identifier: preferred)
+            }
             return .autoupdatingCurrent
         default:
             return Locale(identifier: rawValue)

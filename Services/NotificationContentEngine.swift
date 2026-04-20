@@ -66,7 +66,6 @@ final class NotificationContentEngine {
         var pool: [NotificationMessage] = []
 
         pool += NotificationMessage.genericReminders
-
         pool += analysis.streakMessages()
         pool += analysis.budgetMessages()
         pool += analysis.categoryMessages()
@@ -75,7 +74,6 @@ final class NotificationContentEngine {
         pool += analysis.weeklyInsightMessages()
         pool += analysis.missedYesterdayMessages()
 
-        // Shuffle for variety; iOS delivers them in scheduled order
         return pool.shuffled()
     }
 }
@@ -86,24 +84,43 @@ struct NotificationMessage {
     let title: String
     let body: String
 
-    static let genericReminders: [NotificationMessage] = [
-        .init(title: "Quick check-in",
-              body: "Any spending today? Tap to log it while it's fresh."),
-        .init(title: "Money notes",
-              body: "The best time to log is right after spending. Second best? Now."),
-        .init(title: "Don't forget",
-              body: "Small habits, big clarity. Take 30 seconds to log today."),
-        .init(title: "Log your day",
-              body: "Your future self will thank you. Anything to add?"),
-        .init(title: "Stay on track",
-              body: "Keeping track takes seconds. Your budget will thank you."),
-        .init(title: "Open Notyfi",
-              body: "Capture today's spending while it's still fresh in your mind."),
-        .init(title: "Journal time",
-              body: "A quick log now saves a lot of guessing later."),
-        .init(title: "What did you spend?",
-              body: "Your wallet remembers everything. Your brain doesn't. Log now."),
-    ]
+    // Computed each call so language changes are picked up immediately
+    static var genericReminders: [NotificationMessage] {
+        [
+            .init(
+                title: "notif.generic.checkin.title".notyfiLocalized,
+                body: "notif.generic.checkin.body".notyfiLocalized
+            ),
+            .init(
+                title: "notif.generic.moneynotes.title".notyfiLocalized,
+                body: "notif.generic.moneynotes.body".notyfiLocalized
+            ),
+            .init(
+                title: "notif.generic.dontforget.title".notyfiLocalized,
+                body: "notif.generic.dontforget.body".notyfiLocalized
+            ),
+            .init(
+                title: "notif.generic.logday.title".notyfiLocalized,
+                body: "notif.generic.logday.body".notyfiLocalized
+            ),
+            .init(
+                title: "notif.generic.stayontrack.title".notyfiLocalized,
+                body: "notif.generic.stayontrack.body".notyfiLocalized
+            ),
+            .init(
+                title: "notif.generic.open.title".notyfiLocalized,
+                body: "notif.generic.open.body".notyfiLocalized
+            ),
+            .init(
+                title: "notif.generic.journaltime.title".notyfiLocalized,
+                body: "notif.generic.journaltime.body".notyfiLocalized
+            ),
+            .init(
+                title: "notif.generic.whatdidyouspend.title".notyfiLocalized,
+                body: "notif.generic.whatdidyouspend.body".notyfiLocalized
+            ),
+        ]
+    }
 }
 
 // MARK: - Behavior analysis
@@ -121,10 +138,14 @@ private struct BehaviorAnalysis {
         let streak = currentStreak()
         guard streak >= 3 else { return [] }
         return [
-            .init(title: "\(streak) days in a row",
-                  body: "You've been consistent. Keep the streak alive today."),
-            .init(title: "On a roll",
-                  body: "\(streak) days of logging. Today makes \(streak + 1)."),
+            .init(
+                title: String(format: "notif.streak.days.title".notyfiLocalized, streak),
+                body: "notif.streak.consistent.body".notyfiLocalized
+            ),
+            .init(
+                title: "notif.streak.roll.title".notyfiLocalized,
+                body: String(format: "notif.streak.roll.body".notyfiLocalized, streak, streak + 1)
+            ),
         ]
     }
 
@@ -152,23 +173,32 @@ private struct BehaviorAnalysis {
         let percent = spent / limit
         let remaining = limit - spent
         let daysLeft = daysRemainingInMonth()
+        let remainingStr = remaining.formattedCurrency(code: currencyCode)
 
         if percent >= 0.9 {
             return [
-                .init(title: "Budget nearly gone",
-                      body: "\(Int(percent * 100))% used. Only \(remaining.formattedCurrency(code: currencyCode)) left this month."),
-                .init(title: "Almost over budget",
-                      body: "\(remaining.formattedCurrency(code: currencyCode)) left with \(daysLeft) days to go. Tread carefully."),
+                .init(
+                    title: "notif.budget.nearlygone.title".notyfiLocalized,
+                    body: String(format: "notif.budget.nearlygone.body".notyfiLocalized, Int(percent * 100), remainingStr)
+                ),
+                .init(
+                    title: "notif.budget.almostover.title".notyfiLocalized,
+                    body: String(format: "notif.budget.almostover.body".notyfiLocalized, remainingStr, daysLeft)
+                ),
             ]
         } else if percent >= 0.7 {
             return [
-                .init(title: "Budget check",
-                      body: "You've used \(Int(percent * 100))% this month. \(remaining.formattedCurrency(code: currencyCode)) left over \(daysLeft) days."),
+                .init(
+                    title: "notif.budget.check.title".notyfiLocalized,
+                    body: String(format: "notif.budget.check.body".notyfiLocalized, Int(percent * 100), remainingStr, daysLeft)
+                ),
             ]
         } else if percent < 0.5 && daysLeft <= 7 {
             return [
-                .init(title: "Looking good",
-                      body: "\(remaining.formattedCurrency(code: currencyCode)) left with \(daysLeft) days remaining. You're on track."),
+                .init(
+                    title: "notif.budget.lookinggood.title".notyfiLocalized,
+                    body: String(format: "notif.budget.lookinggood.body".notyfiLocalized, remainingStr, daysLeft)
+                ),
             ]
         }
 
@@ -192,15 +222,16 @@ private struct BehaviorAnalysis {
                 .reduce(0) { $0 + $1.amount }
 
             let ratio = spent / target
+            let categoryTitle = category.title
             if ratio >= 1.1 {
                 messages.append(.init(
-                    title: "\(category.title) over target",
-                    body: "You're at \(Int(ratio * 100))% of your \(category.title) guide this month."
+                    title: String(format: "notif.category.overtarget.title".notyfiLocalized, categoryTitle),
+                    body: String(format: "notif.category.overtarget.body".notyfiLocalized, Int(ratio * 100), categoryTitle)
                 ))
             } else if ratio >= 0.85 {
                 messages.append(.init(
-                    title: "\(category.title) almost at cap",
-                    body: "\(Int(ratio * 100))% of your \(category.title) guide used. \((target - spent).formattedCurrency(code: currencyCode)) left."
+                    title: String(format: "notif.category.almostcap.title".notyfiLocalized, categoryTitle),
+                    body: String(format: "notif.category.almostcap.body".notyfiLocalized, Int(ratio * 100), categoryTitle, (target - spent).formattedCurrency(code: currencyCode))
                 ))
             }
         }
@@ -219,13 +250,17 @@ private struct BehaviorAnalysis {
 
         if remaining <= 0 {
             return [
-                .init(title: "Savings goal hit",
-                      body: "You've hit your savings target this month. Nice work."),
+                .init(
+                    title: "notif.savings.hit.title".notyfiLocalized,
+                    body: "notif.savings.hit.body".notyfiLocalized
+                ),
             ]
         } else if remaining < target * 0.2 {
             return [
-                .init(title: "Almost at your savings goal",
-                      body: "Just \(remaining.formattedCurrency(code: currencyCode)) away from hitting your target."),
+                .init(
+                    title: "notif.savings.almost.title".notyfiLocalized,
+                    body: String(format: "notif.savings.almost.body".notyfiLocalized, remaining.formattedCurrency(code: currencyCode))
+                ),
             ]
         }
 
@@ -241,10 +276,17 @@ private struct BehaviorAnalysis {
             .filter { $0.isActive && $0.nextOccurrenceAt > now && $0.nextOccurrenceAt <= threeDaysOut }
             .map { transaction in
                 let days = calendar.dateComponents([.day], from: now, to: transaction.nextOccurrenceAt).day ?? 0
-                let when = days == 0 ? "today" : days == 1 ? "tomorrow" : "in \(days) days"
+                let when: String
+                if days == 0 {
+                    when = "notif.recurring.today".notyfiLocalized
+                } else if days == 1 {
+                    when = "notif.recurring.tomorrow".notyfiLocalized
+                } else {
+                    when = String(format: "notif.recurring.indays".notyfiLocalized, days)
+                }
                 return NotificationMessage(
-                    title: "Upcoming charge \(when)",
-                    body: "\(transaction.title) for \(transaction.amount.formattedCurrency(code: transaction.currencyCode)) is due \(when)."
+                    title: String(format: "notif.recurring.title".notyfiLocalized, when),
+                    body: String(format: "notif.recurring.body".notyfiLocalized, transaction.title, transaction.amount.formattedCurrency(code: transaction.currencyCode), when)
                 )
             }
     }
@@ -262,8 +304,10 @@ private struct BehaviorAnalysis {
         guard weekSpend > 0 else { return [] }
 
         return [
-            .init(title: "Last 7 days",
-                  body: "You've logged \(weekSpend.formattedCurrency(code: currencyCode)) in expenses over the past week."),
+            .init(
+                title: "notif.weekly.title".notyfiLocalized,
+                body: String(format: "notif.weekly.body".notyfiLocalized, weekSpend.formattedCurrency(code: currencyCode))
+            ),
         ]
     }
 
@@ -275,8 +319,10 @@ private struct BehaviorAnalysis {
         guard !loggedYesterday else { return [] }
 
         return [
-            .init(title: "Yesterday unlogged",
-                  body: "Nothing logged for yesterday — want to add anything from memory?"),
+            .init(
+                title: "notif.missed.title".notyfiLocalized,
+                body: "notif.missed.body".notyfiLocalized
+            ),
         ]
     }
 

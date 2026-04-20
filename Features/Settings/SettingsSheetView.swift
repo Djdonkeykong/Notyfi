@@ -516,49 +516,62 @@ private struct DictationLanguageMenuRow: View {
     let title: String
     @Binding var selection: NotyfiDictationLanguage
     let onSelect: (NotyfiDictationLanguage) -> Void
+    @State private var showInfo = false
 
     var body: some View {
-        Menu {
-            dictationLanguageButton(for: .autoDetect)
+        HStack(spacing: 0) {
+            Menu {
+                dictationLanguageButton(for: .autoDetect)
+                Divider()
+                ForEach(NotyfiDictationLanguage.selectableLanguages) { language in
+                    dictationLanguageButton(for: language)
+                }
+            } label: {
+                HStack(spacing: 14) {
+                    Image(systemName: icon)
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                        .font(.system(size: 17, weight: .semibold))
+                        .frame(width: 18)
 
-            Divider()
-
-            ForEach(NotyfiDictationLanguage.selectableLanguages) { language in
-                dictationLanguageButton(for: language)
-            }
-        } label: {
-            HStack(spacing: 14) {
-                Image(systemName: icon)
-                    .foregroundStyle(NotyfiTheme.secondaryText)
-                    .font(.system(size: 17, weight: .semibold))
-                    .frame(width: 18)
-
-                HStack(spacing: 6) {
                     Text(title.notyfiLocalized)
                         .font(.notyfi(.body))
                         .foregroundStyle(.primary.opacity(0.82))
 
-                    Image(systemName: "info.circle")
-                        .font(.system(size: 13, weight: .semibold))
+                    Spacer()
+
+                    Text(selection.title.notyfiLocalized)
+                        .font(.notyfi(.subheadline))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                        .multilineTextAlignment(.trailing)
+
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(NotyfiTheme.tertiaryText)
                 }
-
-                Spacer()
-
-                Text(selection.title.notyfiLocalized)
-                    .font(.notyfi(.subheadline))
-                    .foregroundStyle(NotyfiTheme.secondaryText)
-                    .multilineTextAlignment(.trailing)
-
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(NotyfiTheme.tertiaryText)
+                .padding(.leading, 18)
+                .padding(.trailing, 10)
+                .padding(.vertical, 16)
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 16)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+
+            Button {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                showInfo = true
+            } label: {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(NotyfiTheme.tertiaryText)
+                    .padding(.trailing, 18)
+                    .padding(.vertical, 20)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .popover(isPresented: $showInfo, arrowEdge: .top) {
+                DictationInfoPopover()
+                    .presentationCompactAdaptation(.popover)
+            }
         }
-        .buttonStyle(.plain)
     }
 
     @ViewBuilder
@@ -572,6 +585,25 @@ private struct DictationLanguageMenuRow: View {
                 Text(language.title.notyfiLocalized)
             }
         }
+    }
+}
+
+private struct DictationInfoPopover: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Dictation Language".notyfiLocalized, systemImage: "mic.fill")
+                .font(.notyfi(.subheadline, weight: .semibold))
+                .foregroundStyle(.primary)
+
+            Text("Notyfi will try to detect your language automatically based on your device settings. For best accuracy, pick your preferred language manually.".notyfiLocalized)
+                .font(.notyfi(.footnote))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .lineSpacing(2)
+        }
+        .padding(16)
+        .frame(maxWidth: 260)
+        .background(.regularMaterial)
     }
 }
 
