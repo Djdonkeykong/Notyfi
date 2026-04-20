@@ -154,20 +154,11 @@ private struct MediumWidgetView: View {
                     .foregroundStyle(.black.opacity(0.5))
                     .padding(.top, 1)
 
-                // Stat row
-                HStack(spacing: 14) {
-                    WidgetStatPill(
-                        label: "Today".notyfiLocalized,
-                        value: snapshot.todaySpent.formattedCurrency(code: snapshot.currencyCode)
-                    )
-                    if snapshot.hasBudget {
-                        WidgetStatPill(
-                            label: "Left".notyfiLocalized,
-                            value: snapshot.budgetLeft.formattedCurrency(code: snapshot.currencyCode)
-                        )
-                    }
+                if snapshot.hasBudget {
+                    WidgetProgressBar(progress: budgetProgress)
+                        .frame(height: 5)
+                        .padding(.top, 10)
                 }
-                .padding(.top, 8)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
