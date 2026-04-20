@@ -1539,11 +1539,14 @@ private struct KeyboardAccessoryBar: View {
 private struct PhotoImportOverlay: View {
     var body: some View {
         VStack(spacing: 16) {
-            Image("photo-import-mascot")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 170, height: 114)
-                .padding(.top, 2)
+            SketchAnimatedImage(frames: [
+                "mascot-allocate-empty-f1",
+                "mascot-allocate-empty-f2",
+                "mascot-allocate-empty-f3",
+                "mascot-allocate-empty-f4"
+            ])
+            .frame(width: 170, height: 114)
+            .padding(.top, 2)
 
             VStack(spacing: 6) {
                 Text("Reading attachment".notyfiLocalized)
