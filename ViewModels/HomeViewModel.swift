@@ -17,10 +17,13 @@ struct DraftComposerFeedback {
 enum QuickAddAction: String, CaseIterable, Identifiable {
     case expense
     case income
-    case transfer
+    case transfer        // not yet implemented
     case recurringExpense
     case recurringIncome
-    case attachFiles
+    case attachFiles     // not yet implemented
+
+    // transfer and attachFiles hidden until implemented
+    static var allCases: [QuickAddAction] { [.expense, .income, .recurringExpense, .recurringIncome] }
 
     var id: String { rawValue }
 }
