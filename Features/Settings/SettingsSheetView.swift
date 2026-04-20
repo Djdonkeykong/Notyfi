@@ -244,7 +244,7 @@ struct SettingsSheetView: View {
             Text("This permanently deletes your account and all data. This cannot be undone.".notyfiLocalized)
         }
         .sheet(isPresented: $isFeedbackPresented) {
-            FeedbackSheetView(url: URL(string: "https://snaplook.app/")!)
+            FeedbackSheetView(url: URL(string: "https://notyfi.userjot.com/?cursor=1&order=top&limit=10")!)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
                 .presentationBackground(NotyfiTheme.background.opacity(0.98))
