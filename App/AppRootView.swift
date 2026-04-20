@@ -37,17 +37,18 @@ struct AppRootView: View {
             } else {
                 HomeView(store: store, authManager: authManager)
                     .id(languageManager.refreshID)
-                    .task(id: authManager.isAuthenticated) {
-                        guard authManager.isAuthenticated else {
-                            showPaywall = false
-                            return
-                        }
-                        await checkSubscriptionStatus()
-                    }
-                    .fullScreenCover(isPresented: $showPaywall) {
-                        ProPaywallView(onDismiss: { showPaywall = false })
-                            .interactiveDismissDisabled()
-                    }
+// MARK: Paywall disabled — re-enable before shipping
+//                    .task(id: authManager.isAuthenticated) {
+//                        guard authManager.isAuthenticated else {
+//                            showPaywall = false
+//                            return
+//                        }
+//                        await checkSubscriptionStatus()
+//                    }
+//                    .fullScreenCover(isPresented: $showPaywall) {
+//                        ProPaywallView(onDismiss: { showPaywall = false })
+//                            .interactiveDismissDisabled()
+//                    }
             }
         }
         .environmentObject(languageManager)

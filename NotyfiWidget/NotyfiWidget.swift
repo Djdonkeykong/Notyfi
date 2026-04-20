@@ -136,7 +136,7 @@ private struct MediumWidgetView: View {
                 // Big number
                 Text(spendAmount)
                     .font(.system(size: 36, weight: .bold, design: .default))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.white)
                     .minimumScaleFactor(0.6)
                     .lineLimit(1)
                     .monospacedDigit()
@@ -144,18 +144,19 @@ private struct MediumWidgetView: View {
                 if let budget = budgetString {
                     Text("of \(budget)")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.black.opacity(0.55))
+                        .foregroundStyle(.white.opacity(0.6))
                         .monospacedDigit()
                         .padding(.top, 2)
                 }
 
                 Text("spent this month".notyfiLocalized)
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.black.opacity(0.5))
+                    .foregroundStyle(.white.opacity(0.55))
                     .padding(.top, 1)
 
                 if snapshot.hasBudget {
-                    WidgetProgressBar(progress: budgetProgress)
+                    WidgetProgressBar(progress: budgetProgress, color: .white)
+                        .containerRelativeFrame(.horizontal, count: 2, span: 1, spacing: 0)
                         .frame(height: 5)
                         .padding(.top, 10)
                 }
@@ -271,14 +272,15 @@ private struct LockInlineView: View {
 
 private struct WidgetProgressBar: View {
     let progress: Double
+    var color: Color = .black
 
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(.black.opacity(0.1))
+                    .fill(color.opacity(0.2))
                 Capsule()
-                    .fill(.black.opacity(0.55))
+                    .fill(color.opacity(0.75))
                     .frame(width: geo.size.width * max(0.03, progress))
             }
         }

@@ -1182,7 +1182,8 @@ private struct DayJournalPage: View {
     }
 
     private func scrollInteractionDisabled(in availableHeight: CGFloat) -> Bool {
-        scrollDisabled || contentHeight <= availableHeight + 1
+        let minEditorHeight = max(availableHeight - bottomOverlayPadding - contentTopInset, 240)
+        return scrollDisabled || contentHeight <= minEditorHeight + 1
     }
 
     private func journalAccessoryOverlay(isAccessoryTapEnabled: Bool) -> some View {
