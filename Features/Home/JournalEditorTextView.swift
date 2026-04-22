@@ -123,12 +123,24 @@ final class EditableJournalTextView: UITextView {
         let rects = super.selectionRects(for: range)
         let targetHeight = font?.lineHeight ?? UIFont.notyfiBody.lineHeight
         return rects.map { r in
-            guard (r.containsStart || r.containsEnd) && r.rect.height > targetHeight * 1.4 else {
-                return r
+            // Always preserve UIKit's own objects for the start and end markers.
+            // They carry private state that UIKit needs for selection handle placement;
+            // replacing them with a custom class breaks the entire selection draw.
+            guard !r.containsStart, !r.containsEnd else { return r }
+            // Middle fill rects often have zero height (paragraph spacing pushes them
+            // to a seam) or inflated height that bleeds into adjacent spacing.
+            // Clamp to exactly one line height so the highlight is visible.
+            let height: CGFloat
+            if r.rect.height < 1 {
+                height = targetHeight
+            } else if r.rect.height > targetHeight * 1.5 {
+                height = targetHeight
+            } else {
+                height = r.rect.height
             }
             return ClampedSelectionRect(
                 source: r,
-                rect: CGRect(x: r.rect.minX, y: r.rect.minY, width: r.rect.width, height: targetHeight)
+                rect: CGRect(x: r.rect.minX, y: r.rect.minY, width: r.rect.width, height: height)
             )
         }
     }
