@@ -377,7 +377,7 @@ struct EmailSignUpView: View {
             HStack(spacing: 4) {
                 Text("Didn't get it?".notyfiLocalized)
                     .foregroundStyle(NotyfiTheme.secondaryText)
-                Button(resendCooldown > 0 ? "Resend in \(resendCooldown)s" : "Resend".notyfiLocalized) {
+                Button(resendCooldown > 0 ? String(format: "Resend in %ds".notyfiLocalized, resendCooldown) : "Resend".notyfiLocalized) {
                     guard resendCooldown == 0 else { return }
                     sendCode(isResend: true)
                 }
