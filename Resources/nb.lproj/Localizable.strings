@@ -298,6 +298,7 @@
 "Forgot?" = "Glemt?";
 "Reset password" = "Tilbakestill passord";
 "Enter your email and we'll send you a reset link." = "Skriv inn e-posten din, så sender vi deg en tilbakestillingslenke.";
+"No account found with this email. Tap \"Sign up\" to create one." = "Ingen konto funnet med denne e-postadressen. Trykk på \"Registrer deg\" for å opprette en.";
 "Please enter your email." = "Skriv inn e-postadressen din.";
 "Check your inbox" = "Sjekk innboksen din";
 "We sent a reset link to \(email). Follow it to set a new password." = "Vi sendte en tilbakestillingslenke til \(email). Følg den for å angi et nytt passord.";

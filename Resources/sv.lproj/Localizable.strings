@@ -296,6 +296,7 @@
 "Forgot?" = "Glömt?";
 "Reset password" = "Återställ lösenord";
 "Enter your email and we'll send you a reset link." = "Ange din e-post så skickar vi en återställningslänk.";
+"No account found with this email. Tap \"Sign up\" to create one." = "Inget konto hittades med denna e-postadress. Tryck på \"Registrera dig\" för att skapa ett.";
 "Please enter your email." = "Ange din e-postadress.";
 "Check your inbox" = "Kolla din inkorg";
 "We sent a reset link to \(email). Follow it to set a new password." = "Vi skickade en återställningslänk till \(email). Följ den för att sätta ett nytt lösenord.";

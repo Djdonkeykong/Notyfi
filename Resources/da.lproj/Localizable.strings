@@ -296,6 +296,7 @@
 "Forgot?" = "Glemt?";
 "Reset password" = "Nulstil adgangskode";
 "Enter your email and we'll send you a reset link." = "Indtast din e-mail, og vi sender dig et nulstillingslink.";
+"No account found with this email. Tap \"Sign up\" to create one." = "Ingen konto fundet med denne e-mail. Tryk på \"Opret konto\" for at oprette en.";
 "Please enter your email." = "Indtast venligst din e-mail.";
 "Check your inbox" = "Tjek din indbakke";
 "We sent a reset link to \(email). Follow it to set a new password." = "Vi sendte et nulstillingslink til \(email). Klik på det for at angive en ny adgangskode.";

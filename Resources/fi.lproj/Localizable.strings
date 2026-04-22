@@ -296,6 +296,7 @@
 "Forgot?" = "Unohditko?";
 "Reset password" = "Nollaa salasana";
 "Enter your email and we'll send you a reset link." = "Syötä sähköpostiosoitteesi ja lähetämme sinulle nollauslinkin.";
+"No account found with this email. Tap \"Sign up\" to create one." = "Tällä sähköpostilla ei löydy tiliä. Napauta \"Rekisteröidy\" luodaksesi sellaisen.";
 "Please enter your email." = "Syötä sähköpostiosoitteesi.";
 "Check your inbox" = "Tarkista postilaatikkosi";
 "We sent a reset link to \(email). Follow it to set a new password." = "Lähetimme nollauslinkin osoitteeseen \(email). Seuraa sitä asettaaksesi uuden salasanan.";

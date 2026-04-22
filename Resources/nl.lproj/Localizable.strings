@@ -296,6 +296,7 @@
 "Forgot?" = "Vergeten?";
 "Reset password" = "Wachtwoord resetten";
 "Enter your email and we'll send you a reset link." = "Voer je e-mail in en we sturen je een resetlink.";
+"No account found with this email. Tap \"Sign up\" to create one." = "Geen account gevonden met dit e-mailadres. Tik op \"Registreren\" om er een aan te maken.";
 "Please enter your email." = "Voer je e-mailadres in.";
 "Check your inbox" = "Controleer je inbox";
 "We sent a reset link to \(email). Follow it to set a new password." = "We hebben een resetlink gestuurd naar \(email). Volg deze om een nieuw wachtwoord in te stellen.";

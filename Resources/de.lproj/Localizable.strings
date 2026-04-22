@@ -296,6 +296,7 @@
 "Forgot?" = "Vergessen?";
 "Reset password" = "Passwort zurücksetzen";
 "Enter your email and we'll send you a reset link." = "Gib deine E-Mail ein und wir senden dir einen Reset-Link.";
+"No account found with this email. Tap \"Sign up\" to create one." = "Kein Konto mit dieser E-Mail gefunden. Tippe auf \"Registrieren\", um ein Konto zu erstellen.";
 "Please enter your email." = "Bitte gib deine E-Mail ein.";
 "Check your inbox" = "Prüf dein Postfach";
 "We sent a reset link to \(email). Follow it to set a new password." = "Wir haben einen Reset-Link an \(email) gesendet. Folge ihm, um ein neues Passwort festzulegen.";
