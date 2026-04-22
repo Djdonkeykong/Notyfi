@@ -404,33 +404,6 @@ struct EmailSignUpView: View {
 
     private var otpBoxes: some View {
         ZStack {
-            // Hidden text field capturing input
-            TextField("", text: $otpCode)
-                .task(id: otpFocused) {
-                    guard otpFocused else { return }
-                    cursorVisible = true
-                    while !Task.isCancelled {
-                        try? await Task.sleep(nanoseconds: 530_000_000)
-                        withAnimation(.easeInOut(duration: 0.12)) { cursorVisible.toggle() }
-                    }
-                }
-                .keyboardType(.numberPad)
-                .textContentType(.oneTimeCode)
-                .focused($otpFocused)
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .opacity(0)
-                .allowsHitTesting(false)
-                .onChange(of: otpCode) { _, v in
-                    let filtered = v.filter { $0.isNumber }
-                    if filtered.count > 6 {
-                        otpCode = String(filtered.prefix(6))
-                    } else if filtered != v {
-                        otpCode = filtered
-                    }
-                    if otpCode.count == 6 { verify() }
-                }
-
             HStack(spacing: 10) {
                 ForEach(0..<6, id: \.self) { index in
                     let char: String = index < otpCode.count
@@ -460,9 +433,38 @@ struct EmailSignUpView: View {
                                     .opacity(cursorVisible ? 1 : 0)
                             }
                         }
-                        .onTapGesture { otpFocused = true }
                 }
             }
+
+            // Transparent overlay on top — receives taps (focusing keyboard) and autofill.
+            // Must be last in ZStack (top layer) with hit testing enabled for iOS
+            // QuickType autofill to reach it.
+            TextField("", text: $otpCode)
+                .task(id: otpFocused) {
+                    guard otpFocused else { return }
+                    cursorVisible = true
+                    while !Task.isCancelled {
+                        try? await Task.sleep(nanoseconds: 530_000_000)
+                        withAnimation(.easeInOut(duration: 0.12)) { cursorVisible.toggle() }
+                    }
+                }
+                .keyboardType(.numberPad)
+                .textContentType(.oneTimeCode)
+                .focused($otpFocused)
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .foregroundStyle(.clear)
+                .tint(.clear)
+                .opacity(0.011)
+                .onChange(of: otpCode) { _, v in
+                    let filtered = v.filter { $0.isNumber }
+                    if filtered.count > 6 {
+                        otpCode = String(filtered.prefix(6))
+                    } else if filtered != v {
+                        otpCode = filtered
+                    }
+                    if otpCode.count == 6 { verify() }
+                }
         }
     }
 
@@ -483,9 +485,20 @@ struct EmailSignUpView: View {
                 withAnimation(.easeInOut(duration: 0.28)) { step = .otp }
             } catch {
                 isSending = false
-                errorMessage = isSignIn
-                    ? "No account found with this email. Tap \"Sign up\" to create one.".notyfiLocalized
-                    : error.localizedDescription
+                if isSignIn {
+                    // Rate-limit and other transient errors have distinct wording —
+                    // show the real message so the user knows to wait, not that
+                    // their account doesn't exist.
+                    let msg = error.localizedDescription.lowercased()
+                    let isRateLimit = msg.contains("after") || msg.contains("seconds")
+                        || msg.contains("rate") || msg.contains("too many")
+                        || msg.contains("security purposes")
+                    errorMessage = isRateLimit
+                        ? error.localizedDescription
+                        : "No account found with this email. Tap \"Sign up\" to create one.".notyfiLocalized
+                } else {
+                    errorMessage = error.localizedDescription
+                }
             }
         }
     }
@@ -502,7 +515,7 @@ struct EmailSignUpView: View {
             } catch {
                 isVerifying = false
                 errorMessage = error.localizedDescription
-                otpCode = ""
+                // Keep otpCode so the user can see what was entered and retry
             }
         }
     }

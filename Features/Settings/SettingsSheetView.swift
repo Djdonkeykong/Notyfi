@@ -13,6 +13,7 @@ struct SettingsSheetView: View {
     @State private var isLanguagePickerPresented = false
     @State private var isChangingLanguage = false
     @State private var pendingLanguage: NotyfiLanguage? = nil
+    @State private var capturedLanguageChangeTitle: String = ""
     @State private var isClearLogConfirmationPresented = false
     @State private var isSignOutConfirmationPresented = false
     @State private var isDeleteAccountConfirmationPresented = false
@@ -261,6 +262,9 @@ struct SettingsSheetView: View {
         }
         .sheet(isPresented: $isLanguagePickerPresented, onDismiss: {
             guard let pending = pendingLanguage else { return }
+            // Capture the title in the current language BEFORE the switch so the
+            // overlay text doesn't re-localize mid-display.
+            capturedLanguageChangeTitle = "Applying language".notyfiLocalized
             withAnimation { isChangingLanguage = true }
             Task {
                 try? await Task.sleep(nanoseconds: 520_000_000)
@@ -336,7 +340,7 @@ struct SettingsSheetView: View {
     }
 
     private var accountActionTitle: String {
-        if isChangingLanguage { return "Applying language".notyfiLocalized }
+        if isChangingLanguage { return capturedLanguageChangeTitle }
         switch pendingAccountAction {
         case .signOut:
             return "Signing out".notyfiLocalized
@@ -528,7 +532,36 @@ private struct DictationLanguageMenuRow: View {
     @State private var showInfo = false
 
     var body: some View {
-        ZStack(alignment: .trailing) {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .foregroundStyle(NotyfiTheme.secondaryText)
+                .font(.system(size: 17, weight: .semibold))
+                .frame(width: 18)
+
+            // Title + info icon side by side so the popover anchors
+            // near the center of the screen, away from the card edges.
+            HStack(spacing: 5) {
+                Text(title.notyfiLocalized)
+                    .font(.notyfi(.body))
+                    .foregroundStyle(.primary.opacity(0.82))
+
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    showInfo = true
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(NotyfiTheme.tertiaryText)
+                }
+                .buttonStyle(.plain)
+                .popover(isPresented: $showInfo, arrowEdge: .bottom) {
+                    DictationInfoPopover()
+                        .presentationCompactAdaptation(.popover)
+                }
+            }
+
+            Spacer()
+
             Menu {
                 dictationLanguageButton(for: .autoDetect)
                 Divider()
@@ -536,18 +569,7 @@ private struct DictationLanguageMenuRow: View {
                     dictationLanguageButton(for: language)
                 }
             } label: {
-                HStack(spacing: 14) {
-                    Image(systemName: icon)
-                        .foregroundStyle(NotyfiTheme.secondaryText)
-                        .font(.system(size: 17, weight: .semibold))
-                        .frame(width: 18)
-
-                    Text(title.notyfiLocalized)
-                        .font(.notyfi(.body))
-                        .foregroundStyle(.primary.opacity(0.82))
-
-                    Spacer()
-
+                HStack(spacing: 4) {
                     Text(selection.title.notyfiLocalized)
                         .font(.notyfi(.subheadline))
                         .foregroundStyle(NotyfiTheme.secondaryText)
@@ -557,29 +579,11 @@ private struct DictationLanguageMenuRow: View {
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(NotyfiTheme.tertiaryText)
                 }
-                .padding(.leading, 18)
-                .padding(.trailing, 50)
-                .padding(.vertical, 16)
-                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-
-            Button {
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                showInfo = true
-            } label: {
-                Image(systemName: "info.circle")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(NotyfiTheme.tertiaryText)
-                    .frame(width: 50, height: 56)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .popover(isPresented: $showInfo, arrowEdge: .top) {
-                DictationInfoPopover()
-                    .presentationCompactAdaptation(.popover)
-            }
         }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 16)
     }
 
     @ViewBuilder

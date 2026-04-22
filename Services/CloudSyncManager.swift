@@ -264,7 +264,7 @@ final class CloudSyncManager: ObservableObject {
             defaults.set(preference.rawValue, forKey: NotyfiCurrency.storageKey)
         }
 
-        if remoteState.user.onboardingCompletedAt != nil || remoteState.hasPersistedFinanceData {
+        if remoteState.user.onboardingCompletedAt != nil {
             defaults.set(true, forKey: PendingOnboardingBootstrap.onboardingCompletedKey)
         }
 

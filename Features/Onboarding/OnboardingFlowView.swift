@@ -25,6 +25,8 @@ struct OnboardingFlowView: View {
     @State private var activeSlot: Slot = .a
 
     // Chrome slide — only moves on boundary transitions (welcome<->step1, widget<->auth)
+    @State private var isCheckingUserStatus = false
+
     @State private var chromeVisible: Bool = false
     @State private var chromeOffset: CGFloat = 0
 
@@ -141,9 +143,12 @@ struct OnboardingFlowView: View {
             } else {
                 // Came from the .signIn screen (Welcome Back path).
                 // Check Supabase to decide: returning user vs new account that
-                // bypassed onboarding.
+                // bypassed onboarding. Show a loading overlay while the check runs
+                // so there's no blank "hot second" after the OTP sheet closes.
+                isCheckingUserStatus = true
                 Task {
                     let isNewUser = await authManager.isNewUserWithoutOnboarding()
+                    isCheckingUserStatus = false
                     if isNewUser {
                         // New account with no onboarding data — restart from currency.
                         navigate(to: .currency, pushCurrent: false)
@@ -153,6 +158,18 @@ struct OnboardingFlowView: View {
                         isComplete = true
                     }
                 }
+            }
+        }
+        .overlay {
+            if isCheckingUserStatus {
+                ZStack {
+                    Color.black.opacity(0.45).ignoresSafeArea()
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .tint(.white)
+                        .scaleEffect(1.4)
+                }
+                .transition(.opacity)
             }
         }
     }
