@@ -449,3 +449,26 @@
 "notif.weekly.body" = "Olet kirjannut %@ kuluja viimeisen viikon aikana.";
 "notif.missed.title" = "Eilen kirjaamatta";
 "notif.missed.body" = "Eilen ei kirjattu mitään — haluatko lisätä jotain muistista?";
+
+// Paywall
+"Unlock Notyfi Pro" = "Avaa Notyfi Pro";
+"How Notyfi Pro works" = "Kuinka Notyfi Pro toimii";
+"In Apple" = "Applessa";
+"After you subscribe" = "Tilauksen jälkeen";
+"Choose the plan that fits you best." = "Valitse sinulle parhaiten sopiva suunnitelma.";
+"Review the final billing details before you confirm." = "Tarkista lopulliset laskutustiedot ennen vahvistamista.";
+"Your plan starts immediately and renews until canceled." = "Suunnitelmasi alkaa heti ja uusiutuu, kunnes peruutat sen.";
+"Access all of Notyfi" = "Käytä kaikkea Notyfissä";
+"AI-powered expense parsing" = "Tekoälypohjainen kuluparsinta";
+"Cloud sync across your devices" = "Pilvisynkronointi kaikilla laitteilla";
+"Smart reports and insights" = "Älykkäät raportit ja näkemykset";
+"Home and lock screen widgets" = "Widgetit koti- ja lukitusnäytölle";
+"Best value" = "Paras arvo";
+"Restore subscription" = "Palauta tilaus";
+"Apple shows the final billing terms before you confirm." = "Apple näyttää lopulliset laskutusehdot ennen vahvistamistasi.";
+"Learn More" = "Lisätietoja";
+
+// Misc UI
+"All entries are clear" = "Kaikki tapahtumat on tarkistettu";
+"Resend in %ds" = "Lähetä uudelleen %ds kuluttua";
+"Automation" = "Automaatio";

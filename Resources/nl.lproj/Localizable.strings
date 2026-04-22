@@ -449,3 +449,26 @@
 "notif.weekly.body" = "Je hebt %@ aan uitgaven gelogd in de afgelopen week.";
 "notif.missed.title" = "Gisteren niet gelogd";
 "notif.missed.body" = "Niets gelogd voor gisteren — wil je iets toevoegen uit het geheugen?";
+
+// Paywall
+"Unlock Notyfi Pro" = "Notyfi Pro ontgrendelen";
+"How Notyfi Pro works" = "Hoe Notyfi Pro werkt";
+"In Apple" = "Bij Apple";
+"After you subscribe" = "Na het abonneren";
+"Choose the plan that fits you best." = "Kies het abonnement dat het beste bij je past.";
+"Review the final billing details before you confirm." = "Bekijk de definitieve factureringsgegevens voordat je bevestigt.";
+"Your plan starts immediately and renews until canceled." = "Je abonnement begint onmiddellijk en wordt verlengd totdat je opzegt.";
+"Access all of Notyfi" = "Toegang tot alles in Notyfi";
+"AI-powered expense parsing" = "AI-gestuurde uitgavenanalyse";
+"Cloud sync across your devices" = "Cloud synchronisatie op al je apparaten";
+"Smart reports and insights" = "Slimme rapporten en inzichten";
+"Home and lock screen widgets" = "Widgets voor startscherm en vergrendelscherm";
+"Best value" = "Beste prijs-kwaliteit";
+"Restore subscription" = "Abonnement herstellen";
+"Apple shows the final billing terms before you confirm." = "Apple toont de definitieve factureringsvoorwaarden voordat je bevestigt.";
+"Learn More" = "Meer informatie";
+
+// Misc UI
+"All entries are clear" = "Alle items zijn goedgekeurd";
+"Resend in %ds" = "Opnieuw verzenden over %ds";
+"Automation" = "Automatisering";

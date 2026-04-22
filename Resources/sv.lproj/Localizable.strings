@@ -450,3 +450,26 @@
 "notif.weekly.body" = "Du har loggat %@ i utgifter under den senaste veckan.";
 "notif.missed.title" = "I gar inte loggat";
 "notif.missed.body" = "Inget loggat for i gar — vill du lagga till nagot fran minnet?";
+
+// Paywall
+"Unlock Notyfi Pro" = "Lås upp Notyfi Pro";
+"How Notyfi Pro works" = "Hur Notyfi Pro fungerar";
+"In Apple" = "I Apple";
+"After you subscribe" = "Efter att du prenumererar";
+"Choose the plan that fits you best." = "Välj det abonnemang som passar dig bäst.";
+"Review the final billing details before you confirm." = "Granska de slutliga faktureringsuppgifterna innan du bekräftar.";
+"Your plan starts immediately and renews until canceled." = "Din plan startar omedelbart och förnyas tills du avslutar den.";
+"Access all of Notyfi" = "Få tillgång till allt i Notyfi";
+"AI-powered expense parsing" = "AI-driven utgiftsanalys";
+"Cloud sync across your devices" = "Molnsynkronisering på alla enheter";
+"Smart reports and insights" = "Smarta rapporter och insikter";
+"Home and lock screen widgets" = "Widgets för hem- och låsskärm";
+"Best value" = "Bästa värde";
+"Restore subscription" = "Återställ prenumeration";
+"Apple shows the final billing terms before you confirm." = "Apple visar de slutliga faktureringsvillkoren innan du bekräftar.";
+"Learn More" = "Läs mer";
+
+// Misc UI
+"All entries are clear" = "Alla poster är godkända";
+"Resend in %ds" = "Skicka igen om %ds";
+"Automation" = "Automatisering";

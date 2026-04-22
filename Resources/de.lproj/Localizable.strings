@@ -449,3 +449,26 @@
 "notif.weekly.body" = "Du hast %@ an Ausgaben in der letzten Woche erfasst.";
 "notif.missed.title" = "Gestern nicht erfasst";
 "notif.missed.body" = "Nichts fuer gestern erfasst — moechtest du etwas aus dem Gedaechtnis hinzufuegen?";
+
+// Paywall
+"Unlock Notyfi Pro" = "Notyfi Pro freischalten";
+"How Notyfi Pro works" = "So funktioniert Notyfi Pro";
+"In Apple" = "Bei Apple";
+"After you subscribe" = "Nach dem Abonnieren";
+"Choose the plan that fits you best." = "Wähle den Plan, der am besten zu dir passt.";
+"Review the final billing details before you confirm." = "Überprüfe die endgültigen Abrechnungsdetails, bevor du bestätigst.";
+"Your plan starts immediately and renews until canceled." = "Dein Plan beginnt sofort und verlängert sich automatisch bis zur Kündigung.";
+"Access all of Notyfi" = "Auf alles in Notyfi zugreifen";
+"AI-powered expense parsing" = "KI-gestützte Ausgabenanalyse";
+"Cloud sync across your devices" = "Cloud-Synchronisierung auf allen Geräten";
+"Smart reports and insights" = "Smarte Berichte und Einblicke";
+"Home and lock screen widgets" = "Widgets für Start- und Sperrbildschirm";
+"Best value" = "Bestes Angebot";
+"Restore subscription" = "Abonnement wiederherstellen";
+"Apple shows the final billing terms before you confirm." = "Apple zeigt dir die endgültigen Abrechnungsbedingungen, bevor du bestätigst.";
+"Learn More" = "Mehr erfahren";
+
+// Misc UI
+"All entries are clear" = "Alle Einträge sind geprüft";
+"Resend in %ds" = "Erneut senden in %ds";
+"Automation" = "Automatisierung";

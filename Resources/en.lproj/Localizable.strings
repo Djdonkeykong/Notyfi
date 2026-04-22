@@ -489,3 +489,26 @@
 
 "Dictation Language" = "Dictation Language";
 "Notyfi will try to detect your language automatically based on your device settings. For best accuracy, pick your preferred language manually." = "Notyfi will try to detect your language automatically based on your device settings. For best accuracy, pick your preferred language manually.";
+
+// Paywall
+"Unlock Notyfi Pro" = "Unlock Notyfi Pro";
+"How Notyfi Pro works" = "How Notyfi Pro works";
+"In Apple" = "In Apple";
+"After you subscribe" = "After you subscribe";
+"Choose the plan that fits you best." = "Choose the plan that fits you best.";
+"Review the final billing details before you confirm." = "Review the final billing details before you confirm.";
+"Your plan starts immediately and renews until canceled." = "Your plan starts immediately and renews until canceled.";
+"Access all of Notyfi" = "Access all of Notyfi";
+"AI-powered expense parsing" = "AI-powered expense parsing";
+"Cloud sync across your devices" = "Cloud sync across your devices";
+"Smart reports and insights" = "Smart reports and insights";
+"Home and lock screen widgets" = "Home and lock screen widgets";
+"Best value" = "Best value";
+"Restore subscription" = "Restore subscription";
+"Apple shows the final billing terms before you confirm." = "Apple shows the final billing terms before you confirm.";
+"Learn More" = "Learn More";
+
+// Misc UI
+"All entries are clear" = "All entries are clear";
+"Resend in %ds" = "Resend in %ds";
+"Automation" = "Automation";
