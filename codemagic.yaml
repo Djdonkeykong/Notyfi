@@ -41,8 +41,7 @@ workflows:
       - name: Apply App Store signing profiles
         script: |
           xcode-project use-profiles \
-            --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
-            --custom-export-options='{"testFlightInternalTestingOnly": true}'
+            --project "$CM_BUILD_DIR/$XCODE_PROJECT"
 
       - name: Set build number
         script: |
@@ -121,8 +120,7 @@ workflows:
       - name: Apply App Store signing profiles
         script: |
           xcode-project use-profiles \
-            --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
-            --custom-export-options='{"testFlightInternalTestingOnly": true}'
+            --project "$CM_BUILD_DIR/$XCODE_PROJECT"
 
       - name: Set build number
         script: |
