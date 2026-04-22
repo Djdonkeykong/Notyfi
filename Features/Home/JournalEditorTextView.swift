@@ -93,12 +93,19 @@ final class EditableJournalTextView: UITextView {
         onLayoutUpdate?()
     }
 
+    private func performDeferredScroll(to rect: CGRect) {
+        super.scrollRectToVisible(rect, animated: false)
+    }
+
     override func scrollRectToVisible(_ rect: CGRect, animated: Bool) {
-        // UITextView fires this synchronously when the cursor moves to a new line,
-        // before SwiftUI has had a chance to commit the grown content size. That
-        // premature call causes the outer SwiftUI ScrollView to jump to a wrong
-        // position and then snap back. Suppressing it here is safe because
-        // SwiftUI's keyboard-avoidance system already keeps the cursor in view.
+        // UIKit fires this synchronously when the cursor moves to a new line, before
+        // SwiftUI has committed the grown content size. Deferring to the next runloop
+        // tick ensures the CATransaction has fully committed the new layout before the
+        // outer SwiftUI ScrollView processes the scroll, eliminating the jump-then-snap.
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.isFirstResponder else { return }
+            self.performDeferredScroll(to: rect)
+        }
     }
 
     override func caretRect(for position: UITextPosition) -> CGRect {
@@ -116,7 +123,9 @@ final class EditableJournalTextView: UITextView {
         let rects = super.selectionRects(for: range)
         let targetHeight = font?.lineHeight ?? UIFont.notyfiBody.lineHeight
         return rects.map { r in
-            guard r.rect.height > targetHeight * 1.4 else { return r }
+            guard (r.containsStart || r.containsEnd) && r.rect.height > targetHeight * 1.4 else {
+                return r
+            }
             return ClampedSelectionRect(
                 source: r,
                 rect: CGRect(x: r.rect.minX, y: r.rect.minY, width: r.rect.width, height: targetHeight)

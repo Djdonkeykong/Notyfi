@@ -365,10 +365,10 @@ private struct SummaryMetricChip: View {
     var body: some View {
         VStack(spacing: 8) {
             Text(value)
-                .font(.notyfi(.body, weight: .semibold))
+                .font(.notyfi(.footnote, weight: .semibold))
                 .foregroundStyle(.primary.opacity(0.88))
-                .lineLimit(2)
-                .minimumScaleFactor(0.8)
+                .lineLimit(1)
+                .truncationMode(.tail)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
 

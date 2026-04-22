@@ -1,4 +1,5 @@
 import RevenueCat
+import StoreKit
 import SwiftUI
 import UIKit
 
@@ -8,8 +9,11 @@ struct AppRootView: View {
     @StateObject private var languageManager: LanguageManager
     @StateObject private var cloudSyncManager: CloudSyncManager
 
+    @Environment(\.requestReview) private var requestReview
+
     @AppStorage("notyfi.onboarding.complete") private var hasCompletedOnboarding = false
     @AppStorage(NotyfiAppearanceMode.storageKey) private var appearanceModeRawValue = NotyfiAppearanceMode.system.rawValue
+    @AppStorage("notyfi.review.promptedAtCount") private var reviewPromptedAtCount = 0
     @State private var minimumSplashElapsed = false
     @State private var showPaywall = false
 
@@ -71,6 +75,9 @@ struct AppRootView: View {
             try? await Task.sleep(nanoseconds: 500_000_000)
             minimumSplashElapsed = true
         }
+        .onChange(of: store.entries.count) { _, newCount in
+            considerRequestingReview(entryCount: newCount)
+        }
         .onReceive(
             NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
         ) { _ in
@@ -119,6 +126,15 @@ struct AppRootView: View {
               !hasCompletedOnboarding,
               PendingOnboardingBootstrap.shouldBootstrap() else { return }
         hasCompletedOnboarding = true
+    }
+
+    private func considerRequestingReview(entryCount: Int) {
+        let milestones = [10, 50, 200]
+        guard let milestone = milestones.first(where: { $0 > reviewPromptedAtCount && entryCount >= $0 }) else {
+            return
+        }
+        reviewPromptedAtCount = milestone
+        requestReview()
     }
 
     private func checkSubscriptionStatus() async {

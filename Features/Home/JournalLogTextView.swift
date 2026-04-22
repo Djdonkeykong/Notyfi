@@ -149,8 +149,6 @@ struct JournalLogTextView: UIViewRepresentable {
             uiView.resignFirstResponder()
             context.coordinator.lastAppliedFocusToken = nil
         }
-
-        context.coordinator.publishLineFrames(from: uiView)
     }
 
     func sizeThatFits(
@@ -297,6 +295,9 @@ struct JournalLogTextView: UIViewRepresentable {
         }
 
         func publishLineFrames(from textView: UITextView) {
+            guard textView.bounds.width > 10 else {
+                return
+            }
             let lineFrames = measureLineFrames(in: textView)
             guard lineFrames != lastPublishedLineFrames else {
                 return
