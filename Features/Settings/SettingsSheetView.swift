@@ -147,7 +147,7 @@ struct SettingsSheetView: View {
                             Divider()
                             SettingsActionRow(
                                 icon: "star",
-                                title: "Rate Notyfi",
+                                title: "Give Rating",
                                 showsChevron: false,
                                 action: { requestReview() }
                             )
