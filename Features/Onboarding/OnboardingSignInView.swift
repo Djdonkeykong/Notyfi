@@ -84,7 +84,7 @@ struct OnboardingSignInView: View {
         .background(NotyfiTheme.brandLight.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showEmailSignIn) {
-            EmailSignUpView(authManager: authManager)
+            EmailSignUpView(authManager: authManager, initialIsSignIn: true)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
                 .presentationCornerRadius(26)

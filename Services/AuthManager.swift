@@ -113,11 +113,14 @@ final class AuthManager: ObservableObject {
 
     // MARK: - Email OTP
 
-    func sendOTP(email: String) async throws {
+    func sendOTP(email: String, shouldCreateUser: Bool = true) async throws {
         isLoading = true
         defer { isLoading = false }
-        setDebugMessage("Sending email OTP to \(email)")
-        try await SupabaseService.client.auth.signInWithOTP(email: email)
+        setDebugMessage("Sending email OTP to \(email) (shouldCreateUser=\(shouldCreateUser))")
+        try await SupabaseService.client.auth.signInWithOTP(
+            email: email,
+            shouldCreateUser: shouldCreateUser
+        )
         setDebugMessage("OTP email sent to \(email)")
     }
 
@@ -142,7 +145,15 @@ final class AuthManager: ObservableObject {
     /// public.users — meaning they created an account without going through onboarding.
     /// Safe to call after any sign-in; returns false on network error to avoid blocking.
     func isNewUserWithoutOnboarding() async -> Bool {
-        guard let userID = SupabaseService.client.auth.currentSession?.user.id else {
+        // currentSession may not be cached yet if authStateChanges fired before the
+        // SDK finished persisting the session (common with email OTP). Fall back to
+        // the async session fetch so we never miss a new-user redirect.
+        let userID: UUID
+        if let id = SupabaseService.client.auth.currentSession?.user.id {
+            userID = id
+        } else if let session = try? await SupabaseService.client.auth.session {
+            userID = session.user.id
+        } else {
             return false
         }
         do {

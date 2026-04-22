@@ -709,9 +709,13 @@ final class HomeViewModel: ObservableObject {
             case .keep(let entry):
                 previousResolvedEntry = store.entries.first { $0.id == entry.id } ?? entry
             case .update(let entry, let rawText):
-                let updatedEntry = pendingTextEntry(entry, rawText: rawText)
-                store.updateEntry(updatedEntry, shouldReparseRawText: true)
-                previousResolvedEntry = updatedEntry
+                if rawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    store.removeEntry(id: entry.id)
+                } else {
+                    let updatedEntry = pendingTextEntry(entry, rawText: rawText)
+                    store.updateEntry(updatedEntry, shouldReparseRawText: true)
+                    previousResolvedEntry = updatedEntry
+                }
             case .delete(let entry):
                 store.removeEntry(id: entry.id)
             case .insert(let rawText):

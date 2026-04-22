@@ -528,41 +528,42 @@ private struct DictationLanguageMenuRow: View {
     @State private var showInfo = false
 
     var body: some View {
-        Menu {
-            dictationLanguageButton(for: .autoDetect)
-            Divider()
-            ForEach(NotyfiDictationLanguage.selectableLanguages) { language in
-                dictationLanguageButton(for: language)
+        ZStack(alignment: .trailing) {
+            Menu {
+                dictationLanguageButton(for: .autoDetect)
+                Divider()
+                ForEach(NotyfiDictationLanguage.selectableLanguages) { language in
+                    dictationLanguageButton(for: language)
+                }
+            } label: {
+                HStack(spacing: 14) {
+                    Image(systemName: icon)
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                        .font(.system(size: 17, weight: .semibold))
+                        .frame(width: 18)
+
+                    Text(title.notyfiLocalized)
+                        .font(.notyfi(.body))
+                        .foregroundStyle(.primary.opacity(0.82))
+
+                    Spacer()
+
+                    Text(selection.title.notyfiLocalized)
+                        .font(.notyfi(.subheadline))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                        .multilineTextAlignment(.trailing)
+
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(NotyfiTheme.tertiaryText)
+                }
+                .padding(.leading, 18)
+                .padding(.trailing, 50)
+                .padding(.vertical, 16)
+                .contentShape(Rectangle())
             }
-        } label: {
-            HStack(spacing: 14) {
-                Image(systemName: icon)
-                    .foregroundStyle(NotyfiTheme.secondaryText)
-                    .font(.system(size: 17, weight: .semibold))
-                    .frame(width: 18)
+            .buttonStyle(.plain)
 
-                Text(title.notyfiLocalized)
-                    .font(.notyfi(.body))
-                    .foregroundStyle(.primary.opacity(0.82))
-
-                Spacer()
-
-                Text(selection.title.notyfiLocalized)
-                    .font(.notyfi(.subheadline))
-                    .foregroundStyle(NotyfiTheme.secondaryText)
-                    .multilineTextAlignment(.trailing)
-
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(NotyfiTheme.tertiaryText)
-            }
-            .padding(.leading, 18)
-            .padding(.trailing, 50)
-            .padding(.vertical, 16)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .overlay(alignment: .trailing) {
             Button {
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 showInfo = true

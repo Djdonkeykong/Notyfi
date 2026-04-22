@@ -234,16 +234,21 @@ struct EmailSignUpView: View {
     @State private var resendCooldown: Int = 0
     @State private var isSending = false
     @State private var isVerifying = false
+    @State private var cursorVisible = true
     @FocusState private var emailFocused: Bool
     @FocusState private var otpFocused: Bool
+
+    // When true, OTP is sent with shouldCreateUser: false — blocks new-account creation
+    // and shows a user-friendly error if the email isn't registered.
+    private let isSignIn: Bool
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     enum Step { case email, otp }
 
-    // Kept for API compatibility with callers that pass initialIsSignIn
     init(authManager: AuthManager, initialIsSignIn: Bool = false) {
         self.authManager = authManager
+        self.isSignIn = initialIsSignIn
     }
 
     var body: some View {
@@ -401,11 +406,21 @@ struct EmailSignUpView: View {
         ZStack {
             // Hidden text field capturing input
             TextField("", text: $otpCode)
+                .task(id: otpFocused) {
+                    guard otpFocused else { return }
+                    cursorVisible = true
+                    while !Task.isCancelled {
+                        try? await Task.sleep(nanoseconds: 530_000_000)
+                        withAnimation(.easeInOut(duration: 0.12)) { cursorVisible.toggle() }
+                    }
+                }
                 .keyboardType(.numberPad)
                 .textContentType(.oneTimeCode)
                 .focused($otpFocused)
-                .frame(width: 1, height: 1)
-                .opacity(0.01)
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .opacity(0)
+                .allowsHitTesting(false)
                 .onChange(of: otpCode) { _, v in
                     let filtered = v.filter { $0.isNumber }
                     if filtered.count > 6 {
@@ -437,6 +452,14 @@ struct EmailSignUpView: View {
                                     lineWidth: isActive ? 1.5 : 1
                                 )
                         }
+                        .overlay {
+                            if isActive && otpFocused {
+                                Rectangle()
+                                    .fill(NotyfiTheme.brandPrimary)
+                                    .frame(width: 2, height: 24)
+                                    .opacity(cursorVisible ? 1 : 0)
+                            }
+                        }
                         .onTapGesture { otpFocused = true }
                 }
             }
@@ -453,14 +476,16 @@ struct EmailSignUpView: View {
         isSending = true
         Task {
             do {
-                try await authManager.sendOTP(email: trimmed)
+                try await authManager.sendOTP(email: trimmed, shouldCreateUser: !isSignIn)
                 isSending = false
                 otpCode = ""
                 resendCooldown = 60
                 withAnimation(.easeInOut(duration: 0.28)) { step = .otp }
             } catch {
                 isSending = false
-                errorMessage = error.localizedDescription
+                errorMessage = isSignIn
+                    ? "No account found with this email. Tap \"Sign up\" to create one.".notyfiLocalized
+                    : error.localizedDescription
             }
         }
     }
