@@ -342,6 +342,7 @@
 "Forgot?" = "Forgot?";
 "Reset password" = "Reset password";
 "Enter your email and we'll send you a reset link." = "Enter your email and we'll send you a reset link.";
+"No account found with this email. Tap \"Sign up\" to create one." = "No account found with this email. Tap \"Sign up\" to create one.";
 "Please enter your email." = "Please enter your email.";
 "Check your inbox" = "Check your inbox";
 "We sent a reset link to \(email). Follow it to set a new password." = "We sent a reset link to \(email). Follow it to set a new password.";
