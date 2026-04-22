@@ -235,7 +235,7 @@ private struct PaywallFeaturesPage: View {
                     .padding(.top, 80)
                     .padding(.bottom, 36)
 
-                Text("Unlock Notyfi Pro")
+                Text("Unlock Notyfi Pro".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
@@ -263,7 +263,7 @@ private struct PaywallFeaturesPage: View {
                 .frame(height: 32)
                 .allowsHitTesting(false)
 
-                OnboardingPrimaryButton(title: "Learn More", action: onContinue)
+                OnboardingPrimaryButton(title: "Learn More".notyfiLocalized, action: onContinue)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 24)
                     .background(NotyfiTheme.brandLight)
@@ -285,7 +285,7 @@ private struct PaywallHowItWorksPage: View {
                     .padding(.top, 80)
                     .padding(.bottom, 36)
 
-                Text("How Notyfi Pro works")
+                Text("How Notyfi Pro works".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
@@ -294,20 +294,20 @@ private struct PaywallHowItWorksPage: View {
                 VStack(spacing: 0) {
                     PaywallTimelineRow(
                         icon: "sparkles",
-                        title: "Today",
-                        subtitle: "Choose the plan that fits you best.",
+                        title: "Today".notyfiLocalized,
+                        subtitle: "Choose the plan that fits you best.".notyfiLocalized,
                         isLast: false
                     )
                     PaywallTimelineRow(
                         icon: "doc.plaintext",
-                        title: "In Apple",
-                        subtitle: "Review the final billing details before you confirm.",
+                        title: "In Apple".notyfiLocalized,
+                        subtitle: "Review the final billing details before you confirm.".notyfiLocalized,
                         isLast: false
                     )
                     PaywallTimelineRow(
                         icon: "creditcard",
-                        title: "After you subscribe",
-                        subtitle: "Your plan starts immediately and renews until canceled.",
+                        title: "After you subscribe".notyfiLocalized,
+                        subtitle: "Your plan starts immediately and renews until canceled.".notyfiLocalized,
                         isLast: true
                     )
                 }
@@ -328,7 +328,7 @@ private struct PaywallHowItWorksPage: View {
                 .frame(height: 32)
                 .allowsHitTesting(false)
 
-                OnboardingPrimaryButton(title: "Continue", action: onContinue)
+                OnboardingPrimaryButton(title: "Continue".notyfiLocalized, action: onContinue)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 24)
                     .background(NotyfiTheme.brandLight)
@@ -350,10 +350,10 @@ private struct PaywallPricingPage: View {
     let onRestore: () -> Void
 
     private let features: [(icon: String, text: String)] = [
-        ("sparkles", "AI-powered expense parsing"),
-        ("icloud.and.arrow.up", "Cloud sync across your devices"),
-        ("chart.pie.fill", "Smart reports and insights"),
-        ("rectangle.stack.fill", "Home and lock screen widgets"),
+        ("sparkles", "AI-powered expense parsing".notyfiLocalized),
+        ("icloud.and.arrow.up", "Cloud sync across your devices".notyfiLocalized),
+        ("chart.pie.fill", "Smart reports and insights".notyfiLocalized),
+        ("rectangle.stack.fill", "Home and lock screen widgets".notyfiLocalized),
     ]
 
     private var annualPackage: Package? { offering?.annual }
@@ -362,7 +362,7 @@ private struct PaywallPricingPage: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Access all of Notyfi")
+                Text("Access all of Notyfi".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
                     .padding(.top, 96)
                     .padding(.horizontal, 24)
@@ -389,7 +389,7 @@ private struct PaywallPricingPage: View {
                         PlanCard(
                             package: annual,
                             isSelected: selectedPackage?.identifier == annual.identifier,
-                            badge: "Best value",
+                            badge: "Best value".notyfiLocalized,
                             onTap: { selectedPackage = annual }
                         )
                     }
@@ -402,8 +402,8 @@ private struct PaywallPricingPage: View {
                         )
                     }
                     if annualPackage == nil && monthlyPackage == nil {
-                        PlaceholderPlanCard(label: "Yearly", badge: "Best value", isSelected: true)
-                        PlaceholderPlanCard(label: "Monthly", badge: nil, isSelected: false)
+                        PlaceholderPlanCard(label: "Yearly".notyfiLocalized, badge: "Best value".notyfiLocalized, isSelected: true)
+                        PlaceholderPlanCard(label: "Monthly".notyfiLocalized, badge: nil, isSelected: false)
                     }
                 }
                 .padding(.horizontal, 24)
@@ -434,7 +434,7 @@ private struct PaywallPricingPage: View {
                 .frame(height: 32)
                 .allowsHitTesting(false)
 
-                OnboardingPrimaryButton(title: "Continue", isLoading: isPurchasing, action: onSubscribe)
+                OnboardingPrimaryButton(title: "Continue".notyfiLocalized, isLoading: isPurchasing, action: onSubscribe)
                     .padding(.horizontal, 24)
 
                 Button(action: onRestore) {
@@ -444,13 +444,13 @@ private struct PaywallPricingPage: View {
                             .tint(NotyfiTheme.brandPrimary)
                             .frame(height: 20)
                     } else {
-                        Text("Restore subscription")
+                        Text("Restore subscription".notyfiLocalized)
                             .font(.notyfi(.subheadline))
                             .foregroundStyle(NotyfiTheme.secondaryText)
                     }
                 }
 
-                Text("Apple shows the final billing terms before you confirm.")
+                Text("Apple shows the final billing terms before you confirm.".notyfiLocalized)
                     .font(.notyfi(.caption2))
                     .foregroundStyle(NotyfiTheme.tertiaryText)
                     .multilineTextAlignment(.center)

@@ -93,19 +93,10 @@ final class EditableJournalTextView: UITextView {
         onLayoutUpdate?()
     }
 
-    private func performDeferredScroll(to rect: CGRect) {
-        super.scrollRectToVisible(rect, animated: false)
-    }
-
     override func scrollRectToVisible(_ rect: CGRect, animated: Bool) {
-        // UIKit fires this synchronously when the cursor moves to a new line, before
-        // SwiftUI has committed the grown content size. Deferring to the next runloop
-        // tick ensures the CATransaction has fully committed the new layout before the
-        // outer SwiftUI ScrollView processes the scroll, eliminating the jump-then-snap.
-        DispatchQueue.main.async { [weak self] in
-            guard let self, self.isFirstResponder else { return }
-            self.performDeferredScroll(to: rect)
-        }
+        // Suppressed: UIKit's propagation of scrollRectToVisible to the parent UIScrollView
+        // causes a visible jump because it fires before SwiftUI has committed the new
+        // content size. Cursor tracking is handled post-layout in JournalLogTextView.Coordinator.
     }
 
     override func caretRect(for position: UITextPosition) -> CGRect {

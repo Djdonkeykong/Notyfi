@@ -1213,7 +1213,7 @@ private struct NeedsReviewSheet: View {
                 .font(.system(size: 38, weight: .light))
                 .foregroundStyle(NotyfiTheme.incomeColor.opacity(0.7))
 
-            Text("All entries are clear")
+            Text("All entries are clear".notyfiLocalized)
                 .font(.notyfi(.subheadline, weight: .medium))
                 .foregroundStyle(NotyfiTheme.secondaryText)
 

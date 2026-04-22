@@ -469,7 +469,7 @@ private struct CategoryDonutCard: View {
     }
 
     private var emptyState: some View {
-        Text("No expenses logged this month.")
+        Text("No expenses logged this month.".notyfiLocalized)
             .font(.notyfi(.footnote))
             .foregroundStyle(NotyfiTheme.secondaryText)
             .multilineTextAlignment(.center)

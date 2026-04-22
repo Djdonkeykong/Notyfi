@@ -299,14 +299,43 @@ struct JournalLogTextView: UIViewRepresentable {
                 return
             }
             let lineFrames = measureLineFrames(in: textView)
-            guard lineFrames != lastPublishedLineFrames else {
-                return
+            let isActive = textView.isFirstResponder
+
+            if lineFrames != lastPublishedLineFrames {
+                lastPublishedLineFrames = lineFrames
+                DispatchQueue.main.async { [weak self] in
+                    self?.parent.onLineFramesChange(lineFrames)
+                }
             }
 
-            lastPublishedLineFrames = lineFrames
+            // After each layout pass, scroll the enclosing UIScrollView to keep the
+            // cursor visible using a fresh post-layout cursor rect. This replaces the
+            // suppressed scrollRectToVisible propagation in EditableJournalTextView and
+            // avoids the double-scroll jump caused by UIKit firing before SwiftUI commits
+            // the new content size.
+            if isActive {
+                DispatchQueue.main.async { [weak textView] in
+                    guard let textView, textView.isFirstResponder else { return }
+                    Self.scrollCursorIntoView(for: textView)
+                }
+            }
+        }
 
-            DispatchQueue.main.async { [weak self] in
-                self?.parent.onLineFramesChange(lineFrames)
+        private static func scrollCursorIntoView(for textView: UITextView) {
+            guard let selectedRange = textView.selectedTextRange else { return }
+            let cursorRect = textView.caretRect(for: selectedRange.end)
+            guard cursorRect.height > 0, cursorRect.height < 300 else { return }
+
+            var ancestor: UIView? = textView.superview
+            while let v = ancestor {
+                if let scrollView = v as? UIScrollView {
+                    let rectInScrollView = textView.convert(cursorRect, to: scrollView)
+                    // Add vertical insets so the cursor doesn't sit flush at the edge.
+                    let paddedRect = rectInScrollView.insetBy(dx: 0, dy: -14)
+                    scrollView.scrollRectToVisible(paddedRect, animated: false)
+                    return
+                }
+                ancestor = v.superview
             }
         }
 
