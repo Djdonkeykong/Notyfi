@@ -264,7 +264,7 @@
 "Pick the categories that apply to you. Notyfi will use these to organize your entries." = "Wybierz kategorie, które Cię dotyczą. Notyfi użyje ich do organizacji Twoich wpisów.";
 "Pick your currency" = "Wybierz walutę";
 "Used to format your entries and budget. You can change this later." = "Używane do formatowania wpisów i budżetu. Możesz to zmienić później.";
-"Just write what you spent" = "Po prostu napisz, co wydales";
+"Just write what you spent" = "Po prostu napisz, co wydałeś";
 "Type anything naturally. Notyfi reads it and fills in the details." = "Wpisz co chcesz w naturalny sposób. Notyfi to odczyta i wypełni szczegóły.";
 "Just a heads up" = "Krótka informacja";
 "You don't have to type everything" = "Nie musisz wszystkiego wpisywać";
@@ -275,7 +275,7 @@
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Powiedz głośno, co wydałeś. Notyfi natychmiast to transkrybuje i przetworzy.";
 "Smart text" = "Inteligentny tekst";
 "Abbreviations, shorthand, even typos – the AI figures out what you mean." = "Skróty, stenografia, a nawet literówki – sztuczna inteligencja rozumie, co masz na myśli.";
-"Stay on track" = "Trzymaj sie planu";
+"Stay on track" = "Trzymaj się planu";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Otrzymuj codzienne przypomnienie o rejestrowaniu wydatków. Osoby korzystające z przypomnień wyrabiają nawyk 3x szybciej.";
 "Enable Notifications" = "Włącz powiadomienia";
 "Daily spending reminders" = "Codzienne przypomnienia o wydatkach";
@@ -288,8 +288,8 @@
 "Set category limits" = "Ustaw limity kategorii";
 "Add a monthly limit for each category. Skip any you're not sure about – you can set these later." = "Dodaj miesięczny limit dla każdej kategorii. Pomiń te, co do których nie jesteś pewny – możesz je ustawić później.";
 "/mo" = "/mies.";
-"Skip for now" = "Pomin na razie";
-"Follow System" = "Podazaj za systemem";
+"Skip for now" = "Pomiń na razie";
+"Follow System" = "Podążaj za systemem";
 
 // Forgot password
 
@@ -297,7 +297,7 @@
 "Reset password" = "Zresetuj hasło";
 "Enter your email and we'll send you a reset link." = "Podaj swój e-mail, a wyślemy Ci link do resetowania.";
 "No account found with this email. Tap \"Sign up\" to create one." = "Nie znaleziono konta z tym adresem e-mail. Stuknij \"Zarejestruj się\", aby je utworzyć.";
-"Please enter your email." = "Prosimy podac adres e-mail.";
+"Please enter your email." = "Prosimy podać adres e-mail.";
 "Check your inbox" = "Sprawdź swoją skrzynkę";
 "We sent a reset link to \(email). Follow it to set a new password." = "Wysłaliśmy link resetujący na adres \(email). Kliknij go, aby ustawić nowe hasło.";
 
@@ -307,15 +307,15 @@
 "Send code" = "Wyślij kod";
 "Enter the 6-digit code we sent to \(email)." = "Wprowadź 6-cyfrowy kod, który wysłaliśmy na \(email).";
 "Verify" = "Weryfikuj";
-"Didn't get it?" = "Nie dotarlo?";
+"Didn't get it?" = "Nie dotarło?";
 "Resend" = "Wyślij ponownie";
 "Change email" = "Zmień e-mail";
 
 // Categories & limits
 "Pick the categories that apply to you. You can always add or edit these later." = "Wybierz kategorie, które Cię dotyczą. Zawsze możesz dodać lub edytować je później.";
-"Tap to set limit" = "Dotknij, aby ustawic limit";
+"Tap to set limit" = "Dotknij, aby ustawić limit";
 "Set Limit" = "Ustaw limit";
-"per month for \(category.title)" = "miesieczne dla \(category.title)";
+"per month for \(category.title)" = "miesięczne dla \(category.title)";
 
 // Widget onboarding
 "Add the Notyfi widget to stay on top of your spending – every single day." = "Dodaj widget Notyfi, aby być na bieżąco ze swoimi wydatkami – każdego dnia.";
@@ -388,7 +388,7 @@
 "%@ lower than the same point last month" = "%@ niższe niż w tym samym momencie poprzedniego miesiąca";
 "Last month" = "Poprzedni miesiąc";
 "Last 6 months" = "Ostatnie 6 miesięcy";
-"Monthly spend" = "Miesieczne wydatki";
+"Monthly spend" = "Miesięczne wydatki";
 "Add a few entries to start seeing spending trends." = "Dodaj kilka wpisów, aby zacząć widzieć trendy wydatków.";
 "Average %@ across the last 6 months" = "Średnio %@ w ostatnich 6 miesiącach";
 "Recurring load" = "Obciążenie cykliczne";
@@ -404,51 +404,51 @@
 "Monthly summary" = "Miesięczne podsumowanie";
 "Analysing your month..." = "Analizowanie twojego miesiąca...";
 // Notification strings
-"notif.generic.checkin.title" = "Szybki przeglad";
-"notif.generic.checkin.body" = "Jakies wydatki dzisiaj? Dotknij, aby zapisac je na swiezo.";
+"notif.generic.checkin.title" = "Szybki przegląd";
+"notif.generic.checkin.body" = "Jakieś wydatki dzisiaj? Dotknij, aby zapisać je na świeżo.";
 "notif.generic.moneynotes.title" = "Notatki finansowe";
 "notif.generic.moneynotes.body" = "Najlepszy czas na zapisanie to zaraz po wydaniu. Drugi najlepszy? Teraz.";
 "notif.generic.dontforget.title" = "Nie zapomnij";
-"notif.generic.dontforget.body" = "Male nawyki, duza jasnosc. Poswiec 30 sekund na zapisanie dzisiaj.";
-"notif.generic.logday.title" = "Zapisz swoj dzien";
-"notif.generic.logday.body" = "Twoje przyszle ja bedzie ci wdzieczne. Cos do dodania?";
-"notif.generic.stayontrack.title" = "Trzymaj sie planu";
-"notif.generic.stayontrack.body" = "Sledzenie zajmuje sekundy. Twoj budzet bedzie ci wdzieczny.";
-"notif.generic.open.title" = "Otworz Notyfi";
-"notif.generic.open.body" = "Zapisz dzisiejsze wydatki, dopoki sa jeszcze swiezo w pamieci.";
+"notif.generic.dontforget.body" = "Małe nawyki, duża jasność. Poświęć 30 sekund na zapisanie dzisiaj.";
+"notif.generic.logday.title" = "Zapisz swój dzień";
+"notif.generic.logday.body" = "Twoje przyszłe ja będzie ci wdzięczne. Coś do dodania?";
+"notif.generic.stayontrack.title" = "Trzymaj się planu";
+"notif.generic.stayontrack.body" = "Śledzenie zajmuje sekundy. Twój budżet będzie ci wdzięczny.";
+"notif.generic.open.title" = "Otwórz Notyfi";
+"notif.generic.open.body" = "Zapisz dzisiejsze wydatki, dopóki są jeszcze świeżo w pamięci.";
 "notif.generic.journaltime.title" = "Czas na dziennik";
-"notif.generic.journaltime.body" = "Szybki zapis teraz oszczedza duzo zgadywania pozniej.";
-"notif.generic.whatdidyouspend.title" = "Na co wydalas?";
-"notif.generic.whatdidyouspend.body" = "Twoj portfel pamiety wszystko. Twoj mozg nie. Zapisz teraz.";
-"notif.streak.days.title" = "%d dni z rzadu";
-"notif.streak.consistent.body" = "Bylys konsekwentny. Utrzymaj serie przy zyciu dzisiaj.";
-"notif.streak.roll.title" = "Swietna passa";
-"notif.streak.roll.body" = "%d dni zapisywania. Dzisiaj bedzie %d.";
-"notif.budget.nearlygone.title" = "Budzet prawie wyczerpany";
-"notif.budget.nearlygone.body" = "%d%% wykorzystane. Tylko %@ zostalo w tym miesiacu.";
-"notif.budget.almostover.title" = "Prawie przekroczony budzet";
-"notif.budget.almostover.body" = "%@ zostalo z %d dniami do konca. Uwazaj.";
-"notif.budget.check.title" = "Kontrola budzetu";
-"notif.budget.check.body" = "Wykorzystales %d%% w tym miesiacu. %@ pozostalo na %d dni.";
-"notif.budget.lookinggood.title" = "Wyglada dobrze";
-"notif.budget.lookinggood.body" = "%@ zostalo z %d dniami. Jestes na dobrej drodze.";
-"notif.category.overtarget.title" = "%@ powyzej celu";
-"notif.category.overtarget.body" = "Jestes na %d%% swojego przewodnika %@ w tym miesiacu.";
+"notif.generic.journaltime.body" = "Szybki zapis teraz oszczędza dużo zgadywania później.";
+"notif.generic.whatdidyouspend.title" = "Na co wydałaś?";
+"notif.generic.whatdidyouspend.body" = "Twój portfel pamięta wszystko. Twój mózg nie. Zapisz teraz.";
+"notif.streak.days.title" = "%d dni z rzędu";
+"notif.streak.consistent.body" = "Byłeś konsekwentny. Utrzymaj serię przy życiu dzisiaj.";
+"notif.streak.roll.title" = "Świetna passa";
+"notif.streak.roll.body" = "%d dni zapisywania. Dzisiaj będzie %d.";
+"notif.budget.nearlygone.title" = "Budżet prawie wyczerpany";
+"notif.budget.nearlygone.body" = "%d%% wykorzystane. Tylko %@ zostało w tym miesiącu.";
+"notif.budget.almostover.title" = "Prawie przekroczony budżet";
+"notif.budget.almostover.body" = "%@ zostało z %d dniami do końca. Uważaj.";
+"notif.budget.check.title" = "Kontrola budżetu";
+"notif.budget.check.body" = "Wykorzystałeś %d%% w tym miesiącu. %@ pozostało na %d dni.";
+"notif.budget.lookinggood.title" = "Wygląda dobrze";
+"notif.budget.lookinggood.body" = "%@ zostało z %d dniami. Jesteś na dobrej drodze.";
+"notif.category.overtarget.title" = "%@ powyżej celu";
+"notif.category.overtarget.body" = "Jesteś na %d%% swojego przewodnika %@ w tym miesiącu.";
 "notif.category.almostcap.title" = "%@ prawie przy limicie";
-"notif.category.almostcap.body" = "%d%% przewodnika %@ wykorzystane. %@ zostalo.";
-"notif.savings.hit.title" = "Cel oszczednosciowy osiagniety";
-"notif.savings.hit.body" = "Osiagnales cel oszczednosciowy w tym miesiacu. Dobra robota.";
-"notif.savings.almost.title" = "Prawie przy celu oszczednosciowym";
-"notif.savings.almost.body" = "Tylko %@ do osiagniecia celu.";
+"notif.category.almostcap.body" = "%d%% przewodnika %@ wykorzystane. %@ zostało.";
+"notif.savings.hit.title" = "Cel oszczędnościowy osiągnięty";
+"notif.savings.hit.body" = "Osiągnąłeś cel oszczędnościowy w tym miesiącu. Dobra robota.";
+"notif.savings.almost.title" = "Prawie przy celu oszczędnościowym";
+"notif.savings.almost.body" = "Tylko %@ do osiągnięcia celu.";
 "notif.recurring.today" = "dzisiaj";
 "notif.recurring.tomorrow" = "jutro";
 "notif.recurring.indays" = "za %d dni";
-"notif.recurring.title" = "Nadchodzaca oplata %@";
-"notif.recurring.body" = "%@ za %@ jest nalezne %@.";
+"notif.recurring.title" = "Nadchodząca opłata %@";
+"notif.recurring.body" = "%@ za %@ jest należne %@.";
 "notif.weekly.title" = "Ostatnie 7 dni";
-"notif.weekly.body" = "Zarejestrowales %@ wydatkow w ciagu ostatniego tygodnia.";
+"notif.weekly.body" = "Zarejestrowałeś %@ wydatków w ciągu ostatniego tygodnia.";
 "notif.missed.title" = "Wczoraj niezapisane";
-"notif.missed.body" = "Nic nie zapisano za wczoraj — chcesz dodac cos z pamieci?";
+"notif.missed.body" = "Nic nie zapisano za wczoraj — chcesz dodać coś z pamięci?";
 
 // Paywall
 "Unlock Notyfi Pro" = "Odblokuj Notyfi Pro";

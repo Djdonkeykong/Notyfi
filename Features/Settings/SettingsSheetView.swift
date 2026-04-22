@@ -602,19 +602,24 @@ private struct DictationLanguageMenuRow: View {
 
 private struct DictationInfoPopover: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("Dictation Language".notyfiLocalized, systemImage: "mic.fill")
-                .font(.notyfi(.subheadline, weight: .semibold))
-                .foregroundStyle(.primary)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "mic.fill")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                Text("Dictation Language".notyfiLocalized)
+                    .font(.notyfi(.body, weight: .bold))
+                    .foregroundStyle(.primary)
+            }
 
             Text("Notyfi will try to detect your language automatically based on your device settings. For best accuracy, pick your preferred language manually.".notyfiLocalized)
-                .font(.notyfi(.footnote))
+                .font(.notyfi(.subheadline))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-                .lineSpacing(2)
+                .lineSpacing(3)
         }
-        .padding(16)
-        .frame(maxWidth: 260)
+        .padding(20)
+        .frame(minWidth: 300, maxWidth: 340)
         .background(.regularMaterial)
     }
 }
