@@ -439,9 +439,9 @@ private struct PaywallPricingPage: View {
         .background(NotyfiTheme.brandLight)
         .safeAreaInset(edge: .bottom) {
             ZStack(alignment: .bottom) {
-                // Fills the home indicator safe area with the card's background color,
-                // eliminating the brandLight bar that shows below the floating card.
-                Color(uiColor: .systemBackground)
+                // Fills the home indicator safe area with brandLight so it matches
+                // the scroll view background — eliminates the white bar below the card.
+                NotyfiTheme.brandLight
                     .frame(height: 0)
                     .ignoresSafeArea(edges: .bottom)
                 PricingBottomCard(
@@ -564,6 +564,7 @@ private struct PricingBottomCard: View {
                 .shadow(color: .black.opacity(0.09), radius: 20, x: 0, y: -6)
         }
         .padding(.horizontal, 12)
+        .padding(.bottom, 8)
     }
 }
 
