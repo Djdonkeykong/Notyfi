@@ -218,9 +218,22 @@ private struct PaywallFeaturesPage: View {
             VStack(spacing: 0) {
                 OnboardingIllustration(symbol: "crown.fill")
                     .padding(.top, 80)
-                    .padding(.bottom, 36)
+                    .padding(.bottom, 28)
 
-                Text("Unlock Notyfi Pro".notyfiLocalized)
+                // Trial badge
+                HStack(spacing: 6) {
+                    Image(systemName: "gift.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("3 days free, no commitment")
+                        .font(.notyfi(.footnote, weight: .semibold))
+                }
+                .foregroundStyle(NotyfiTheme.brandPrimary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(NotyfiTheme.brandPrimary.opacity(0.10), in: Capsule())
+                .padding(.bottom, 20)
+
+                Text("Good things ahead")
                     .font(.notyfi(.largeTitle, weight: .bold))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
@@ -248,7 +261,7 @@ private struct PaywallFeaturesPage: View {
                 .frame(height: 32)
                 .allowsHitTesting(false)
 
-                OnboardingPrimaryButton(title: "Learn More".notyfiLocalized, action: onContinue)
+                OnboardingPrimaryButton(title: "See how it works".notyfiLocalized, action: onContinue)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 24)
                     .background(NotyfiTheme.brandLight)
@@ -266,11 +279,11 @@ private struct PaywallHowItWorksPage: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                OnboardingIllustration(symbol: "doc.text.magnifyingglass")
+                OnboardingIllustration(symbol: "gift.fill")
                     .padding(.top, 80)
                     .padding(.bottom, 36)
 
-                Text("How Notyfi Pro works".notyfiLocalized)
+                Text("No commitment.\nJust try it.")
                     .font(.notyfi(.largeTitle, weight: .bold))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
@@ -278,21 +291,21 @@ private struct PaywallHowItWorksPage: View {
 
                 VStack(spacing: 0) {
                     PaywallTimelineRow(
-                        icon: "sparkles",
-                        title: "Today".notyfiLocalized,
-                        subtitle: "Choose the plan that fits you best.".notyfiLocalized,
+                        icon: "play.circle.fill",
+                        title: "Today",
+                        subtitle: "Start your free 3-day trial. No payment needed right now.",
                         isLast: false
                     )
                     PaywallTimelineRow(
-                        icon: "doc.plaintext",
-                        title: "In Apple".notyfiLocalized,
-                        subtitle: "Review the final billing details before you confirm.".notyfiLocalized,
+                        icon: "bell.fill",
+                        title: "Day 3",
+                        subtitle: "We'll remind you before anything is charged.",
                         isLast: false
                     )
                     PaywallTimelineRow(
-                        icon: "creditcard",
-                        title: "After you subscribe".notyfiLocalized,
-                        subtitle: "Your plan starts immediately and renews until canceled.".notyfiLocalized,
+                        icon: "checkmark.circle.fill",
+                        title: "After your trial",
+                        subtitle: "Pick a plan that fits, or cancel anytime. No hard feelings.",
                         isLast: true
                     )
                 }
@@ -313,7 +326,7 @@ private struct PaywallHowItWorksPage: View {
                 .frame(height: 32)
                 .allowsHitTesting(false)
 
-                OnboardingPrimaryButton(title: "Continue".notyfiLocalized, action: onContinue)
+                OnboardingPrimaryButton(title: "See pricing".notyfiLocalized, action: onContinue)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 24)
                     .background(NotyfiTheme.brandLight)
@@ -419,7 +432,7 @@ private struct PaywallPricingPage: View {
                 .frame(height: 32)
                 .allowsHitTesting(false)
 
-                OnboardingPrimaryButton(title: "Continue".notyfiLocalized, isLoading: isPurchasing, action: onSubscribe)
+                OnboardingPrimaryButton(title: "Start free trial".notyfiLocalized, isLoading: isPurchasing, action: onSubscribe)
                     .padding(.horizontal, 24)
 
                 Button(action: onRestore) {
