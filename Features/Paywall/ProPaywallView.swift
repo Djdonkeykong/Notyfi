@@ -557,7 +557,17 @@ private struct PricingBottomCard: View {
                 .foregroundStyle(NotyfiTheme.tertiaryText)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
-                .padding(.bottom, 28)
+                .padding(.bottom, 14)
+
+            HStack {
+                Link("Terms of Service".notyfiLocalized, destination: URL(string: "https://notyfi.dotsokay.net/terms")!)
+                Spacer()
+                Link("Privacy Policy".notyfiLocalized, destination: URL(string: "https://notyfi.dotsokay.net/privacy")!)
+            }
+            .font(.notyfi(.caption2))
+            .foregroundStyle(NotyfiTheme.tertiaryText)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 28)
         }
         .background {
             RoundedRectangle(cornerRadius: 28, style: .continuous)
