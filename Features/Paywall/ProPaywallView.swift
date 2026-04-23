@@ -458,7 +458,8 @@ private struct PricingBottomCard: View {
         if let annual = annualPackage, let monthly = monthlyPackage {
             let annualPerMonth = annual.storeProduct.price / 12
             let savings = (monthly.storeProduct.price - annualPerMonth) / monthly.storeProduct.price * 100
-            return "\(Int(savings.rounded()))% OFF"
+            let pct = Int((savings as NSDecimalNumber).doubleValue.rounded())
+            return "\(pct)% OFF"
         }
         return "Best value".notyfiLocalized
     }
