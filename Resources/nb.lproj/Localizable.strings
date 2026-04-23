@@ -364,6 +364,7 @@
 "error.auth.missingToken" = "Innlogging mislyktes: manglende identitetstoken.";
 "error.auth.cancelled" = "Innlogging avbrutt.";
 "error.auth.googleFailed" = "Google-innlogging mislyktes. Prøv igjen.";
+"error.auth.rateLimited" = "Av sikkerhetsmessige årsaker kan du bare be om en ny kode én gang hvert 60. sekund.";
 "error.photo.timeout.title" = "Tar for lang tid";
 "error.photo.timeout.message" = "Bildet kunne ikke behandles i tide. Prøv igjen.";
 "error.api.unknown" = "Ukjent API-feil";

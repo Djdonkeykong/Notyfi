@@ -361,6 +361,7 @@
 "error.auth.missingToken" = "Accesso fallito: token di identità mancante.";
 "error.auth.cancelled" = "Accesso annullato.";
 "error.auth.googleFailed" = "Accesso Google fallito. Riprova.";
+"error.auth.rateLimited" = "Per motivi di sicurezza, puoi richiedere un nuovo codice solo ogni 60 secondi.";
 "error.photo.timeout.title" = "Ci vuole troppo tempo";
 "error.photo.timeout.message" = "L'immagine non ha potuto essere elaborata in tempo. Riprova.";
 "error.api.unknown" = "Errore API sconosciuto";

@@ -361,6 +361,7 @@
 "error.auth.missingToken" = "Aanmelden mislukt: identiteitstoken ontbreekt.";
 "error.auth.cancelled" = "Aanmelden geannuleerd.";
 "error.auth.googleFailed" = "Google aanmelden mislukt. Probeer opnieuw.";
+"error.auth.rateLimited" = "Om veiligheidsredenen kun je slechts één keer per 60 seconden een nieuwe code aanvragen.";
 "error.photo.timeout.title" = "Duurt te lang";
 "error.photo.timeout.message" = "De afbeelding kon niet op tijd worden verwerkt. Probeer opnieuw.";
 "error.api.unknown" = "Onbekende API-fout";

@@ -361,6 +361,7 @@
 "error.auth.missingToken" = "Logowanie nie powiodło się: brak tokenu tożsamości.";
 "error.auth.cancelled" = "Logowanie anulowane.";
 "error.auth.googleFailed" = "Logowanie przez Google nie powiodło się. Spróbuj ponownie.";
+"error.auth.rateLimited" = "Ze względów bezpieczeństwa możesz poprosić o nowy kod tylko raz na 60 sekund.";
 "error.photo.timeout.title" = "Trwa za długo";
 "error.photo.timeout.message" = "Nie można było przetworzyć obrazu na czas. Spróbuj ponownie.";
 "error.api.unknown" = "Nieznany błąd API";

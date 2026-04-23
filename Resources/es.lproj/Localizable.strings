@@ -362,6 +362,7 @@
 "error.auth.missingToken" = "Error al iniciar sesión: falta el token de identidad.";
 "error.auth.cancelled" = "Inicio de sesión cancelado.";
 "error.auth.googleFailed" = "Error al iniciar sesión con Google. Inténtalo de nuevo.";
+"error.auth.rateLimited" = "Por razones de seguridad, solo puedes solicitar un nuevo código una vez cada 60 segundos.";
 "error.photo.timeout.title" = "Tarda demasiado";
 "error.photo.timeout.message" = "La imagen no se pudo procesar a tiempo. Inténtalo de nuevo.";
 "error.api.unknown" = "Error de API desconocido";

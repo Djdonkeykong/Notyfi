@@ -362,6 +362,7 @@
 "error.auth.missingToken" = "Échec de la connexion : jeton d'identité manquant.";
 "error.auth.cancelled" = "Connexion annulée.";
 "error.auth.googleFailed" = "Échec de la connexion Google. Veuillez réessayer.";
+"error.auth.rateLimited" = "Pour des raisons de sécurité, vous ne pouvez demander un nouveau code qu'une fois toutes les 60 secondes.";
 "error.photo.timeout.title" = "Trop long";
 "error.photo.timeout.message" = "L'image n'a pas pu être traitée à temps. Veuillez réessayer.";
 "error.api.unknown" = "Erreur API inconnue";

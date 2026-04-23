@@ -236,7 +236,7 @@ struct EmailSignUpView: View {
     @State private var isVerifying = false
     @State private var cursorVisible = true
     @FocusState private var emailFocused: Bool
-    @FocusState private var otpFocused: Bool
+    @State private var otpFocused: Bool = false
 
     // When true, OTP is sent with shouldCreateUser: false — blocks new-account creation
     // and shows a user-friendly error if the email isn't registered.
@@ -436,35 +436,21 @@ struct EmailSignUpView: View {
                 }
             }
 
-            // Transparent overlay on top — receives taps (focusing keyboard) and autofill.
-            // Must be last in ZStack (top layer) with hit testing enabled for iOS
-            // QuickType autofill to reach it.
-            TextField("", text: $otpCode)
-                .task(id: otpFocused) {
-                    guard otpFocused else { return }
-                    cursorVisible = true
-                    while !Task.isCancelled {
-                        try? await Task.sleep(nanoseconds: 530_000_000)
-                        withAnimation(.easeInOut(duration: 0.12)) { cursorVisible.toggle() }
-                    }
-                }
-                .keyboardType(.numberPad)
-                .textContentType(.oneTimeCode)
-                .focused($otpFocused)
+            // UIViewRepresentable overlay — bypasses SwiftUI's TextField intermediary so
+            // that iOS SMS autofill (shouldChangeCharactersIn) fires reliably for both
+            // typed and autofilled input without binding feedback-loops.
+            OTPAutofillField(text: $otpCode, isFocused: $otpFocused, onFilled: verify)
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
-                .foregroundStyle(.clear)
-                .tint(.clear)
                 .opacity(0.011)
-                .onChange(of: otpCode) { _, v in
-                    let filtered = v.filter { $0.isNumber }
-                    if filtered.count > 6 {
-                        otpCode = String(filtered.prefix(6))
-                    } else if filtered != v {
-                        otpCode = filtered
-                    }
-                    if otpCode.count == 6 { verify() }
-                }
+        }
+        .task(id: otpFocused) {
+            guard otpFocused else { return }
+            cursorVisible = true
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 530_000_000)
+                withAnimation(.easeInOut(duration: 0.12)) { cursorVisible.toggle() }
+            }
         }
     }
 
@@ -494,7 +480,7 @@ struct EmailSignUpView: View {
                         || msg.contains("rate") || msg.contains("too many")
                         || msg.contains("security purposes")
                     errorMessage = isRateLimit
-                        ? error.localizedDescription
+                        ? "error.auth.rateLimited".notyfiLocalized
                         : "No account found with this email. Tap \"Sign up\" to create one.".notyfiLocalized
                 } else {
                     errorMessage = error.localizedDescription
@@ -521,6 +507,86 @@ struct EmailSignUpView: View {
     }
 }
 
+
+// MARK: - OTP autofill input
+
+// A UIViewRepresentable backed by UITextField rather than SwiftUI's TextField.
+// SwiftUI's TextField adds binding-update machinery that creates a feedback loop
+// when iOS autofill programmatically sets the UITextField text, causing the
+// autofill delivery to be dropped. Going straight to UIKit means:
+//  - textContentType = .oneTimeCode is set at the UIKit level unconditionally
+//  - shouldChangeCharactersIn is the single entry point for both typed AND
+//    autofilled input, so we always win the race and never mutate the binding twice
+//  - becomeFirstResponder() is called directly, no SwiftUI focus machinery in between
+private struct OTPAutofillField: UIViewRepresentable {
+    @Binding var text: String
+    @Binding var isFocused: Bool
+    var onFilled: () -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeUIView(context: Context) -> UITextField {
+        let field = UITextField()
+        field.keyboardType = .numberPad
+        field.textContentType = .oneTimeCode
+        field.autocorrectionType = .no
+        field.autocapitalizationType = .none
+        field.tintColor = .clear
+        field.textColor = .clear
+        field.backgroundColor = .clear
+        field.borderStyle = .none
+        field.delegate = context.coordinator
+        return field
+    }
+
+    func updateUIView(_ uiView: UITextField, context: Context) {
+        context.coordinator.parent = self
+        if uiView.text != text {
+            uiView.text = text
+        }
+        DispatchQueue.main.async {
+            if self.isFocused, !uiView.isFirstResponder {
+                uiView.becomeFirstResponder()
+            } else if !self.isFocused, uiView.isFirstResponder {
+                uiView.resignFirstResponder()
+            }
+        }
+    }
+
+    final class Coordinator: NSObject, UITextFieldDelegate {
+        var parent: OTPAutofillField
+
+        init(_ parent: OTPAutofillField) { self.parent = parent }
+
+        func textField(
+            _ textField: UITextField,
+            shouldChangeCharactersIn range: NSRange,
+            replacementString string: String
+        ) -> Bool {
+            let current = textField.text ?? ""
+            guard let r = Range(range, in: current) else { return false }
+            let digits = current
+                .replacingCharacters(in: r, with: string)
+                .filter { $0.isNumber }
+            let clamped = String(digits.prefix(6))
+            // Update UITextField directly — don't rely on SwiftUI's two-way sync
+            textField.text = clamped
+            parent.text = clamped
+            if clamped.count == 6 {
+                DispatchQueue.main.async { self.parent.onFilled() }
+            }
+            return false
+        }
+
+        func textFieldDidBeginEditing(_ textField: UITextField) {
+            DispatchQueue.main.async { self.parent.isFocused = true }
+        }
+
+        func textFieldDidEndEditing(_ textField: UITextField) {
+            DispatchQueue.main.async { self.parent.isFocused = false }
+        }
+    }
+}
 
 #Preview {
     OnboardingAuthView(authManager: AuthManager())

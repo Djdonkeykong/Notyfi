@@ -362,6 +362,7 @@
 "error.auth.missingToken" = "Kirjautuminen epäonnistui: tunnustoken puuttuu.";
 "error.auth.cancelled" = "Kirjautuminen peruutettu.";
 "error.auth.googleFailed" = "Google-kirjautuminen epäonnistui. Yritä uudelleen.";
+"error.auth.rateLimited" = "Tietoturvasyistä voit pyytää uuden koodin vain kerran 60 sekunnissa.";
 "error.photo.timeout.title" = "Kestää liian kauan";
 "error.photo.timeout.message" = "Kuvaa ei voitu käsitellä ajoissa. Yritä uudelleen.";
 "error.api.unknown" = "Tuntematon API-virhe";

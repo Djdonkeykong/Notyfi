@@ -360,6 +360,7 @@
 "error.auth.missingToken" = "Falha no login: token de identidade ausente.";
 "error.auth.cancelled" = "Login cancelado.";
 "error.auth.googleFailed" = "Falha no login com Google. Tente novamente.";
+"error.auth.rateLimited" = "Por razões de segurança, só podes solicitar um novo código uma vez a cada 60 segundos.";
 "error.photo.timeout.title" = "Demora demais";
 "error.photo.timeout.message" = "A imagem não pôde ser processada a tempo. Tente novamente.";
 "error.api.unknown" = "Erro de API desconhecido";

@@ -529,8 +529,6 @@ private struct DictationLanguageMenuRow: View {
     let title: String
     @Binding var selection: NotyfiDictationLanguage
     let onSelect: (NotyfiDictationLanguage) -> Void
-    @State private var showInfo = false
-
     var body: some View {
         HStack(spacing: 14) {
             Image(systemName: icon)
@@ -538,27 +536,9 @@ private struct DictationLanguageMenuRow: View {
                 .font(.system(size: 17, weight: .semibold))
                 .frame(width: 18)
 
-            // Title + info icon side by side so the popover anchors
-            // near the center of the screen, away from the card edges.
-            HStack(spacing: 5) {
-                Text(title.notyfiLocalized)
-                    .font(.notyfi(.body))
-                    .foregroundStyle(.primary.opacity(0.82))
-
-                Button {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    showInfo = true
-                } label: {
-                    Image(systemName: "info.circle")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(NotyfiTheme.tertiaryText)
-                }
-                .buttonStyle(.plain)
-                .popover(isPresented: $showInfo, arrowEdge: .bottom) {
-                    DictationInfoPopover()
-                        .presentationCompactAdaptation(.popover)
-                }
-            }
+            Text(title.notyfiLocalized)
+                .font(.notyfi(.body))
+                .foregroundStyle(.primary.opacity(0.82))
 
             Spacer()
 
@@ -600,29 +580,6 @@ private struct DictationLanguageMenuRow: View {
     }
 }
 
-private struct DictationInfoPopover: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(NotyfiTheme.secondaryText)
-                Text("Dictation Language".notyfiLocalized)
-                    .font(.notyfi(.body, weight: .bold))
-                    .foregroundStyle(.primary)
-            }
-
-            Text("Notyfi will try to detect your language automatically based on your device settings. For best accuracy, pick your preferred language manually.".notyfiLocalized)
-                .font(.notyfi(.subheadline))
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .lineSpacing(3)
-        }
-        .padding(20)
-        .frame(minWidth: 300, maxWidth: 340)
-        .background(.regularMaterial)
-    }
-}
 
 private struct SettingsCard<Content: View>: View {
     @ViewBuilder var content: () -> Content

@@ -362,6 +362,7 @@
 "error.auth.missingToken" = "Anmeldung fehlgeschlagen: Fehlender Identitäts-Token.";
 "error.auth.cancelled" = "Anmeldung abgebrochen.";
 "error.auth.googleFailed" = "Google-Anmeldung fehlgeschlagen. Bitte erneut versuchen.";
+"error.auth.rateLimited" = "Aus Sicherheitsgründen kannst du nur alle 60 Sekunden einen neuen Code anfordern.";
 "error.photo.timeout.title" = "Dauert zu lange";
 "error.photo.timeout.message" = "Das Bild konnte nicht rechtzeitig verarbeitet werden. Bitte erneut versuchen.";
 "error.api.unknown" = "Unbekannter API-Fehler";
