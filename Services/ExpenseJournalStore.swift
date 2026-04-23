@@ -200,6 +200,24 @@ final class ExpenseJournalStore: ObservableObject {
         updateSharedSurfaces()
     }
 
+    func resetForSignOut() {
+        parseTasksByEntryID.values.forEach { $0.cancel() }
+        parseTasksByEntryID.removeAll()
+        parseCacheByKey.removeAll()
+        entries.removeAll()
+        recurringTransactions.removeAll()
+        budgetPlan = .empty
+        trackedCategories = []
+        effectiveTrackedCategories = Set(ExpenseCategory.trackableCases)
+        hasStoredTrackedCategories = false
+        persist()
+        persistBudgetPlan()
+        persistTrackedCategories()
+        persistRecurringTransactions()
+        persistParseCache()
+        updateSharedSurfaces()
+    }
+
     func setMonthlySpendingLimit(_ amount: Double) {
         budgetPlan.setMonthlySpendingLimit(amount)
         persistBudgetPlan()

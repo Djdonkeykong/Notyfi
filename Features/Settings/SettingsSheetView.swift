@@ -18,6 +18,7 @@ struct SettingsSheetView: View {
     @State private var isSignOutConfirmationPresented = false
     @State private var isDeleteAccountConfirmationPresented = false
     @State private var pendingAccountAction: PendingAccountAction? = nil
+    @State private var deleteAccountError: String? = nil
 
     private enum PendingAccountAction {
         case signOut
@@ -241,17 +242,30 @@ struct SettingsSheetView: View {
             Button("Delete Account".notyfiLocalized, role: .destructive) {
                 Task {
                     pendingAccountAction = .deleteAccount
-                    async let deleteAccount: Void = authManager.deleteAccount()
-                    async let minDelay: Void = Task.sleep(nanoseconds: 1_800_000_000)
-                    _ = try await (deleteAccount, minDelay)
-                    pendingAccountAction = nil
-                    hasCompletedOnboarding = false
-                    dismiss()
+                    do {
+                        async let deleteAccount: Void = authManager.deleteAccount()
+                        async let minDelay: Void = Task.sleep(nanoseconds: 1_800_000_000)
+                        _ = try await (deleteAccount, minDelay)
+                        pendingAccountAction = nil
+                        hasCompletedOnboarding = false
+                        dismiss()
+                    } catch {
+                        pendingAccountAction = nil
+                        deleteAccountError = error.localizedDescription
+                    }
                 }
             }
             Button("Cancel".notyfiLocalized, role: .cancel) {}
         } message: {
             Text("This permanently deletes your account and all data. This cannot be undone.".notyfiLocalized)
+        }
+        .alert("Delete Account Failed".notyfiLocalized, isPresented: Binding(
+            get: { deleteAccountError != nil },
+            set: { if !$0 { deleteAccountError = nil } }
+        )) {
+            Button("OK".notyfiLocalized, role: .cancel) { deleteAccountError = nil }
+        } message: {
+            Text(deleteAccountError ?? "")
         }
         .sheet(isPresented: $isFeedbackPresented) {
             FeedbackSheetView(url: URL(string: "https://notyfi.userjot.com/?cursor=1&order=top&limit=10")!)

@@ -23,7 +23,7 @@ workflows:
       - name: Write secrets xcconfig
         script: |
           mkdir -p "$CM_BUILD_DIR/Config"
-          printf 'SUPABASE_URL = https://uupftsuexunuwsdejxrh.supabase.co\nSUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1cGZ0c3VleHVudXdzZGVqeHJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NDk4MTQsImV4cCI6MjA5MTMyNTgxNH0.8mGjFrMj2bqyZuyrQIDcBsYlp7uXITLMyWSXqj-thQ8\n' > "$CM_BUILD_DIR/Config/Secrets.xcconfig"
+          printf 'SUPABASE_URL = %s\nSUPABASE_ANON_KEY = %s\n' "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > "$CM_BUILD_DIR/Config/Secrets.xcconfig"
 
       - name: Install XcodeGen
         script: |

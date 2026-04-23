@@ -186,18 +186,21 @@ final class AuthManager: ObservableObject {
 
     // MARK: - Delete Account
 
-    func deleteAccount() async {
-        if let session = SupabaseService.client.auth.currentSession {
-            var request = URLRequest(
-                url: URL(string: "https://uupftsuexunuwsdejxrh.supabase.co/functions/v1/delete-account")!
-            )
-            request.httpMethod = "POST"
-            request.setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            _ = try? await URLSession.shared.data(for: request)
+    func deleteAccount() async throws {
+        guard let session = SupabaseService.client.auth.currentSession else {
+            throw AuthError.sessionNotEstablished
         }
-
-        // Sign out locally regardless of whether the Edge Function succeeded
+        var request = URLRequest(
+            url: URL(string: "https://uupftsuexunuwsdejxrh.supabase.co/functions/v1/delete-account")!
+        )
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let (_, response) = try await URLSession.shared.data(for: request)
+        if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+            logger.error("delete-account edge function returned \(http.statusCode, privacy: .public)")
+            throw AuthError.deleteFailed
+        }
         try? await SupabaseService.client.auth.signOut()
         isAuthenticated = false
     }
@@ -227,7 +230,7 @@ final class AuthManager: ObservableObject {
         precondition(length > 0)
         var randomBytes = [UInt8](repeating: 0, count: length)
         let result = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
-        assert(result == errSecSuccess, "SecRandomCopyBytes failed")
+        precondition(result == errSecSuccess, "SecRandomCopyBytes failed")
         return randomBytes.map { String(format: "%02x", $0) }.joined()
     }
 
@@ -275,7 +278,7 @@ final class AuthManager: ObservableObject {
     }
 
     private func setDebugMessage(_ message: String) {
-        logger.log("\(message, privacy: .public)")
+        logger.log("\(message, privacy: .private)")
     }
 }
 
@@ -288,6 +291,7 @@ enum AuthError: LocalizedError {
     case googleSignInCancelled
     case googleSignInFailed
     case sessionNotEstablished
+    case deleteFailed
 
     var errorDescription: String? {
         switch self {
@@ -301,6 +305,8 @@ enum AuthError: LocalizedError {
             return "error.auth.googleFailed".notyfiLocalized
         case .sessionNotEstablished:
             return "Sign-in succeeded, but no session was established. Check the Xcode console for auth logs."
+        case .deleteFailed:
+            return "Account deletion failed. Please try again or contact support."
         }
     }
 

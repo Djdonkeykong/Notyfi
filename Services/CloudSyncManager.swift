@@ -45,6 +45,7 @@ final class CloudSyncManager: ObservableObject {
             pendingUploadTask = nil
             activeUserID = nil
             hasCompletedInitialSync = false
+            store.resetForSignOut()
             self.isReady = true
             return
         }
