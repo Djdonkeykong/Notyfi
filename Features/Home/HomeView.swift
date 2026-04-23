@@ -1460,7 +1460,6 @@ private struct JournalLineAccessoryView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .topTrailing)
-        .padding(.top, 1)
     }
 
     private func signedAmountText(for entry: ExpenseEntry) -> String {
