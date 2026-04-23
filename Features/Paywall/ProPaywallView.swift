@@ -207,10 +207,10 @@ private struct PaywallFeaturesPage: View {
     let onContinue: () -> Void
 
     private let features: [(icon: String, text: String)] = [
-        ("sparkles", "AI-powered expense parsing"),
-        ("icloud.and.arrow.up", "Cloud sync across your devices"),
-        ("chart.pie.fill", "Smart reports and insights"),
-        ("rectangle.stack.fill", "Home and lock screen widgets"),
+        ("✨", "AI-powered expense parsing"),
+        ("☁️", "Cloud sync across your devices"),
+        ("📊", "Smart reports and insights"),
+        ("📱", "Home and lock screen widgets"),
     ]
 
     var body: some View {
@@ -351,10 +351,10 @@ private struct PaywallPricingPage: View {
     let onRestore: () -> Void
 
     private let features: [(icon: String, text: String)] = [
-        ("sparkles", "AI-powered expense parsing".notyfiLocalized),
-        ("icloud.and.arrow.up", "Cloud sync across your devices".notyfiLocalized),
-        ("chart.pie.fill", "Smart reports and insights".notyfiLocalized),
-        ("rectangle.stack.fill", "Home and lock screen widgets".notyfiLocalized),
+        ("✨", "AI-powered expense parsing".notyfiLocalized),
+        ("☁️", "Cloud sync across your devices".notyfiLocalized),
+        ("📊", "Smart reports and insights".notyfiLocalized),
+        ("📱", "Home and lock screen widgets".notyfiLocalized),
     ]
 
     private var annualPackage: Package? { offering?.annual }
@@ -379,11 +379,9 @@ private struct PaywallPricingPage: View {
                 VStack(alignment: .leading, spacing: 18) {
                     ForEach(features, id: \.text) { feature in
                         HStack(spacing: 14) {
-                            Image(systemName: feature.icon)
-                                .font(.system(size: 16, weight: .medium))
-                                .symbolRenderingMode(.hierarchical)
-                                .foregroundStyle(NotyfiTheme.brandPrimary)
-                                .frame(width: 22)
+                            Text(feature.icon)
+                                .font(.system(size: 20))
+                                .frame(width: 28)
                             Text(feature.text)
                                 .font(.notyfi(.subheadline))
                         }
@@ -479,15 +477,9 @@ private struct PaywallFeatureRow: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(NotyfiTheme.brandPrimary.opacity(0.10))
-                    .frame(width: 52, height: 52)
-                Image(systemName: icon)
-                    .font(.system(size: 22, weight: .medium))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(NotyfiTheme.brandPrimary)
-            }
+            Text(icon)
+                .font(.system(size: 32))
+                .frame(width: 52, height: 52)
             Text(text)
                 .font(.notyfi(.body, weight: .medium))
             Spacer()
