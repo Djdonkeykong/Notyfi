@@ -245,7 +245,7 @@ private struct PaywallFeaturesPage: View {
                     frames: ["mascot-welcome-f1","mascot-welcome-f2","mascot-welcome-f3","mascot-welcome-f4"],
                     fps: 6
                 )
-                .frame(width: 346, height: 346)
+                .frame(width: 208, height: 208)
                 .padding(.top, 40)
 
                 // Trial badge
@@ -311,7 +311,7 @@ private struct PaywallHowItWorksPage: View {
                     frames: ["mascot-trial-f1","mascot-trial-f2","mascot-trial-f3","mascot-trial-f4"],
                     fps: 6
                 )
-                .frame(width: 346, height: 346)
+                .frame(width: 69, height: 69)
                 .padding(.top, 40)
                 .padding(.bottom, 12)
 
@@ -396,7 +396,7 @@ private struct PaywallPricingPage: View {
                     frames: ["mascot-welcome-f1","mascot-welcome-f2","mascot-welcome-f3","mascot-welcome-f4"],
                     fps: 6
                 )
-                .frame(width: 346, height: 346)
+                .frame(width: 208, height: 208)
                 .frame(maxWidth: .infinity)
                 .padding(.top, 40)
 
@@ -558,7 +558,7 @@ private struct PaywallFeatureRow: View {
             Text(icon)
                 .font(.system(size: 32))
                 .frame(width: 52, height: 52)
-            Text(text)
+            Text(text.notyfiLocalized)
                 .font(.notyfi(.body, weight: .medium))
             Spacer()
         }
