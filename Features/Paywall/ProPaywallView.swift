@@ -216,9 +216,12 @@ private struct PaywallFeaturesPage: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                OnboardingIllustration(symbol: "crown.fill")
-                    .padding(.top, 80)
-                    .padding(.bottom, 28)
+                SketchAnimatedImage(
+                    frames: ["mascot-welcome-f1","mascot-welcome-f2","mascot-welcome-f3","mascot-welcome-f4"],
+                    fps: 6
+                )
+                .frame(width: 346, height: 346)
+                .padding(.top, 40)
 
                 // Trial badge
                 HStack(spacing: 6) {
@@ -360,9 +363,16 @@ private struct PaywallPricingPage: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
+                SketchAnimatedImage(
+                    frames: ["mascot-welcome-f1","mascot-welcome-f2","mascot-welcome-f3","mascot-welcome-f4"],
+                    fps: 6
+                )
+                .frame(width: 346, height: 346)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 40)
+
                 Text("Access all of Notyfi".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
-                    .padding(.top, 96)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 32)
 
