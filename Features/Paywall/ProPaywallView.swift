@@ -1,5 +1,6 @@
 import RevenueCat
 import SwiftUI
+import WebKit
 
 struct ProPaywallView: View {
     let onDismiss: () -> Void
@@ -473,6 +474,8 @@ private struct PricingBottomCard: View {
     let onSubscribe: () -> Void
     let onRestore: () -> Void
 
+    @State private var legalURL: URL? = nil
+
     private var annualBadge: String {
         if isTrialEligible {
             return "3 days free".notyfiLocalized
@@ -560,14 +563,25 @@ private struct PricingBottomCard: View {
                 .padding(.bottom, 14)
 
             HStack {
-                Link("Terms of Service".notyfiLocalized, destination: URL(string: "https://notyfi.dotsokay.net/terms")!)
+                Button("Terms of Service".notyfiLocalized) {
+                    legalURL = URL(string: "https://notyfi.dotsokay.net/terms")
+                }
                 Spacer()
-                Link("Privacy Policy".notyfiLocalized, destination: URL(string: "https://notyfi.dotsokay.net/privacy")!)
+                Button("Privacy Policy".notyfiLocalized) {
+                    legalURL = URL(string: "https://notyfi.dotsokay.net/privacy")
+                }
             }
             .font(.notyfi(.caption2))
             .foregroundStyle(NotyfiTheme.tertiaryText)
             .padding(.horizontal, 24)
             .padding(.bottom, 28)
+        }
+        .sheet(item: $legalURL) { url in
+            LegalWebSheet(url: url)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(NotyfiTheme.background.opacity(0.98))
+                .presentationCornerRadius(34)
         }
         .background {
             RoundedRectangle(cornerRadius: 28, style: .continuous)
@@ -763,6 +777,34 @@ private struct PlaceholderPlanCard: View {
             }
         }
     }
+}
+
+extension URL: @retroactive Identifiable {
+    public var id: String { absoluteString }
+}
+
+private struct LegalWebSheet: View {
+    let url: URL
+
+    var body: some View {
+        LegalWebView(url: url)
+            .ignoresSafeArea()
+            .background(NotyfiTheme.background)
+    }
+}
+
+private struct LegalWebView: UIViewRepresentable {
+    let url: URL
+
+    func makeUIView(context: Context) -> WKWebView {
+        let webView = WKWebView()
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.load(URLRequest(url: url))
+        return webView
+    }
+
+    func updateUIView(_ webView: WKWebView, context: Context) {}
 }
 
 #Preview {
