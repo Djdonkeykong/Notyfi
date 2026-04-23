@@ -415,7 +415,8 @@ private struct PaywallPricingPage: View {
 
                 Text("Access all of Notyfi".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 64)
+                    .multilineTextAlignment(.center)
                     .padding(.bottom, 32)
 
                 VStack(alignment: .leading, spacing: 16) {
@@ -544,21 +545,7 @@ private struct PricingBottomCard: View {
                 .foregroundStyle(NotyfiTheme.tertiaryText)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
-                .padding(.bottom, 12)
-
-            Button(action: onRestore) {
-                if isRestoring {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .tint(NotyfiTheme.brandPrimary)
-                        .frame(height: 20)
-                } else {
-                    Text("Restore subscription".notyfiLocalized)
-                        .font(.notyfi(.subheadline))
-                        .foregroundStyle(NotyfiTheme.secondaryText)
-                }
-            }
-            .padding(.bottom, 28)
+                .padding(.bottom, 28)
         }
         .background {
             RoundedRectangle(cornerRadius: 28, style: .continuous)
