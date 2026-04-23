@@ -44,23 +44,8 @@ struct ProPaywallView: View {
             HStack {
                 if currentStep != .features {
                     CircleChevronButton(direction: .left) { goBack() }
-                } else {
-                    Color.clear.frame(width: 40, height: 40)
                 }
-
                 Spacer()
-
-                Button {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    onDismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.primary)
-                        .frame(width: 40, height: 40)
-                        .background(NotyfiTheme.circleButtonBackground, in: Circle())
-                }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)

@@ -39,18 +39,17 @@ struct AppRootView: View {
             } else {
                 HomeView(store: store, authManager: authManager)
                     .id(languageManager.refreshID)
-// MARK: Paywall disabled — re-enable before shipping
-//                    .task(id: authManager.isAuthenticated) {
-//                        guard authManager.isAuthenticated else {
-//                            showPaywall = false
-//                            return
-//                        }
-//                        await checkSubscriptionStatus()
-//                    }
-//                    .fullScreenCover(isPresented: $showPaywall) {
-//                        ProPaywallView(onDismiss: { showPaywall = false })
-//                            .interactiveDismissDisabled()
-//                    }
+                    .task(id: authManager.isAuthenticated) {
+                        guard authManager.isAuthenticated else {
+                            showPaywall = false
+                            return
+                        }
+                        await checkSubscriptionStatus()
+                    }
+                    .fullScreenCover(isPresented: $showPaywall) {
+                        ProPaywallView(onDismiss: { showPaywall = false })
+                            .interactiveDismissDisabled()
+                    }
             }
         }
         .environmentObject(languageManager)
@@ -80,6 +79,7 @@ struct AppRootView: View {
             NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
         ) { _ in
             Task { await NotificationContentEngine.shared.reschedule(store: store) }
+            if authManager.isAuthenticated { Task { await checkSubscriptionStatus() } }
         }
     }
 
