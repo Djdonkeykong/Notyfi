@@ -513,12 +513,14 @@ private struct PricingBottomCard: View {
             .padding(.top, 28)
             .padding(.bottom, 16)
 
-            if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
-                Link("Review billing in Apple".notyfiLocalized, destination: url)
+            HStack(spacing: 5) {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 11, weight: .bold))
+                Text(isTrialEligible ? "No commitment, cancel anytime".notyfiLocalized : "Cancel anytime".notyfiLocalized)
                     .font(.notyfi(.subheadline))
-                    .foregroundStyle(NotyfiTheme.brandPrimary)
-                    .padding(.bottom, 16)
             }
+            .foregroundStyle(NotyfiTheme.secondaryText)
+            .padding(.bottom, 16)
 
             if let error = errorMessage {
                 Text(error)
