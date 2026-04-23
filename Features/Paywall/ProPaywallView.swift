@@ -294,19 +294,19 @@ private struct PaywallHowItWorksPage: View {
 
                 VStack(spacing: 0) {
                     PaywallTimelineRow(
-                        icon: "play.circle.fill",
+                        icon: "🚀",
                         title: "Today",
                         subtitle: "Start your free 3-day trial. No payment needed right now.",
                         isLast: false
                     )
                     PaywallTimelineRow(
-                        icon: "bell.fill",
+                        icon: "🔔",
                         title: "Day 3",
                         subtitle: "We'll remind you before anything is charged.",
                         isLast: false
                     )
                     PaywallTimelineRow(
-                        icon: "checkmark.circle.fill",
+                        icon: "✅",
                         title: "After your trial",
                         subtitle: "Pick a plan that fits, or cancel anytime. No hard feelings.",
                         isLast: true
@@ -496,18 +496,12 @@ private struct PaywallTimelineRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 20) {
             VStack(spacing: 0) {
-                ZStack {
-                    Circle()
-                        .fill(NotyfiTheme.brandPrimary.opacity(0.10))
-                        .frame(width: 52, height: 52)
-                    Image(systemName: icon)
-                        .font(.system(size: 20, weight: .medium))
-                        .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(NotyfiTheme.brandPrimary)
-                }
+                Text(icon)
+                    .font(.system(size: 28))
+                    .frame(width: 52, height: 52)
                 if !isLast {
                     Rectangle()
-                        .fill(NotyfiTheme.brandPrimary.opacity(0.15))
+                        .fill(Color.primary.opacity(0.10))
                         .frame(width: 2)
                         .frame(minHeight: 40)
                 }
