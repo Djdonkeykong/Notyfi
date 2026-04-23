@@ -33,11 +33,9 @@ struct AppRootView: View {
         Group {
             if shouldShowSplash {
                 splashScreen
-            } else if !hasCompletedOnboarding {
+            } else if !hasCompletedOnboarding || !authManager.isAuthenticated {
                 OnboardingFlowView(store: store, authManager: authManager)
                     .id(languageManager.refreshID)
-            } else if !authManager.isAuthenticated {
-                OnboardingFlowView(store: store, authManager: authManager)
             } else {
                 HomeView(store: store, authManager: authManager)
                     .id(languageManager.refreshID)
