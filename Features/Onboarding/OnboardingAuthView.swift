@@ -440,6 +440,8 @@ struct EmailSignUpView: View {
             OTPAutofillField(text: $otpCode, onFilled: verify)
                 .task(id: otpFocused) {
                     guard otpFocused else { return }
+                    try? await Task.sleep(nanoseconds: 350_000_000)
+                    guard !Task.isCancelled else { return }
                     cursorVisible = true
                     while !Task.isCancelled {
                         try? await Task.sleep(nanoseconds: 530_000_000)
