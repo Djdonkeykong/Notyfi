@@ -503,7 +503,7 @@ private struct PaywallTimelineRow: View {
                     Rectangle()
                         .fill(Color.primary.opacity(0.10))
                         .frame(width: 2)
-                        .frame(minHeight: 40)
+                        .frame(maxHeight: .infinity)
                 }
             }
 
@@ -516,7 +516,7 @@ private struct PaywallTimelineRow: View {
                     .lineSpacing(2)
             }
             .padding(.top, 14)
-            .padding(.bottom, isLast ? 0 : 28)
+            .padding(.bottom, isLast ? 0 : 32)
 
             Spacer()
         }
