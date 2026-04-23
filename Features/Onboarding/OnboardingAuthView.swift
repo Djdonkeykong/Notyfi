@@ -236,7 +236,7 @@ struct EmailSignUpView: View {
     @State private var isVerifying = false
     @State private var cursorVisible = true
     @FocusState private var emailFocused: Bool
-    @FocusState private var otpFocused: Bool
+    @State private var otpFocused: Bool = false
 
     // When true, OTP is sent with shouldCreateUser: false — blocks new-account creation
     // and shows a user-friendly error if the email isn't registered.
@@ -400,6 +400,7 @@ struct EmailSignUpView: View {
         }
         .padding(.horizontal, 20)
         .onAppear { otpFocused = true }
+        .onDisappear { otpFocused = false }
     }
 
     private var otpBoxes: some View {
@@ -436,7 +437,7 @@ struct EmailSignUpView: View {
                 }
             }
 
-            TextField("", text: $otpCode)
+            OTPAutofillField(text: $otpCode, onFilled: verify)
                 .task(id: otpFocused) {
                     guard otpFocused else { return }
                     cursorVisible = true
@@ -445,23 +446,9 @@ struct EmailSignUpView: View {
                         withAnimation(.easeInOut(duration: 0.12)) { cursorVisible.toggle() }
                     }
                 }
-                .keyboardType(.numberPad)
-                .textContentType(.oneTimeCode)
-                .focused($otpFocused)
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
-                .foregroundStyle(.clear)
-                .tint(.clear)
                 .opacity(0.011)
-                .onChange(of: otpCode) { _, v in
-                    let filtered = v.filter { $0.isNumber }
-                    if filtered.count > 6 {
-                        otpCode = String(filtered.prefix(6))
-                    } else if filtered != v {
-                        otpCode = filtered
-                    }
-                    if otpCode.count == 6 { verify() }
-                }
         }
     }
 
@@ -519,6 +506,69 @@ struct EmailSignUpView: View {
 }
 
 
+
+// MARK: - OTP autofill field
+
+// Uses UIViewRepresentable so that shouldChangeCharactersIn — the one delegate
+// method iOS routes BOTH typed input and QuickType autofill through — is our
+// single source of truth. SwiftUI's own TextField binding sync skips onChange
+// for autofill-delivered text, so the boxes stayed blank. This fixes that.
+private struct OTPAutofillField: UIViewRepresentable {
+    @Binding var text: String
+    var onFilled: () -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeUIView(context: Context) -> UITextField {
+        let field = UITextField()
+        field.keyboardType = .numberPad
+        field.textContentType = .oneTimeCode
+        field.autocorrectionType = .no
+        field.autocapitalizationType = .none
+        field.tintColor = .clear
+        field.textColor = .clear
+        field.backgroundColor = .clear
+        field.borderStyle = .none
+        field.delegate = context.coordinator
+        // Focus once when the view is created (OTP step appearing).
+        // Not repeated in updateUIView — that was the cause of the keyboard-lock bug.
+        DispatchQueue.main.async { field.becomeFirstResponder() }
+        return field
+    }
+
+    func updateUIView(_ uiView: UITextField, context: Context) {
+        context.coordinator.parent = self
+        // Sync externally-cleared text (e.g. resend clears otpCode to "")
+        if uiView.text != text {
+            uiView.text = text
+        }
+    }
+
+    final class Coordinator: NSObject, UITextFieldDelegate {
+        var parent: OTPAutofillField
+
+        init(_ parent: OTPAutofillField) { self.parent = parent }
+
+        func textField(
+            _ textField: UITextField,
+            shouldChangeCharactersIn range: NSRange,
+            replacementString string: String
+        ) -> Bool {
+            let current = textField.text ?? ""
+            guard let r = Range(range, in: current) else { return false }
+            let digits = current
+                .replacingCharacters(in: r, with: string)
+                .filter { $0.isNumber }
+            let clamped = String(digits.prefix(6))
+            textField.text = clamped
+            parent.text = clamped
+            if clamped.count == 6 {
+                DispatchQueue.main.async { self.parent.onFilled() }
+            }
+            return false
+        }
+    }
+}
 
 #Preview {
     OnboardingAuthView(authManager: AuthManager())
