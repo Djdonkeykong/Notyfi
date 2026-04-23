@@ -75,7 +75,7 @@ private struct SmallWidgetView: View {
                 // Main number
                 Text(spendAmount)
                     .font(.system(size: 28, weight: .bold, design: .default))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.white)
                     .minimumScaleFactor(0.6)
                     .lineLimit(1)
                     .monospacedDigit()
@@ -83,14 +83,14 @@ private struct SmallWidgetView: View {
                 if let budget = budgetString {
                     Text("of \(budget)")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.black.opacity(0.55))
+                        .foregroundStyle(.white.opacity(0.6))
                         .monospacedDigit()
                         .padding(.top, 1)
                 }
 
                 Text("spent this month".notyfiLocalized)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.black.opacity(0.5))
+                    .foregroundStyle(.white.opacity(0.55))
                     .padding(.top, 1)
             }
 
