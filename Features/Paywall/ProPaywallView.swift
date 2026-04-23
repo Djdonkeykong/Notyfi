@@ -438,17 +438,24 @@ private struct PaywallPricingPage: View {
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
         .safeAreaInset(edge: .bottom) {
-            PricingBottomCard(
-                annualPackage: annualPackage,
-                monthlyPackage: monthlyPackage,
-                selectedPackage: $selectedPackage,
-                isPurchasing: isPurchasing,
-                isRestoring: isRestoring,
-                errorMessage: errorMessage,
-                isTrialEligible: isTrialEligible,
-                onSubscribe: onSubscribe,
-                onRestore: onRestore
-            )
+            ZStack(alignment: .bottom) {
+                // Fills the home indicator safe area with the card's background color,
+                // eliminating the brandLight bar that shows below the floating card.
+                Color(uiColor: .systemBackground)
+                    .frame(height: 0)
+                    .ignoresSafeArea(edges: .bottom)
+                PricingBottomCard(
+                    annualPackage: annualPackage,
+                    monthlyPackage: monthlyPackage,
+                    selectedPackage: $selectedPackage,
+                    isPurchasing: isPurchasing,
+                    isRestoring: isRestoring,
+                    errorMessage: errorMessage,
+                    isTrialEligible: isTrialEligible,
+                    onSubscribe: onSubscribe,
+                    onRestore: onRestore
+                )
+            }
         }
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -557,7 +564,6 @@ private struct PricingBottomCard: View {
                 .shadow(color: .black.opacity(0.09), radius: 20, x: 0, y: -6)
         }
         .padding(.horizontal, 12)
-        .padding(.bottom, 8)
     }
 }
 
