@@ -248,26 +248,13 @@ private struct PaywallFeaturesPage: View {
                 .frame(width: 208, height: 208)
                 .padding(.top, 40)
 
-                // Trial badge
-                HStack(spacing: 6) {
-                    Image(systemName: "gift.fill")
-                        .font(.system(size: 12, weight: .semibold))
-                    Text("3 days free, no commitment".notyfiLocalized)
-                        .font(.notyfi(.footnote, weight: .semibold))
-                }
-                .foregroundStyle(NotyfiTheme.brandPrimary)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .background(NotyfiTheme.brandPrimary.opacity(0.10), in: Capsule())
-                .padding(.bottom, 20)
-
                 Text("Good things ahead".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
                     .padding(.bottom, 20)
 
-                VStack(spacing: 24) {
+                VStack(spacing: 22) {
                     ForEach(features, id: \.text) { feature in
                         PaywallFeatureRow(icon: feature.icon, text: feature.text)
                     }
@@ -330,7 +317,7 @@ private struct PaywallHowItWorksPage: View {
                     )
                     PaywallTimelineRow(
                         icon: "🔔",
-                        title: "Day 3".notyfiLocalized,
+                        title: "Day 2".notyfiLocalized,
                         subtitle: "We'll remind you before anything is charged.".notyfiLocalized,
                         isLast: false
                     )
@@ -554,10 +541,10 @@ private struct PaywallFeatureRow: View {
     let text: String
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 14) {
             Text(icon)
-                .font(.system(size: 32))
-                .frame(width: 52, height: 52)
+                .font(.system(size: 29))
+                .frame(width: 47, height: 47)
             Text(text.notyfiLocalized)
                 .font(.notyfi(.body, weight: .medium))
             Spacer()
@@ -572,11 +559,11 @@ private struct PaywallTimelineRow: View {
     let isLast: Bool
 
     var body: some View {
-        HStack(alignment: .top, spacing: 20) {
+        HStack(alignment: .top, spacing: 18) {
             VStack(spacing: 0) {
                 Text(icon)
-                    .font(.system(size: 28))
-                    .frame(width: 52, height: 52)
+                    .font(.system(size: 25))
+                    .frame(width: 47, height: 47)
                 if !isLast {
                     Rectangle()
                         .fill(Color.primary.opacity(0.10))
@@ -593,8 +580,9 @@ private struct PaywallTimelineRow: View {
                     .foregroundStyle(NotyfiTheme.secondaryText)
                     .lineSpacing(2)
             }
-            .padding(.top, 14)
-            .padding(.bottom, isLast ? 0 : 32)
+            .frame(minHeight: 60, alignment: .top)
+            .padding(.top, 13)
+            .padding(.bottom, isLast ? 0 : 29)
 
             Spacer()
         }
