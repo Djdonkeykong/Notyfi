@@ -509,10 +509,9 @@ struct EmailSignUpView: View {
 
 // MARK: - OTP autofill field
 
-// Uses UIViewRepresentable so that shouldChangeCharactersIn — the one delegate
-// method iOS routes BOTH typed input and QuickType autofill through — is our
-// single source of truth. SwiftUI's own TextField binding sync skips onChange
-// for autofill-delivered text, so the boxes stayed blank. This fixes that.
+// Uses UIViewRepresentable because SwiftUI TextField never fires onChange for
+// autofill-delivered text. UIControl.editingChanged fires for BOTH typed input
+// and QuickType/autofill, making it the reliable single source of truth.
 private struct OTPAutofillField: UIViewRepresentable {
     @Binding var text: String
     var onFilled: () -> Void
@@ -530,15 +529,20 @@ private struct OTPAutofillField: UIViewRepresentable {
         field.backgroundColor = .clear
         field.borderStyle = .none
         field.delegate = context.coordinator
-        // Focus once when the view is created (OTP step appearing).
-        // Not repeated in updateUIView — that was the cause of the keyboard-lock bug.
-        DispatchQueue.main.async { field.becomeFirstResponder() }
+        // editingChanged fires for BOTH typed input AND QuickType/autofill delivery,
+        // regardless of what shouldChangeCharactersIn returns. This is the reliable
+        // sync path for autofill — shouldChangeCharactersIn alone is not enough.
+        field.addTarget(
+            context.coordinator,
+            action: #selector(Coordinator.textChanged(_:)),
+            for: .editingChanged
+        )
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { field.becomeFirstResponder() }
         return field
     }
 
     func updateUIView(_ uiView: UITextField, context: Context) {
         context.coordinator.parent = self
-        // Sync externally-cleared text (e.g. resend clears otpCode to "")
         if uiView.text != text {
             uiView.text = text
         }
@@ -554,18 +558,21 @@ private struct OTPAutofillField: UIViewRepresentable {
             shouldChangeCharactersIn range: NSRange,
             replacementString string: String
         ) -> Bool {
-            let current = textField.text ?? ""
-            guard let r = Range(range, in: current) else { return false }
-            let digits = current
-                .replacingCharacters(in: r, with: string)
-                .filter { $0.isNumber }
+            // Let UIKit apply the change so editingChanged fires — that's where
+            // we do filtering and binding sync. Only block non-digit typed input.
+            if string.isEmpty { return true } // backspace
+            return string.allSatisfy { $0.isNumber }
+        }
+
+        @objc func textChanged(_ textField: UITextField) {
+            let digits = (textField.text ?? "").filter { $0.isNumber }
             let clamped = String(digits.prefix(6))
-            textField.text = clamped
+            // Programmatic text assignment does not re-fire editingChanged — no loop.
+            if textField.text != clamped { textField.text = clamped }
             parent.text = clamped
             if clamped.count == 6 {
                 DispatchQueue.main.async { self.parent.onFilled() }
             }
-            return false
         }
     }
 }
