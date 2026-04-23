@@ -140,6 +140,7 @@
 "Sign Out" = "Uitloggen";
 "Sign out of Notyfi?" = "Uitloggen bij Notyfi?";
 "Delete Account" = "Account verwijderen";
+"Delete Account Failed" = "Account verwijderen mislukt";
 "Delete your account?" = "Je account verwijderen?";
 "This permanently deletes your account and all data. This cannot be undone." = "Dit verwijdert je account en alle gegevens permanent. Dit kan niet ongedaan worden gemaakt.";
 "Version 1.0" = "Versie 1.0";
@@ -159,6 +160,7 @@
 "Keep things simple for now. More controls will arrive as the app grows." = "Houd het voorlopig eenvoudig. Meer opties komen zodra de app groeit.";
 "Clear your entire log?" = "Je volledige log wissen?";
 "Cancel" = "Annuleren";
+"OK" = "OK";
 "This removes every saved entry from Notyfi." = "Hiermee worden alle opgeslagen items uit Notyfi verwijderd.";
 "Log today's money notes" = "Leg de geldnotities van vandaag vast";
 "Open Notyfi and capture today's spending while it is still fresh." = "Open Notyfi en leg de uitgaven van vandaag vast zolang ze nog vers zijn.";

@@ -140,6 +140,7 @@
 "Sign Out" = "Logga ut";
 "Sign out of Notyfi?" = "Logga ut från Notyfi?";
 "Delete Account" = "Ta bort konto";
+"Delete Account Failed" = "Det gick inte att ta bort kontot";
 "Delete your account?" = "Ta bort ditt konto?";
 "This permanently deletes your account and all data. This cannot be undone." = "Detta tar bort ditt konto och alla data permanent. Det går inte att ångra.";
 "Version 1.0" = "Version 1.0";
@@ -159,6 +160,7 @@
 "Keep things simple for now. More controls will arrive as the app grows." = "Håll det enkelt just nu. Fler inställningar kommer när appen växer.";
 "Clear your entire log?" = "Rensa hela din logg?";
 "Cancel" = "Avbryt";
+"OK" = "OK";
 "This removes every saved entry from Notyfi." = "Detta tar bort alla sparade poster från Notyfi.";
 "Log today's money notes" = "Logga dagens pengaranteckningar";
 "Open Notyfi and capture today's spending while it is still fresh." = "Öppna Notyfi och registrera dagens utgifter medan de fortfarande är färska.";

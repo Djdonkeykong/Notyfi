@@ -140,6 +140,7 @@
 "Sign Out" = "Kirjaudu ulos";
 "Sign out of Notyfi?" = "Kirjaudutaanko ulos Notyfista?";
 "Delete Account" = "Poista tili";
+"Delete Account Failed" = "Tilin poistaminen epäonnistui";
 "Delete your account?" = "Poistetaanko tilisi?";
 "This permanently deletes your account and all data. This cannot be undone." = "Tämä poistaa tilisi ja kaikki tiedot pysyvästi. Tätä ei voi kumota.";
 "Version 1.0" = "Versio 1.0";
@@ -159,6 +160,7 @@
 "Keep things simple for now. More controls will arrive as the app grows." = "Pidetään asiat toistaiseksi yksinkertaisina. Lisää säätöjä tulee sovelluksen kasvaessa.";
 "Clear your entire log?" = "Tyhjennetäänkö koko loki?";
 "Cancel" = "Peruuta";
+"OK" = "OK";
 "This removes every saved entry from Notyfi." = "Tämä poistaa kaikki tallennetut merkinnät Notyfista.";
 "Log today's money notes" = "Kirjaa tämän päivän rahamuistiinpanot";
 "Open Notyfi and capture today's spending while it is still fresh." = "Avaa Notyfi ja kirjaa tämän päivän menot, kun ne ovat vielä tuoreessa muistissa.";

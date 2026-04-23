@@ -141,6 +141,7 @@
 "Sign Out" = "Sign Out";
 "Sign out of Notyfi?" = "Sign out of Notyfi?";
 "Delete Account" = "Delete Account";
+"Delete Account Failed" = "Delete Account Failed";
 "Delete your account?" = "Delete your account?";
 "This permanently deletes your account and all data. This cannot be undone." = "This permanently deletes your account and all data. This cannot be undone.";
 "Version 1.0" = "Version 1.0";
@@ -160,6 +161,7 @@
 "Keep things simple for now. More controls will arrive as the app grows." = "Keep things simple for now. More controls will arrive as the app grows.";
 "Clear your entire log?" = "Clear your entire log?";
 "Cancel" = "Cancel";
+"OK" = "OK";
 "This removes every saved entry from Notyfi." = "This removes every saved entry from Notyfi.";
 "Log today's money notes" = "Log today's money notes";
 "Open Notyfi and capture today's spending while it is still fresh." = "Open Notyfi and capture today's spending while it is still fresh.";

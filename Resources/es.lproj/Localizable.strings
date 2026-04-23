@@ -140,6 +140,7 @@
 "Sign Out" = "Cerrar sesión";
 "Sign out of Notyfi?" = "¿Cerrar sesión en Notyfi?";
 "Delete Account" = "Eliminar cuenta";
+"Delete Account Failed" = "Error al eliminar la cuenta";
 "Delete your account?" = "¿Eliminar tu cuenta?";
 "This permanently deletes your account and all data. This cannot be undone." = "Esto elimina permanentemente tu cuenta y todos los datos. Esta acción no se puede deshacer.";
 "Version 1.0" = "Versión 1.0";
@@ -159,6 +160,7 @@
 "Keep things simple for now. More controls will arrive as the app grows." = "Mantengamos las cosas simples por ahora. Llegarán más controles a medida que la app crezca.";
 "Clear your entire log?" = "¿Borrar todo tu registro?";
 "Cancel" = "Cancelar";
+"OK" = "Aceptar";
 "This removes every saved entry from Notyfi." = "Esto elimina todas las entradas guardadas de Notyfi.";
 "Log today's money notes" = "Registrar las notas de dinero de hoy";
 "Open Notyfi and capture today's spending while it is still fresh." = "Abre Notyfi y registra los gastos de hoy mientras aún están frescos.";
