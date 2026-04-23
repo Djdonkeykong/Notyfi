@@ -466,7 +466,25 @@
 "Home and lock screen widgets" = "Widgetit koti- ja lukitusnäytölle";
 "Best value" = "Paras arvo";
 "Restore subscription" = "Palauta tilaus";
+"Subscription" = "Tilaus";
+"Subscribed" = "Tilattu";
+"Manage Subscription" = "Hallitse tilausta";
+"Upgrade to Pro" = "Päivitä Pro-versioon";
 "Apple shows the final billing terms before you confirm." = "Apple näyttää lopulliset laskutusehdot ennen vahvistamistasi.";
+"Good things ahead" = "Hyviä asioita tulossa";
+"3 days free, no commitment" = "3 päivää ilmaiseksi, ei sitoumuksia";
+"3 days free" = "3 päivää ilmaiseksi";
+"No commitment.\nJust try it." = "Ei sitoumuksia.\nKokeile vain.";
+"Day 3" = "Päivä 3";
+"After your trial" = "Kokeilujakson jälkeen";
+"Start your free 3-day trial. No payment needed right now." = "Aloita ilmainen 3 päivän kokeilujakso. Maksua ei tarvita nyt.";
+"We'll remind you before anything is charged." = "Muistutamme sinua ennen veloitusta.";
+"Pick a plan that fits, or cancel anytime. No hard feelings." = "Valitse sopiva suunnitelma tai peruuta milloin tahansa. Ei paineita.";
+"See how it works" = "Katso miten se toimii";
+"See pricing" = "Katso hinnat";
+"Start free trial" = "Aloita ilmainen kokeilu";
+"Subscribe now" = "Tilaa nyt";
+"Review billing in Apple" = "Tarkasta laskutus Applessa";
 "Learn More" = "Lisätietoja";
 
 // Misc UI

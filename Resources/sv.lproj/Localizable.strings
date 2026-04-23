@@ -467,7 +467,25 @@
 "Home and lock screen widgets" = "Widgets för hem- och låsskärm";
 "Best value" = "Bästa värde";
 "Restore subscription" = "Återställ prenumeration";
+"Subscription" = "Prenumeration";
+"Subscribed" = "Prenumererar";
+"Manage Subscription" = "Hantera prenumeration";
+"Upgrade to Pro" = "Uppgradera till Pro";
 "Apple shows the final billing terms before you confirm." = "Apple visar de slutliga faktureringsvillkoren innan du bekräftar.";
+"Good things ahead" = "Bra saker väntar";
+"3 days free, no commitment" = "3 dagar gratis, utan åtaganden";
+"3 days free" = "3 dagar gratis";
+"No commitment.\nJust try it." = "Inga åtaganden.\nProva bara.";
+"Day 3" = "Dag 3";
+"After your trial" = "Efter din provperiod";
+"Start your free 3-day trial. No payment needed right now." = "Starta din gratis 3-dagars provperiod. Ingen betalning krävs just nu.";
+"We'll remind you before anything is charged." = "Vi påminner dig innan något debiteras.";
+"Pick a plan that fits, or cancel anytime. No hard feelings." = "Välj ett plan som passar, eller avbryt när som helst. Inga konstigheter.";
+"See how it works" = "Se hur det fungerar";
+"See pricing" = "Se priser";
+"Start free trial" = "Starta gratis provperiod";
+"Subscribe now" = "Prenumerera nu";
+"Review billing in Apple" = "Granska fakturering i Apple";
 "Learn More" = "Läs mer";
 
 // Misc UI

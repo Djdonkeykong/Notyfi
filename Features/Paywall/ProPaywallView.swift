@@ -22,6 +22,7 @@ struct ProPaywallView: View {
     @State private var isPurchasing = false
     @State private var isRestoring = false
     @State private var errorMessage: String?
+    @State private var isTrialEligible = true
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -42,10 +43,19 @@ struct ProPaywallView: View {
             }
 
             HStack {
-                if currentStep != .features {
+                if !stepHistory.isEmpty {
                     CircleChevronButton(direction: .left) { goBack() }
                 }
                 Spacer()
+                // TESTING ONLY — remove before release
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.primary)
+                        .frame(width: 40, height: 40)
+                        .background(NotyfiTheme.circleButtonBackground, in: Circle())
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
@@ -67,6 +77,7 @@ struct ProPaywallView: View {
                 isPurchasing: isPurchasing,
                 isRestoring: isRestoring,
                 errorMessage: errorMessage,
+                isTrialEligible: isTrialEligible,
                 onSubscribe: { Task { await purchase() } },
                 onRestore: { Task { await restore() } }
             )
@@ -154,6 +165,20 @@ struct ProPaywallView: View {
             let offerings = try await Purchases.shared.offerings()
             offering = offerings.current
             selectedPackage = offering?.annual ?? offering?.availablePackages.first
+
+            if let productId = offering?.annual?.storeProduct.productIdentifier {
+                let eligibility = await Purchases.shared.checkTrialOrIntroDiscountEligibility(productIdentifiers: [productId])
+                let eligible = eligibility[productId]?.status != .ineligible
+                isTrialEligible = eligible
+                if !eligible {
+                    var snap = Transaction()
+                    snap.disablesAnimations = true
+                    withTransaction(snap) {
+                        currentStep = .pricing
+                        slotA = .pricing
+                    }
+                }
+            }
         } catch {
             // Offerings unavailable — placeholder cards shown until products are configured
         }
@@ -227,7 +252,7 @@ private struct PaywallFeaturesPage: View {
                 HStack(spacing: 6) {
                     Image(systemName: "gift.fill")
                         .font(.system(size: 12, weight: .semibold))
-                    Text("3 days free, no commitment")
+                    Text("3 days free, no commitment".notyfiLocalized)
                         .font(.notyfi(.footnote, weight: .semibold))
                 }
                 .foregroundStyle(NotyfiTheme.brandPrimary)
@@ -236,11 +261,11 @@ private struct PaywallFeaturesPage: View {
                 .background(NotyfiTheme.brandPrimary.opacity(0.10), in: Capsule())
                 .padding(.bottom, 20)
 
-                Text("Good things ahead")
+                Text("Good things ahead".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
-                    .padding(.bottom, 48)
+                    .padding(.bottom, 20)
 
                 VStack(spacing: 24) {
                     ForEach(features, id: \.text) { feature in
@@ -282,11 +307,15 @@ private struct PaywallHowItWorksPage: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                OnboardingIllustration(symbol: "gift.fill")
-                    .padding(.top, 80)
-                    .padding(.bottom, 36)
+                SketchAnimatedImage(
+                    frames: ["mascot-trial-f1","mascot-trial-f2","mascot-trial-f3","mascot-trial-f4"],
+                    fps: 6
+                )
+                .frame(width: 346, height: 346)
+                .padding(.top, 40)
+                .padding(.bottom, 12)
 
-                Text("No commitment.\nJust try it.")
+                Text("No commitment.\nJust try it.".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
@@ -295,20 +324,20 @@ private struct PaywallHowItWorksPage: View {
                 VStack(spacing: 0) {
                     PaywallTimelineRow(
                         icon: "🚀",
-                        title: "Today",
-                        subtitle: "Start your free 3-day trial. No payment needed right now.",
+                        title: "Today".notyfiLocalized,
+                        subtitle: "Start your free 3-day trial. No payment needed right now.".notyfiLocalized,
                         isLast: false
                     )
                     PaywallTimelineRow(
                         icon: "🔔",
-                        title: "Day 3",
-                        subtitle: "We'll remind you before anything is charged.",
+                        title: "Day 3".notyfiLocalized,
+                        subtitle: "We'll remind you before anything is charged.".notyfiLocalized,
                         isLast: false
                     )
                     PaywallTimelineRow(
                         icon: "✅",
-                        title: "After your trial",
-                        subtitle: "Pick a plan that fits, or cancel anytime. No hard feelings.",
+                        title: "After your trial".notyfiLocalized,
+                        subtitle: "Pick a plan that fits, or cancel anytime. No hard feelings.".notyfiLocalized,
                         isLast: true
                     )
                 }
@@ -347,14 +376,14 @@ private struct PaywallPricingPage: View {
     let isPurchasing: Bool
     let isRestoring: Bool
     let errorMessage: String?
+    let isTrialEligible: Bool
     let onSubscribe: () -> Void
     let onRestore: () -> Void
 
     private let features: [(icon: String, text: String)] = [
-        ("✨", "AI-powered expense parsing".notyfiLocalized),
-        ("☁️", "Cloud sync across your devices".notyfiLocalized),
-        ("📊", "Smart reports and insights".notyfiLocalized),
-        ("📱", "Home and lock screen widgets".notyfiLocalized),
+        ("✨", "AI-powered expense parsing"),
+        ("📊", "Smart reports and insights"),
+        ("📱", "Home and lock screen widgets"),
     ]
 
     private var annualPackage: Package? { offering?.annual }
@@ -382,90 +411,138 @@ private struct PaywallPricingPage: View {
                             Text(feature.icon)
                                 .font(.system(size: 20))
                                 .frame(width: 28)
-                            Text(feature.text)
+                            Text(feature.text.notyfiLocalized)
                                 .font(.notyfi(.subheadline))
                         }
                     }
                 }
                 .padding(.horizontal, 24)
-                .padding(.bottom, 36)
-
-                HStack(spacing: 12) {
-                    if let annual = annualPackage {
-                        PlanCard(
-                            package: annual,
-                            isSelected: selectedPackage?.identifier == annual.identifier,
-                            badge: "Best value".notyfiLocalized,
-                            onTap: { selectedPackage = annual }
-                        )
-                    }
-                    if let monthly = monthlyPackage {
-                        PlanCard(
-                            package: monthly,
-                            isSelected: selectedPackage?.identifier == monthly.identifier,
-                            badge: nil,
-                            onTap: { selectedPackage = monthly }
-                        )
-                    }
-                    if annualPackage == nil && monthlyPackage == nil {
-                        PlaceholderPlanCard(label: "Yearly".notyfiLocalized, badge: "Best value".notyfiLocalized, isSelected: true)
-                        PlaceholderPlanCard(label: "Monthly".notyfiLocalized, badge: nil, isSelected: false)
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 20)
-
-                if let error = errorMessage {
-                    Text(error)
-                        .font(.notyfi(.caption))
-                        .foregroundStyle(.red)
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 8)
-                }
             }
         }
-        .contentMargins(.bottom, 200, for: .scrollContent)
+        .contentMargins(.bottom, 300, for: .scrollContent)
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
         .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 12) {
-                LinearGradient(
-                    colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 32)
-                .allowsHitTesting(false)
-
-                OnboardingPrimaryButton(title: "Start free trial".notyfiLocalized, isLoading: isPurchasing, action: onSubscribe)
-                    .padding(.horizontal, 24)
-
-                Button(action: onRestore) {
-                    if isRestoring {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .tint(NotyfiTheme.brandPrimary)
-                            .frame(height: 20)
-                    } else {
-                        Text("Restore subscription".notyfiLocalized)
-                            .font(.notyfi(.subheadline))
-                            .foregroundStyle(NotyfiTheme.secondaryText)
-                    }
-                }
-
-                Text("Apple shows the final billing terms before you confirm.".notyfiLocalized)
-                    .font(.notyfi(.caption2))
-                    .foregroundStyle(NotyfiTheme.tertiaryText)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                    .padding(.bottom, 24)
-            }
-            .background(NotyfiTheme.brandLight)
+            PricingBottomCard(
+                annualPackage: annualPackage,
+                monthlyPackage: monthlyPackage,
+                selectedPackage: $selectedPackage,
+                isPurchasing: isPurchasing,
+                isRestoring: isRestoring,
+                errorMessage: errorMessage,
+                isTrialEligible: isTrialEligible,
+                onSubscribe: onSubscribe,
+                onRestore: onRestore
+            )
         }
         .toolbar(.hidden, for: .navigationBar)
+    }
+}
+
+private struct PricingBottomCard: View {
+    let annualPackage: Package?
+    let monthlyPackage: Package?
+    @Binding var selectedPackage: Package?
+    let isPurchasing: Bool
+    let isRestoring: Bool
+    let errorMessage: String?
+    let isTrialEligible: Bool
+    let onSubscribe: () -> Void
+    let onRestore: () -> Void
+
+    private var annualBadge: String {
+        if isTrialEligible {
+            return "3 days free".notyfiLocalized
+        }
+        if let annual = annualPackage, let monthly = monthlyPackage {
+            let annualPerMonth = annual.storeProduct.price / 12
+            let savings = (monthly.storeProduct.price - annualPerMonth) / monthly.storeProduct.price * 100
+            return "\(Int(savings.rounded()))% OFF"
+        }
+        return "Best value".notyfiLocalized
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                if let monthly = monthlyPackage {
+                    PlanCard(
+                        package: monthly,
+                        isSelected: selectedPackage?.identifier == monthly.identifier,
+                        badge: nil,
+                        onTap: { selectedPackage = monthly }
+                    )
+                }
+                if let annual = annualPackage {
+                    PlanCard(
+                        package: annual,
+                        isSelected: selectedPackage?.identifier == annual.identifier,
+                        badge: annualBadge,
+                        onTap: { selectedPackage = annual }
+                    )
+                }
+                if annualPackage == nil && monthlyPackage == nil {
+                    PlaceholderPlanCard(label: "Monthly".notyfiLocalized, badge: nil, isSelected: false)
+                    PlaceholderPlanCard(label: "Yearly".notyfiLocalized, badge: isTrialEligible ? "3 days free".notyfiLocalized : "Best value".notyfiLocalized, isSelected: true)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 28)
+            .padding(.bottom, 16)
+
+            if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+                Link("Review billing in Apple".notyfiLocalized, destination: url)
+                    .font(.notyfi(.subheadline))
+                    .foregroundStyle(NotyfiTheme.brandPrimary)
+                    .padding(.bottom, 16)
+            }
+
+            if let error = errorMessage {
+                Text(error)
+                    .font(.notyfi(.caption))
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 8)
+            }
+
+            OnboardingPrimaryButton(
+                title: isTrialEligible ? "Start free trial".notyfiLocalized : "Subscribe now".notyfiLocalized,
+                isLoading: isPurchasing,
+                action: onSubscribe
+            )
+                .padding(.horizontal, 20)
+                .padding(.bottom, 10)
+
+            Text("Apple shows the final billing terms before you confirm.".notyfiLocalized)
+                .font(.notyfi(.caption2))
+                .foregroundStyle(NotyfiTheme.tertiaryText)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+                .padding(.bottom, 12)
+
+            Button(action: onRestore) {
+                if isRestoring {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .tint(NotyfiTheme.brandPrimary)
+                        .frame(height: 20)
+                } else {
+                    Text("Restore subscription".notyfiLocalized)
+                        .font(.notyfi(.subheadline))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                }
+            }
+            .padding(.bottom, 28)
+        }
+        .background {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(Color(uiColor: .systemBackground))
+                .shadow(color: .black.opacity(0.09), radius: 20, x: 0, y: -6)
+        }
+        .padding(.horizontal, 12)
+        .padding(.bottom, 8)
     }
 }
 
@@ -540,6 +617,10 @@ private struct PlanCard: View {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 18))
                             .foregroundStyle(NotyfiTheme.brandPrimary)
+                    } else {
+                        Image(systemName: "circle")
+                            .font(.system(size: 18))
+                            .foregroundStyle(Color.primary.opacity(0.20))
                     }
                 }
                 Text(package.storeProduct.localizedPriceString)
@@ -599,8 +680,20 @@ private struct PlaceholderPlanCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(label)
-                .font(.notyfi(.subheadline, weight: .semibold))
+            HStack {
+                Text(label)
+                    .font(.notyfi(.subheadline, weight: .semibold))
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(NotyfiTheme.brandPrimary)
+                } else {
+                    Image(systemName: "circle")
+                        .font(.system(size: 18))
+                        .foregroundStyle(Color.primary.opacity(0.20))
+                }
+            }
             Text("--")
                 .font(.notyfi(.title3, weight: .bold))
                 .foregroundStyle(NotyfiTheme.tertiaryText)

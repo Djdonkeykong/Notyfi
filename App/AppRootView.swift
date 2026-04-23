@@ -30,27 +30,32 @@ struct AppRootView: View {
     }
 
     var body: some View {
-        Group {
-            if shouldShowSplash {
-                splashScreen
-            } else if !hasCompletedOnboarding || !authManager.isAuthenticated {
-                OnboardingFlowView(store: store, authManager: authManager)
-                    .id(languageManager.refreshID)
-            } else {
-                HomeView(store: store, authManager: authManager)
-                    .id(languageManager.refreshID)
-                    .task(id: authManager.isAuthenticated) {
-                        guard authManager.isAuthenticated else {
-                            showPaywall = false
-                            return
+        ZStack {
+            if !shouldShowSplash {
+                if !hasCompletedOnboarding || !authManager.isAuthenticated {
+                    OnboardingFlowView(store: store, authManager: authManager)
+                        .id(languageManager.refreshID)
+                } else {
+                    HomeView(store: store, authManager: authManager)
+                        .id(languageManager.refreshID)
+                        .task(id: authManager.isAuthenticated) {
+                            guard authManager.isAuthenticated else {
+                                showPaywall = false
+                                return
+                            }
+                            await checkSubscriptionStatus()
                         }
-                        await checkSubscriptionStatus()
-                    }
-                    .fullScreenCover(isPresented: $showPaywall) {
-                        ProPaywallView(onDismiss: { showPaywall = false })
-                            .interactiveDismissDisabled()
-                    }
+                        .fullScreenCover(isPresented: $showPaywall) {
+                            ProPaywallView(onDismiss: { showPaywall = false })
+                                .interactiveDismissDisabled()
+                        }
+                }
             }
+
+            splashScreen
+                .opacity(shouldShowSplash ? 1 : 0)
+                .animation(.easeOut(duration: 0.4), value: shouldShowSplash)
+                .allowsHitTesting(shouldShowSplash)
         }
         .environmentObject(languageManager)
         .preferredColorScheme(appearanceMode.colorScheme)

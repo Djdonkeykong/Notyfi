@@ -1,3 +1,4 @@
+import RevenueCat
 import StoreKit
 import SwiftUI
 import WebKit
@@ -19,6 +20,8 @@ struct SettingsSheetView: View {
     @State private var isDeleteAccountConfirmationPresented = false
     @State private var pendingAccountAction: PendingAccountAction? = nil
     @State private var deleteAccountError: String? = nil
+    @State private var isSubscribed: Bool? = nil
+    @State private var showPaywall = false
 
     private enum PendingAccountAction {
         case signOut
@@ -71,6 +74,74 @@ struct SettingsSheetView: View {
                                         value: email
                                     )
                                 }
+                            }
+                        }
+                    }
+
+                    SectionHeader(title: "Subscription")
+                    SettingsCard {
+                        VStack(spacing: 0) {
+                            if let subscribed = isSubscribed {
+                                if subscribed {
+                                    HStack(spacing: 14) {
+                                        Image(systemName: "checkmark.seal.fill")
+                                            .foregroundStyle(.green)
+                                            .font(.system(size: 17, weight: .semibold))
+                                            .frame(width: 18)
+                                        Text("Subscription".notyfiLocalized)
+                                            .font(.notyfi(.body))
+                                            .foregroundStyle(.primary.opacity(0.82))
+                                        Spacer()
+                                        Text("Subscribed".notyfiLocalized)
+                                            .font(.notyfi(.subheadline))
+                                            .foregroundStyle(.green)
+                                    }
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 16)
+
+                                    Divider()
+
+                                    Link(destination: URL(string: "https://apps.apple.com/account/subscriptions")!) {
+                                        HStack(spacing: 14) {
+                                            Image(systemName: "arrow.up.right.square")
+                                                .foregroundStyle(NotyfiTheme.brandBlue.opacity(0.9))
+                                                .font(.system(size: 17, weight: .semibold))
+                                                .frame(width: 18)
+                                            Text("Manage Subscription".notyfiLocalized)
+                                                .font(.notyfi(.body))
+                                                .foregroundStyle(.primary.opacity(0.82))
+                                            Spacer()
+                                            Image(systemName: "chevron.right")
+                                                .font(.system(size: 12, weight: .semibold))
+                                                .foregroundStyle(NotyfiTheme.tertiaryText)
+                                        }
+                                        .padding(.horizontal, 18)
+                                        .padding(.vertical, 16)
+                                        .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                } else {
+                                    SettingsActionRow(
+                                        icon: "sparkles",
+                                        title: "Upgrade to Pro",
+                                        action: { showPaywall = true }
+                                    )
+                                }
+                            } else {
+                                HStack(spacing: 14) {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(NotyfiTheme.tertiaryText.opacity(0.3))
+                                        .frame(width: 18, height: 18)
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(NotyfiTheme.tertiaryText.opacity(0.2))
+                                        .frame(width: 100, height: 14)
+                                    Spacer()
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(NotyfiTheme.tertiaryText.opacity(0.2))
+                                        .frame(width: 72, height: 14)
+                                }
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 20)
                             }
                         }
                     }
@@ -292,8 +363,21 @@ struct SettingsSheetView: View {
                 .presentationBackground(NotyfiTheme.background.opacity(0.98))
                 .presentationCornerRadius(34)
         }
+        .task { await refreshSubscriptionStatus() }
+        .fullScreenCover(isPresented: $showPaywall) {
+            ProPaywallView(onDismiss: {
+                showPaywall = false
+                Task { await refreshSubscriptionStatus() }
+            })
+            .interactiveDismissDisabled()
+        }
         .id(viewModel.appearanceMode.id)
         .preferredColorScheme(viewModel.appearanceMode.colorScheme)
+    }
+
+    private func refreshSubscriptionStatus() async {
+        let info = try? await Purchases.shared.customerInfo()
+        isSubscribed = info?.entitlements["Notyfi Pro"]?.isActive == true
     }
 
     private var header: some View {

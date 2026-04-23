@@ -466,7 +466,25 @@
 "Home and lock screen widgets" = "Widgets voor startscherm en vergrendelscherm";
 "Best value" = "Beste prijs-kwaliteit";
 "Restore subscription" = "Abonnement herstellen";
+"Subscription" = "Abonnement";
+"Subscribed" = "Geabonneerd";
+"Manage Subscription" = "Abonnement beheren";
+"Upgrade to Pro" = "Upgraden naar Pro";
 "Apple shows the final billing terms before you confirm." = "Apple toont de definitieve factureringsvoorwaarden voordat je bevestigt.";
+"Good things ahead" = "Goede dingen staan te komen";
+"3 days free, no commitment" = "3 dagen gratis, geen verplichtingen";
+"3 days free" = "3 dagen gratis";
+"No commitment.\nJust try it." = "Geen verplichtingen.\nProbeer het gewoon.";
+"Day 3" = "Dag 3";
+"After your trial" = "Na je proefperiode";
+"Start your free 3-day trial. No payment needed right now." = "Start je gratis proefperiode van 3 dagen. Nu nog geen betaling nodig.";
+"We'll remind you before anything is charged." = "We herinneren je voordat er iets wordt afgeschreven.";
+"Pick a plan that fits, or cancel anytime. No hard feelings." = "Kies een passend abonnement of annuleer wanneer je wilt. Geen probleem.";
+"See how it works" = "Bekijk hoe het werkt";
+"See pricing" = "Bekijk prijzen";
+"Start free trial" = "Start gratis proefperiode";
+"Subscribe now" = "Nu abonneren";
+"Review billing in Apple" = "Facturering bekijken in Apple";
 "Learn More" = "Meer informatie";
 
 // Misc UI

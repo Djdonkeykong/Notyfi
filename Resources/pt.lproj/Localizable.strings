@@ -466,7 +466,25 @@
 "Home and lock screen widgets" = "Widgets para tela inicial e tela de bloqueio";
 "Best value" = "Melhor custo-benefício";
 "Restore subscription" = "Restaurar assinatura";
+"Subscription" = "Assinatura";
+"Subscribed" = "Assinado";
+"Manage Subscription" = "Gerenciar assinatura";
+"Upgrade to Pro" = "Atualizar para Pro";
 "Apple shows the final billing terms before you confirm." = "A Apple mostra os termos finais de faturamento antes que você confirme.";
+"Good things ahead" = "Coisas boas por vir";
+"3 days free, no commitment" = "3 dias grátis, sem compromisso";
+"3 days free" = "3 dias grátis";
+"No commitment.\nJust try it." = "Sem compromisso.\nApenas experimente.";
+"Day 3" = "Dia 3";
+"After your trial" = "Após seu período de teste";
+"Start your free 3-day trial. No payment needed right now." = "Comece seu teste gratuito de 3 dias. Nenhum pagamento necessário agora.";
+"We'll remind you before anything is charged." = "Avisaremos antes de qualquer cobrança.";
+"Pick a plan that fits, or cancel anytime. No hard feelings." = "Escolha um plano adequado ou cancele quando quiser. Sem problemas.";
+"See how it works" = "Ver como funciona";
+"See pricing" = "Ver preços";
+"Start free trial" = "Iniciar teste gratuito";
+"Subscribe now" = "Assinar agora";
+"Review billing in Apple" = "Analisar cobrança na Apple";
 "Learn More" = "Saiba mais";
 
 // Misc UI
