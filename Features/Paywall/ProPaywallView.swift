@@ -486,6 +486,18 @@ private struct PricingBottomCard: View {
         return "Best value".notyfiLocalized
     }
 
+    private var finePrint: String {
+        let appleLine = "Apple shows the final billing terms before you confirm.".notyfiLocalized
+        guard let pkg = selectedPackage else { return appleLine }
+        let price = pkg.storeProduct.localizedPriceString
+        let period = pkg.packageType == .annual ? "year".notyfiLocalized : "month".notyfiLocalized
+        let pricePart = "\(price)/\(period)."
+        if isTrialEligible && pkg.packageType == .annual {
+            return "\("Free for 3 days, then".notyfiLocalized) \(pricePart) \(appleLine)"
+        }
+        return "\(pricePart) \(appleLine)"
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
@@ -538,9 +550,9 @@ private struct PricingBottomCard: View {
                 action: onSubscribe
             )
                 .padding(.horizontal, 20)
-                .padding(.bottom, 10)
+                .padding(.bottom, 16)
 
-            Text("Apple shows the final billing terms before you confirm.".notyfiLocalized)
+            Text(finePrint)
                 .font(.notyfi(.caption2))
                 .foregroundStyle(NotyfiTheme.tertiaryText)
                 .multilineTextAlignment(.center)
