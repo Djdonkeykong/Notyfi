@@ -29,7 +29,6 @@ struct HomeView: View {
     @State private var journalLineFramesByDate: [Date: [JournalTextLineFrame]] = [:]
     @State private var focusRequestGeneration = 0
     @State private var presentationRequestGeneration = 0
-    @State private var showPaywall = false
 
     init(store: ExpenseJournalStore, authManager: AuthManager) {
         self.store = store
@@ -196,10 +195,7 @@ private extension HomeView {
                     .presentationBackground(NotyfiTheme.background.opacity(0.98))
                     .presentationCornerRadius(34)
             }
-            .fullScreenCover(isPresented: $showPaywall) {
-                ProPaywallView(onDismiss: { showPaywall = false })
-                    .interactiveDismissDisabled()
-            }
+
             .sheet(isPresented: $isCameraPresented) {
                 CameraCaptureView(
                     sourceType: cameraSourceType,
@@ -298,7 +294,7 @@ private extension HomeView {
                     onBlankSpaceTap: {
                         guard !isBlankSpaceFocusBlocked else { return }
                         Task {
-                            guard await checkSubscription() else { showPaywall = true; return }
+                            guard await checkSubscription() else { return }
                             applyFocusRequest { viewModel.focusComposer() }
                         }
                     },
@@ -412,7 +408,7 @@ private extension HomeView {
 
     func presentQuickAdd() {
         Task {
-            guard await checkSubscription() else { showPaywall = true; return }
+            guard await checkSubscription() else { return }
             presentAfterEditorSettles { isQuickAddPresented = true }
         }
     }

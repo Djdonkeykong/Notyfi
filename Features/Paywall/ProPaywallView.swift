@@ -56,16 +56,6 @@ struct ProPaywallView: View {
                 .ignoresSafeArea(edges: .top)
                 .allowsHitTesting(false)
             }
-            .overlay(alignment: .bottom) {
-                LinearGradient(
-                    colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 60)
-                .ignoresSafeArea(edges: .bottom)
-                .allowsHitTesting(false)
-            }
 
             HStack {
                 if !stepHistory.isEmpty {
@@ -270,7 +260,7 @@ private struct PaywallFeaturesPage: View {
                     frames: ["mascot-welcome-f1","mascot-welcome-f2","mascot-welcome-f3","mascot-welcome-f4"],
                     fps: 6
                 )
-                .frame(width: 208, height: 208)
+                .frame(width: 239, height: 239)
                 .padding(.top, 8)
 
                 Text("Good things ahead".notyfiLocalized)
@@ -323,7 +313,7 @@ private struct PaywallHowItWorksPage: View {
                     frames: ["mascot-trial-f1","mascot-trial-f2","mascot-trial-f3","mascot-trial-f4"],
                     fps: 6
                 )
-                .frame(width: 69, height: 69)
+                .frame(width: 93, height: 93)
                 .padding(.top, 40)
                 .padding(.bottom, 12)
 
@@ -410,7 +400,7 @@ private struct PaywallPricingPage: View {
                     frames: ["mascot-welcome-f1","mascot-welcome-f2","mascot-welcome-f3","mascot-welcome-f4"],
                     fps: 6
                 )
-                .frame(width: 208, height: 208)
+                .frame(width: 239, height: 239)
                 .frame(maxWidth: .infinity)
                 .padding(.top, 8)
 
@@ -439,6 +429,15 @@ private struct PaywallPricingPage: View {
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
+        .overlay(alignment: .bottom) {
+            LinearGradient(
+                colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 60)
+            .allowsHitTesting(false)
+        }
         .safeAreaInset(edge: .bottom) {
             ZStack(alignment: .bottom) {
                 // Fills the home indicator safe area with brandLight so it matches
@@ -526,7 +525,7 @@ private struct PricingBottomCard: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 28)
+            .padding(.top, 20)
             .padding(.bottom, 16)
 
             HStack(spacing: 5) {
@@ -562,18 +561,18 @@ private struct PricingBottomCard: View {
                 .padding(.horizontal, 32)
                 .padding(.bottom, 14)
 
-            HStack {
+            HStack(spacing: 20) {
                 Button("Terms of Service".notyfiLocalized) {
                     legalURL = URL(string: "https://notyfi.dotsokay.net/terms")
                 }
-                Spacer()
+                .underline()
                 Button("Privacy Policy".notyfiLocalized) {
                     legalURL = URL(string: "https://notyfi.dotsokay.net/privacy")
                 }
+                .underline()
             }
             .font(.notyfi(.caption2))
             .foregroundStyle(NotyfiTheme.tertiaryText)
-            .padding(.horizontal, 24)
             .padding(.bottom, 28)
         }
         .sheet(item: $legalURL) { url in
@@ -588,7 +587,7 @@ private struct PricingBottomCard: View {
                 .fill(Color(uiColor: .systemBackground))
                 .shadow(color: .black.opacity(0.09), radius: 20, x: 0, y: -6)
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 16)
         .padding(.bottom, 8)
     }
 }
