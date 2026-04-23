@@ -41,6 +41,30 @@ struct ProPaywallView: View {
                 .clipped()
                 .onAppear { viewWidth = geo.size.width }
             }
+            .overlay(alignment: .top) {
+                LinearGradient(
+                    stops: [
+                        .init(color: NotyfiTheme.brandLight, location: 0),
+                        .init(color: NotyfiTheme.brandLight, location: 0.45),
+                        .init(color: NotyfiTheme.brandLight.opacity(0), location: 1)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 100)
+                .ignoresSafeArea(edges: .top)
+                .allowsHitTesting(false)
+            }
+            .overlay(alignment: .bottom) {
+                LinearGradient(
+                    colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 60)
+                .ignoresSafeArea(edges: .bottom)
+                .allowsHitTesting(false)
+            }
 
             HStack {
                 if !stepHistory.isEmpty {
@@ -246,7 +270,7 @@ private struct PaywallFeaturesPage: View {
                     fps: 6
                 )
                 .frame(width: 208, height: 208)
-                .padding(.top, 40)
+                .padding(.top, 8)
 
                 Text("Good things ahead".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
@@ -371,6 +395,8 @@ private struct PaywallPricingPage: View {
         ("✨", "AI-powered expense parsing"),
         ("📊", "Smart reports and insights"),
         ("📱", "Home and lock screen widgets"),
+        ("🎯", "Budget goals and spending alerts"),
+        ("🔁", "Recurring transaction tracking"),
     ]
 
     private var annualPackage: Package? { offering?.annual }
@@ -385,21 +411,22 @@ private struct PaywallPricingPage: View {
                 )
                 .frame(width: 208, height: 208)
                 .frame(maxWidth: .infinity)
-                .padding(.top, 40)
+                .padding(.top, 8)
 
                 Text("Access all of Notyfi".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
                     .padding(.horizontal, 24)
                     .padding(.bottom, 32)
 
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 16) {
                     ForEach(features, id: \.text) { feature in
                         HStack(spacing: 14) {
                             Text(feature.icon)
-                                .font(.system(size: 20))
-                                .frame(width: 28)
+                                .font(.system(size: 24))
+                                .frame(width: 40, height: 40)
                             Text(feature.text.notyfiLocalized)
-                                .font(.notyfi(.subheadline))
+                                .font(.notyfi(.subheadline, weight: .medium))
+                            Spacer()
                         }
                     }
                 }
