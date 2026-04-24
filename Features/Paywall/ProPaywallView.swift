@@ -400,7 +400,7 @@ private struct PaywallPricingPage: View {
                 )
                 .frame(width: 275, height: 275)
                 .frame(maxWidth: .infinity)
-                .padding(.top, 32)
+                .padding(.top, 16)
 
                 Text("Access all of Notyfi".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
@@ -450,7 +450,7 @@ private struct PaywallPricingPage: View {
                 .presentationBackground(NotyfiTheme.background.opacity(0.98))
                 .presentationCornerRadius(34)
         }
-        .contentMargins(.bottom, 100, for: .scrollContent)
+        .contentMargins(.bottom, 64, for: .scrollContent)
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
@@ -579,7 +579,7 @@ private struct PricingBottomCard: View {
         .background {
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(Color(uiColor: .systemBackground))
-                .shadow(color: .black.opacity(0.09), radius: 20, x: 0, y: -6)
+                .shadow(color: .black.opacity(0.09), radius: 20, x: 0, y: -10)
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 20)

@@ -111,28 +111,11 @@ final class EditableJournalTextView: UITextView {
     }
 
     override func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
-        let rects = super.selectionRects(for: range)
-        let targetHeight = font?.lineHeight ?? UIFont.notyfiBody.lineHeight
-        return rects.map { r in
-            // Always preserve UIKit's own objects for the start and end markers.
-            // They carry private state that UIKit needs for selection handle placement;
-            // replacing them with a custom class breaks the entire selection draw.
-            guard !r.containsStart, !r.containsEnd else { return r }
-            // Middle fill rects often have zero height (paragraph spacing pushes them
-            // to a seam) or inflated height that bleeds into adjacent spacing.
-            // Clamp to exactly one line height so the highlight is visible.
-            let height: CGFloat
-            if r.rect.height < 1 {
-                height = targetHeight
-            } else if r.rect.height > targetHeight * 1.5 {
-                height = targetHeight
-            } else {
-                height = r.rect.height
-            }
-            return ClampedSelectionRect(
-                source: r,
-                rect: CGRect(x: r.rect.minX, y: r.rect.minY, width: r.rect.width, height: height)
-            )
+        // Return UIKit's own objects unchanged so it can draw the selection highlight.
+        // Only filter out zero-height seam rects that appear between paragraphs due
+        // to paragraph spacing — they cause invisible artifacts but no visible fill.
+        super.selectionRects(for: range).filter { r in
+            r.containsStart || r.containsEnd || r.rect.height >= 1
         }
     }
 
@@ -196,21 +179,6 @@ final class EditableJournalTextView: UITextView {
     }
 }
 
-private final class ClampedSelectionRect: UITextSelectionRect {
-    private let source: UITextSelectionRect
-    private let clampedRect: CGRect
-
-    init(source: UITextSelectionRect, rect: CGRect) {
-        self.source = source
-        self.clampedRect = rect
-    }
-
-    override var rect: CGRect { clampedRect }
-    override var writingDirection: NSWritingDirection { source.writingDirection }
-    override var containsStart: Bool { source.containsStart }
-    override var containsEnd: Bool { source.containsEnd }
-    override var isVertical: Bool { source.isVertical }
-}
 
 extension UIFont {
     static var notyfiBody: UIFont {
