@@ -48,6 +48,7 @@ struct AppRootView: View {
                         .fullScreenCover(isPresented: $showPaywall) {
                             ProPaywallView(onDismiss: { showPaywall = false })
                                 .interactiveDismissDisabled()
+                                .presentationBackground(NotyfiTheme.brandLight)
                         }
                 }
             }

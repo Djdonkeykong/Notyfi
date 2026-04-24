@@ -281,19 +281,21 @@ private struct PaywallFeaturesPage: View {
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
+        .overlay(alignment: .bottom) {
+            LinearGradient(
+                colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 160)
+            .ignoresSafeArea(edges: .bottom)
+            .allowsHitTesting(false)
+        }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             OnboardingPrimaryButton(title: "See how it works".notyfiLocalized, action: onContinue)
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
                 .padding(.bottom, 16)
-                .background {
-                    LinearGradient(
-                        colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .ignoresSafeArea(edges: .bottom)
-                }
         }
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -348,19 +350,21 @@ private struct PaywallHowItWorksPage: View {
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
+        .overlay(alignment: .bottom) {
+            LinearGradient(
+                colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 160)
+            .ignoresSafeArea(edges: .bottom)
+            .allowsHitTesting(false)
+        }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             OnboardingPrimaryButton(title: "See pricing".notyfiLocalized, action: onContinue)
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
                 .padding(.bottom, 16)
-                .background {
-                    LinearGradient(
-                        colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .ignoresSafeArea(edges: .bottom)
-                }
         }
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -583,7 +587,7 @@ private struct PricingBottomCard: View {
                 .shadow(color: .black.opacity(0.09), radius: 20, x: 0, y: -6)
         }
         .padding(.horizontal, 16)
-        .padding(.bottom, 8)
+        .padding(.bottom, 20)
     }
 }
 

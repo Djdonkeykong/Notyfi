@@ -370,6 +370,7 @@ struct SettingsSheetView: View {
                 Task { await refreshSubscriptionStatus() }
             })
             .interactiveDismissDisabled()
+            .presentationBackground(NotyfiTheme.brandLight)
         }
         .id(viewModel.appearanceMode.id)
         .preferredColorScheme(viewModel.appearanceMode.colorScheme)
