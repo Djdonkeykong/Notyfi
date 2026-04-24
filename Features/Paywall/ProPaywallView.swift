@@ -427,10 +427,10 @@ private struct PaywallPricingPage: View {
                         .fill(NotyfiTheme.tertiaryText.opacity(0.25))
                         .frame(height: 1)
                     HStack(spacing: 16) {
-                        Button("Terms".notyfiLocalized) {
+                        Button("Terms of Service".notyfiLocalized) {
                             legalURL = URL(string: "https://notyfi.dotsokay.net/terms")
                         }
-                        Button("Privacy".notyfiLocalized) {
+                        Button("Privacy Policy".notyfiLocalized) {
                             legalURL = URL(string: "https://notyfi.dotsokay.net/privacy")
                         }
                     }
