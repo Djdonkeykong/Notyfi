@@ -1,4 +1,3 @@
-import RevenueCat
 import SwiftUI
 import UIKit
 import PDFKit
@@ -293,10 +292,7 @@ private extension HomeView {
                     },
                     onBlankSpaceTap: {
                         guard !isBlankSpaceFocusBlocked else { return }
-                        Task {
-                            guard await checkSubscription() else { return }
-                            applyFocusRequest { viewModel.focusComposer() }
-                        }
+                        applyFocusRequest { viewModel.focusComposer() }
                     },
                     onMoveSelection: { dayOffset in
                         clearEditorFocus()
@@ -407,10 +403,7 @@ private extension HomeView {
     }
 
     func presentQuickAdd() {
-        Task {
-            guard await checkSubscription() else { return }
-            presentAfterEditorSettles { isQuickAddPresented = true }
-        }
+        presentAfterEditorSettles { isQuickAddPresented = true }
     }
 
     func presentAfterEditorSettles(_ action: @escaping () -> Void) {
@@ -458,15 +451,6 @@ private extension HomeView {
                 focusedEditor = request.target
                 editorFocusRequest = request
             }
-        }
-    }
-
-    private func checkSubscription() async -> Bool {
-        do {
-            let info = try await Purchases.shared.customerInfo()
-            return info.entitlements["Notyfi Pro"]?.isActive == true
-        } catch {
-            return false
         }
     }
 

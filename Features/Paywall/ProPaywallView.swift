@@ -42,6 +42,7 @@ struct ProPaywallView: View {
                 .clipped()
                 .onAppear { viewWidth = geo.size.width }
             }
+            .ignoresSafeArea()
             .overlay(alignment: .top) {
                 LinearGradient(
                     stops: [
@@ -260,7 +261,7 @@ private struct PaywallFeaturesPage: View {
                     frames: ["mascot-welcome-f1","mascot-welcome-f2","mascot-welcome-f3","mascot-welcome-f4"],
                     fps: 6
                 )
-                .frame(width: 239, height: 239)
+                .frame(width: 275, height: 275)
                 .padding(.top, 8)
 
                 Text("Good things ahead".notyfiLocalized)
@@ -281,6 +282,7 @@ private struct PaywallFeaturesPage: View {
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
+        .ignoresSafeArea()
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 0) {
                 LinearGradient(
@@ -313,7 +315,7 @@ private struct PaywallHowItWorksPage: View {
                     frames: ["mascot-trial-f1","mascot-trial-f2","mascot-trial-f3","mascot-trial-f4"],
                     fps: 6
                 )
-                .frame(width: 93, height: 93)
+                .frame(width: 260, height: 260)
                 .padding(.top, 40)
                 .padding(.bottom, 12)
 
@@ -350,6 +352,7 @@ private struct PaywallHowItWorksPage: View {
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
+        .ignoresSafeArea()
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 0) {
                 LinearGradient(
@@ -400,7 +403,7 @@ private struct PaywallPricingPage: View {
                     frames: ["mascot-welcome-f1","mascot-welcome-f2","mascot-welcome-f3","mascot-welcome-f4"],
                     fps: 6
                 )
-                .frame(width: 239, height: 239)
+                .frame(width: 275, height: 275)
                 .frame(maxWidth: .infinity)
                 .padding(.top, 8)
 
@@ -429,13 +432,15 @@ private struct PaywallPricingPage: View {
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
+        .ignoresSafeArea()
         .overlay(alignment: .bottom) {
             LinearGradient(
                 colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .frame(height: 60)
+            .frame(height: 80)
+            .ignoresSafeArea(edges: .bottom)
             .allowsHitTesting(false)
         }
         .safeAreaInset(edge: .bottom) {
