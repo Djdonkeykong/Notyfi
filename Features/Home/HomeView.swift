@@ -128,9 +128,10 @@ private extension HomeView {
                     )
                     .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
                     .frame(maxWidth: .infinity, alignment: .center)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .transition(.opacity)
                 }
             }
+            .animation(.easeInOut(duration: 0.2), value: focusedEditor == nil)
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
                 DatePickerSheetView(
                     selection: selectedDateBinding,

@@ -42,7 +42,6 @@ struct ProPaywallView: View {
                 .clipped()
                 .onAppear { viewWidth = geo.size.width }
             }
-            .ignoresSafeArea()
             .overlay(alignment: .top) {
                 LinearGradient(
                     stops: [
@@ -262,7 +261,7 @@ private struct PaywallFeaturesPage: View {
                     fps: 6
                 )
                 .frame(width: 275, height: 275)
-                .padding(.top, 8)
+                .padding(.top, 32)
 
                 Text("Good things ahead".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
@@ -282,22 +281,19 @@ private struct PaywallFeaturesPage: View {
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
-        .ignoresSafeArea()
-        .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 0) {
-                LinearGradient(
-                    colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 32)
-                .allowsHitTesting(false)
-
-                OnboardingPrimaryButton(title: "See how it works".notyfiLocalized, action: onContinue)
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 24)
-                    .background(NotyfiTheme.brandLight)
-            }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            OnboardingPrimaryButton(title: "See how it works".notyfiLocalized, action: onContinue)
+                .padding(.horizontal, 24)
+                .padding(.top, 24)
+                .padding(.bottom, 16)
+                .background {
+                    LinearGradient(
+                        colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea(edges: .bottom)
+                }
         }
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -315,15 +311,15 @@ private struct PaywallHowItWorksPage: View {
                     frames: ["mascot-trial-f1","mascot-trial-f2","mascot-trial-f3","mascot-trial-f4"],
                     fps: 6
                 )
-                .frame(width: 260, height: 260)
-                .padding(.top, 40)
+                .frame(width: 208, height: 208)
+                .padding(.top, 64)
                 .padding(.bottom, 12)
 
                 Text("No commitment.\nJust try it.".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
-                    .padding(.bottom, 48)
+                    .padding(.bottom, 24)
 
                 VStack(spacing: 0) {
                     PaywallTimelineRow(
@@ -352,22 +348,19 @@ private struct PaywallHowItWorksPage: View {
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
-        .ignoresSafeArea()
-        .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 0) {
-                LinearGradient(
-                    colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 32)
-                .allowsHitTesting(false)
-
-                OnboardingPrimaryButton(title: "See pricing".notyfiLocalized, action: onContinue)
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 24)
-                    .background(NotyfiTheme.brandLight)
-            }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            OnboardingPrimaryButton(title: "See pricing".notyfiLocalized, action: onContinue)
+                .padding(.horizontal, 24)
+                .padding(.top, 24)
+                .padding(.bottom, 16)
+                .background {
+                    LinearGradient(
+                        colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea(edges: .bottom)
+                }
         }
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -396,6 +389,8 @@ private struct PaywallPricingPage: View {
     private var annualPackage: Package? { offering?.annual }
     private var monthlyPackage: Package? { offering?.monthly }
 
+    @State private var legalURL: URL? = nil
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
@@ -405,7 +400,7 @@ private struct PaywallPricingPage: View {
                 )
                 .frame(width: 275, height: 275)
                 .frame(maxWidth: .infinity)
-                .padding(.top, 8)
+                .padding(.top, 32)
 
                 Text("Access all of Notyfi".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
@@ -426,23 +421,41 @@ private struct PaywallPricingPage: View {
                     }
                 }
                 .padding(.horizontal, 24)
+
+                HStack {
+                    Rectangle()
+                        .fill(NotyfiTheme.tertiaryText.opacity(0.25))
+                        .frame(height: 1)
+                    HStack(spacing: 16) {
+                        Button("Terms".notyfiLocalized) {
+                            legalURL = URL(string: "https://notyfi.dotsokay.net/terms")
+                        }
+                        Button("Privacy".notyfiLocalized) {
+                            legalURL = URL(string: "https://notyfi.dotsokay.net/privacy")
+                        }
+                    }
+                    .font(.notyfi(.caption, weight: .medium))
+                    .foregroundStyle(NotyfiTheme.tertiaryText)
+                    Rectangle()
+                        .fill(NotyfiTheme.tertiaryText.opacity(0.25))
+                        .frame(height: 1)
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 28)
+                .padding(.bottom, 16)
             }
         }
-        .contentMargins(.bottom, 300, for: .scrollContent)
+        .sheet(item: $legalURL) { url in
+            LegalWebSheet(url: url)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(NotyfiTheme.background.opacity(0.98))
+                .presentationCornerRadius(34)
+        }
+        .contentMargins(.bottom, 380, for: .scrollContent)
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
-        .ignoresSafeArea()
-        .overlay(alignment: .bottom) {
-            LinearGradient(
-                colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 80)
-            .ignoresSafeArea(edges: .bottom)
-            .allowsHitTesting(false)
-        }
         .safeAreaInset(edge: .bottom) {
             ZStack(alignment: .bottom) {
                 // Fills the home indicator safe area with brandLight so it matches
@@ -477,8 +490,6 @@ private struct PricingBottomCard: View {
     let isTrialEligible: Bool
     let onSubscribe: () -> Void
     let onRestore: () -> Void
-
-    @State private var legalURL: URL? = nil
 
     private var annualBadge: String {
         if isTrialEligible {
@@ -564,28 +575,7 @@ private struct PricingBottomCard: View {
                 .foregroundStyle(NotyfiTheme.tertiaryText)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
-                .padding(.bottom, 14)
-
-            HStack(spacing: 20) {
-                Button("Terms of Service".notyfiLocalized) {
-                    legalURL = URL(string: "https://notyfi.dotsokay.net/terms")
-                }
-                .underline()
-                Button("Privacy Policy".notyfiLocalized) {
-                    legalURL = URL(string: "https://notyfi.dotsokay.net/privacy")
-                }
-                .underline()
-            }
-            .font(.notyfi(.caption2))
-            .foregroundStyle(NotyfiTheme.tertiaryText)
-            .padding(.bottom, 28)
-        }
-        .sheet(item: $legalURL) { url in
-            LegalWebSheet(url: url)
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
-                .presentationBackground(NotyfiTheme.background.opacity(0.98))
-                .presentationCornerRadius(34)
+                .padding(.bottom, 24)
         }
         .background {
             RoundedRectangle(cornerRadius: 28, style: .continuous)
