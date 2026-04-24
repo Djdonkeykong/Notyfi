@@ -426,24 +426,19 @@ private struct PaywallPricingPage: View {
                 }
                 .padding(.horizontal, 24)
 
-                HStack {
-                    Rectangle()
-                        .fill(NotyfiTheme.tertiaryText.opacity(0.25))
-                        .frame(height: 1)
-                    HStack(spacing: 16) {
-                        Button("Terms of Service".notyfiLocalized) {
-                            legalURL = URL(string: "https://notyfi.dotsokay.net/terms")
-                        }
-                        Button("Privacy Policy".notyfiLocalized) {
-                            legalURL = URL(string: "https://notyfi.dotsokay.net/privacy")
-                        }
+                HStack(spacing: 8) {
+                    Button("Terms of Service".notyfiLocalized) {
+                        legalURL = URL(string: "https://notyfi.dotsokay.net/terms")
                     }
-                    .font(.notyfi(.caption, weight: .medium))
-                    .foregroundStyle(NotyfiTheme.tertiaryText)
-                    Rectangle()
-                        .fill(NotyfiTheme.tertiaryText.opacity(0.25))
-                        .frame(height: 1)
+                    .fixedSize()
+                    Text("·")
+                    Button("Privacy Policy".notyfiLocalized) {
+                        legalURL = URL(string: "https://notyfi.dotsokay.net/privacy")
+                    }
+                    .fixedSize()
                 }
+                .font(.notyfi(.caption, weight: .semibold))
+                .foregroundStyle(NotyfiTheme.tertiaryText)
                 .padding(.horizontal, 24)
                 .padding(.top, 28)
                 .padding(.bottom, 16)
@@ -456,7 +451,7 @@ private struct PaywallPricingPage: View {
                 .presentationBackground(NotyfiTheme.background.opacity(0.98))
                 .presentationCornerRadius(34)
         }
-        .contentMargins(.bottom, 380, for: .scrollContent)
+        .contentMargins(.bottom, 190, for: .scrollContent)
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
