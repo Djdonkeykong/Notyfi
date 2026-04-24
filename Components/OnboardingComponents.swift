@@ -6,6 +6,7 @@ import UIKit
 struct OnboardingPrimaryButton: View {
     let title: String
     var isLoading: Bool = false
+    var showShadow: Bool = true
     let action: () -> Void
 
     var body: some View {
@@ -28,7 +29,7 @@ struct OnboardingPrimaryButton: View {
             .frame(height: 56)
             .background(NotyfiTheme.brandPrimary)
             .clipShape(Capsule())
-            .shadow(color: NotyfiTheme.brandPrimary.opacity(0.25), radius: 12, x: 0, y: 6)
+            .shadow(color: NotyfiTheme.brandPrimary.opacity(showShadow ? 0.25 : 0), radius: 12, x: 0, y: 6)
         }
         .disabled(isLoading)
     }

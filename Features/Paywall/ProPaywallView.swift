@@ -281,21 +281,19 @@ private struct PaywallFeaturesPage: View {
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
-        .overlay(alignment: .bottom) {
-            LinearGradient(
-                colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 160)
-            .ignoresSafeArea(edges: .bottom)
-            .allowsHitTesting(false)
-        }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            OnboardingPrimaryButton(title: "See how it works".notyfiLocalized, action: onContinue)
+            OnboardingPrimaryButton(title: "See how it works".notyfiLocalized, showShadow: false, action: onContinue)
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
                 .padding(.bottom, 16)
+                .background {
+                    LinearGradient(
+                        colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea(edges: .bottom)
+                }
         }
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -350,21 +348,19 @@ private struct PaywallHowItWorksPage: View {
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
-        .overlay(alignment: .bottom) {
-            LinearGradient(
-                colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 160)
-            .ignoresSafeArea(edges: .bottom)
-            .allowsHitTesting(false)
-        }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            OnboardingPrimaryButton(title: "See pricing".notyfiLocalized, action: onContinue)
+            OnboardingPrimaryButton(title: "See pricing".notyfiLocalized, showShadow: false, action: onContinue)
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
                 .padding(.bottom, 16)
+                .background {
+                    LinearGradient(
+                        colors: [NotyfiTheme.brandLight.opacity(0), NotyfiTheme.brandLight],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea(edges: .bottom)
+                }
         }
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -431,14 +427,17 @@ private struct PaywallPricingPage: View {
                         legalURL = URL(string: "https://notyfi.dotsokay.net/terms")
                     }
                     .fixedSize()
+                    .underline()
                     Text("·")
                     Button("Privacy Policy".notyfiLocalized) {
                         legalURL = URL(string: "https://notyfi.dotsokay.net/privacy")
                     }
                     .fixedSize()
+                    .underline()
                 }
                 .font(.notyfi(.caption, weight: .semibold))
                 .foregroundStyle(NotyfiTheme.tertiaryText)
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 24)
                 .padding(.top, 28)
                 .padding(.bottom, 16)
@@ -451,7 +450,7 @@ private struct PaywallPricingPage: View {
                 .presentationBackground(NotyfiTheme.background.opacity(0.98))
                 .presentationCornerRadius(34)
         }
-        .contentMargins(.bottom, 190, for: .scrollContent)
+        .contentMargins(.bottom, 100, for: .scrollContent)
         .scrollBounceBehavior(.always)
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
@@ -564,6 +563,7 @@ private struct PricingBottomCard: View {
             OnboardingPrimaryButton(
                 title: isTrialEligible ? "Start free trial".notyfiLocalized : "Subscribe now".notyfiLocalized,
                 isLoading: isPurchasing,
+                showShadow: false,
                 action: onSubscribe
             )
                 .padding(.horizontal, 20)
