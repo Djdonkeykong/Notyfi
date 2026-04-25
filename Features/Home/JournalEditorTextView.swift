@@ -110,15 +110,6 @@ final class EditableJournalTextView: UITextView {
         return rect
     }
 
-    override func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
-        // Return UIKit's own objects unchanged so it can draw the selection highlight.
-        // Only filter out zero-height seam rects that appear between paragraphs due
-        // to paragraph spacing — they cause invisible artifacts but no visible fill.
-        super.selectionRects(for: range).filter { r in
-            r.containsStart || r.containsEnd || r.rect.height >= 1
-        }
-    }
-
     private static func dispatchBridgedBackspace() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
             guard shouldBridgeBackspace else {
