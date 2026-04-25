@@ -58,6 +58,10 @@ enum NotyfiTheme {
         light: UIColor(red: 242.0 / 255.0, green: 242.0 / 255.0, blue: 249.0 / 255.0, alpha: 1),
         dark: UIColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1)
     )
+    static let darkButtonSurface = adaptiveColor(
+        light: .black,
+        dark: UIColor(red: 0.152, green: 0.160, blue: 0.184, alpha: 1)
+    )
     static let reviewTint = Color(red: 1.00, green: 0.60, blue: 0.14)
     static let incomeColor = Color(red: 0.14, green: 0.78, blue: 0.42)
     static let expenseColor = adaptiveColor(

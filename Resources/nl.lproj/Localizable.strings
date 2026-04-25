@@ -100,6 +100,7 @@
 "Profile" = "Profiel";
 "Name" = "Naam";
 "Email" = "E-mail";
+"Account" = "Account";
 "Preferences" = "Voorkeuren";
 "Currency" = "Valuta";
 "Language" = "Taal";
@@ -140,6 +141,8 @@
 "Sign Out" = "Uitloggen";
 "Sign out of Notyfi?" = "Uitloggen bij Notyfi?";
 "Delete Account" = "Account verwijderen";
+"Signing out" = "Afmelden";
+"Deleting account" = "Account verwijderen";
 "Delete Account Failed" = "Account verwijderen mislukt";
 "Delete your account?" = "Je account verwijderen?";
 "This permanently deletes your account and all data. This cannot be undone." = "Dit verwijdert je account en alle gegevens permanent. Dit kan niet ongedaan worden gemaakt.";
@@ -186,9 +189,18 @@
 "Type" = "Type";
 "Category" = "Categorie";
 "Merchant" = "Winkel";
+"Time" = "Tijd";
 "Optional" = "Optioneel";
 "Notes & Review" = "Notities & controle";
 "Note" = "Notitie";
+"Original note" = "Originele notitie";
+"Details" = "Details";
+"Schedule" = "Schema";
+"Frequency" = "Frequentie";
+"Starts" = "Begint";
+"End date" = "Einddatum";
+"Ends" = "Eindigt";
+"Active" = "Actief";
 "Optional context" = "Optionele context";
 "Confidence" = "Zekerheid";
 "Date" = "Datum";
@@ -276,7 +288,6 @@
 "Speak it out" = "Zeg het hardop";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Zeg hardop wat je hebt uitgegeven. Notyfi transcribeert en analyseert het direct.";
 "Smart text" = "Slimme tekst";
-"Abbreviations, shorthand, even typos – the AI figures out what you mean." = "Afkortingen, steno, zelfs tikfouten – de AI begrijpt wat je bedoelt.";
 "Stay on track" = "Blijf op koers";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Ontvang dagelijks een herinnering om je uitgaven te registreren. Mensen die herinneringen gebruiken, bouwen de gewoonte 3x sneller op.";
 "Enable Notifications" = "Meldingen inschakelen";
@@ -288,7 +299,7 @@
 "Search for \"Notyfi\" and choose a size" = "Zoek naar \"Notyfi\" en kies een grootte";
 "Tap the widget any time to open the app" = "Tik op de widget om de app te openen";
 "Set category limits" = "Categorielimieten instellen";
-"Add a monthly limit for each category. Skip any you're not sure about – you can set these later." = "Voeg een maandelijks limiet toe voor elke categorie. Sla de categorieën over waar je niet zeker van bent – je kunt ze later instellen.";
+"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Voeg een maandelijks limiet toe voor elke categorie. Sla de categorieën over waar je niet zeker van bent – je kunt ze later instellen.";
 "/mo" = "/mnd.";
 "Skip for now" = "Nu overslaan";
 "Follow System" = "Systeem volgen";
@@ -320,7 +331,7 @@
 "per month for \(category.title)" = "per maand voor \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending – every single day." = "Voeg de Notyfi-widget toe om je uitgaven bij te houden – elke dag.";
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Voeg de Notyfi-widget toe om je uitgaven bij te houden – elke dag.";
 
 // Category group titles
 "Essentials" = "Basisbehoeften";
@@ -503,3 +514,30 @@
 "All entries are clear" = "Alle items zijn goedgekeurd";
 "Resend in %ds" = "Opnieuw verzenden over %ds";
 "Automation" = "Automatisering";
+"Make recurring" = "Terugkerend maken";
+"Recurring" = "Terugkerend";
+"Create something that should land in your journal automatically." = "Maak iets aan dat automatisch in je journal terechtkomt.";
+"Edit recurring" = "Terugkerende bewerken";
+"Turn this entry into a repeating rule." = "Maak van dit item een herhalingsregel.";
+"Update the repeating rule behind this entry." = "Werk de herhalingsregel van dit item bij.";
+"Active rules" = "Actieve regels";
+"Create one from quick add, from an entry, or tap the plus button here." = "Maak er een via snel toevoegen, vanuit een invoer, of tik hier op de plusknop.";
+"Delete recurring item" = "Terugkerend item verwijderen";
+"Every %d %@" = "Elke %d %@";
+"Manage bills, paychecks, and anything that repeats." = "Beheer rekeningen, loonstroken en alles wat zich herhaalt.";
+"Monthly" = "Maandelijks";
+"No recurring items yet" = "Nog geen terugkerende items";
+"Offline" = "Offline";
+"Recurring entry" = "Terugkerende invoer";
+"Recurring expense" = "Terugkerende uitgave";
+"Recurring income" = "Terugkerend inkomen";
+"Rent" = "Huur";
+"Rent 12000" = "Huur 12000";
+"Save recurring item" = "Terugkerend item opslaan";
+"Set up an expense that repeats on its own." = "Stel een uitgave in die zichzelf herhaalt.";
+"Set up an income that repeats on its own." = "Stel een inkomen in dat zichzelf herhaalt.";
+"Streaming 149" = "Streaming 149";
+"Until" = "Tot";
+"Update recurring item" = "Terugkerend item bijwerken";
+"Weekly" = "Wekelijks";
+"Yearly" = "Jaarlijks";

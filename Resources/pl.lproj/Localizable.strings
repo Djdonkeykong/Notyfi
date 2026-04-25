@@ -100,6 +100,7 @@
 "Profile" = "Profil";
 "Name" = "Imię";
 "Email" = "E-mail";
+"Account" = "Konto";
 "Preferences" = "Preferencje";
 "Currency" = "Waluta";
 "Language" = "Język";
@@ -140,6 +141,8 @@
 "Sign Out" = "Wyloguj się";
 "Sign out of Notyfi?" = "Wylogować z Notyfi?";
 "Delete Account" = "Usuń konto";
+"Signing out" = "Wylogowywanie";
+"Deleting account" = "Usuwanie konta";
 "Delete Account Failed" = "Nie udało się usunąć konta";
 "Delete your account?" = "Usunąć swoje konto?";
 "This permanently deletes your account and all data. This cannot be undone." = "Spowoduje to trwałe usunięcie konta i wszystkich danych. Nie można tego cofnąć.";
@@ -186,9 +189,18 @@
 "Type" = "Typ";
 "Category" = "Kategoria";
 "Merchant" = "Sprzedawca";
+"Time" = "Godzina";
 "Optional" = "Opcjonalne";
 "Notes & Review" = "Notatki i przegląd";
 "Note" = "Notatka";
+"Original note" = "Oryginalna notatka";
+"Details" = "Szczegóły";
+"Schedule" = "Harmonogram";
+"Frequency" = "Częstotliwość";
+"Starts" = "Zaczyna się";
+"End date" = "Data zakończenia";
+"Ends" = "Kończy się";
+"Active" = "Aktywne";
 "Optional context" = "Opcjonalny kontekst";
 "Confidence" = "Pewność";
 "Date" = "Data";
@@ -276,7 +288,6 @@
 "Speak it out" = "Powiedz to głośno";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Powiedz głośno, co wydałeś. Notyfi natychmiast to transkrybuje i przetworzy.";
 "Smart text" = "Inteligentny tekst";
-"Abbreviations, shorthand, even typos – the AI figures out what you mean." = "Skróty, stenografia, a nawet literówki – sztuczna inteligencja rozumie, co masz na myśli.";
 "Stay on track" = "Trzymaj się planu";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Otrzymuj codzienne przypomnienie o rejestrowaniu wydatków. Osoby korzystające z przypomnień wyrabiają nawyk 3x szybciej.";
 "Enable Notifications" = "Włącz powiadomienia";
@@ -288,7 +299,7 @@
 "Search for \"Notyfi\" and choose a size" = "Wyszukaj \"Notyfi\" i wybierz rozmiar";
 "Tap the widget any time to open the app" = "Dotknij widgetu w dowolnym momencie, aby otworzyć aplikację";
 "Set category limits" = "Ustaw limity kategorii";
-"Add a monthly limit for each category. Skip any you're not sure about – you can set these later." = "Dodaj miesięczny limit dla każdej kategorii. Pomiń te, co do których nie jesteś pewny – możesz je ustawić później.";
+"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Dodaj miesięczny limit dla każdej kategorii. Pomiń te, co do których nie jesteś pewny – możesz je ustawić później.";
 "/mo" = "/mies.";
 "Skip for now" = "Pomiń na razie";
 "Follow System" = "Podążaj za systemem";
@@ -320,7 +331,7 @@
 "per month for \(category.title)" = "miesięczne dla \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending – every single day." = "Dodaj widget Notyfi, aby być na bieżąco ze swoimi wydatkami – każdego dnia.";
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Dodaj widget Notyfi, aby być na bieżąco ze swoimi wydatkami – każdego dnia.";
 
 // Category group titles
 "Essentials" = "Podstawowe";
@@ -503,3 +514,30 @@
 "All entries are clear" = "Wszystkie wpisy są zatwierdzone";
 "Resend in %ds" = "Wyślij ponownie za %ds";
 "Automation" = "Automatyzacja";
+"Make recurring" = "Ustaw jako cykliczne";
+"Recurring" = "Cykliczne";
+"Create something that should land in your journal automatically." = "Utwórz coś, co będzie automatycznie trafiać do twojego dziennika.";
+"Edit recurring" = "Edytuj cykliczne";
+"Turn this entry into a repeating rule." = "Zamień ten wpis w regułę cykliczną.";
+"Update the repeating rule behind this entry." = "Zaktualizuj regułę cykliczną tego wpisu.";
+"Active rules" = "Aktywne reguły";
+"Create one from quick add, from an entry, or tap the plus button here." = "Utworz jeden przez szybkie dodawanie, z wpisu lub dotnij tutaj przycisku plus.";
+"Delete recurring item" = "Usuń cykliczny wpis";
+"Every %d %@" = "Co %d %@";
+"Manage bills, paychecks, and anything that repeats." = "Zarządzaj rachunkami, wypłatami i wszystkim, co sie powtarza.";
+"Monthly" = "Miesięcznie";
+"No recurring items yet" = "Brak cyklicznych wpisów";
+"Offline" = "Offline";
+"Recurring entry" = "Cykliczny wpis";
+"Recurring expense" = "Cykliczny wydatek";
+"Recurring income" = "Cykliczny przychód";
+"Rent" = "Czynsz";
+"Rent 12000" = "Czynsz 12000";
+"Save recurring item" = "Zapisz cykliczny wpis";
+"Set up an expense that repeats on its own." = "Skonfiguruj wydatek, który sam się powtarza.";
+"Set up an income that repeats on its own." = "Skonfiguruj przychód, który sam się powtarza.";
+"Streaming 149" = "Streaming 149";
+"Until" = "Do";
+"Update recurring item" = "Zaktualizuj cykliczny wpis";
+"Weekly" = "Tygodniowo";
+"Yearly" = "Rocznie";

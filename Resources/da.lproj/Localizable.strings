@@ -100,6 +100,7 @@
 "Profile" = "Profil";
 "Name" = "Navn";
 "Email" = "E-mail";
+"Account" = "Konto";
 "Preferences" = "Præferencer";
 "Currency" = "Valuta";
 "Language" = "Sprog";
@@ -140,6 +141,8 @@
 "Sign Out" = "Log ud";
 "Sign out of Notyfi?" = "Log ud af Notyfi?";
 "Delete Account" = "Slet konto";
+"Signing out" = "Logger ud";
+"Deleting account" = "Sletter konto";
 "Delete Account Failed" = "Sletning af konto mislykkedes";
 "Delete your account?" = "Slet din konto?";
 "This permanently deletes your account and all data. This cannot be undone." = "Dette sletter permanent din konto og alle data. Dette kan ikke fortrydes.";
@@ -186,9 +189,18 @@
 "Type" = "Type";
 "Category" = "Kategori";
 "Merchant" = "Butik";
+"Time" = "Tid";
 "Optional" = "Valgfri";
 "Notes & Review" = "Noter og gennemgang";
 "Note" = "Note";
+"Original note" = "Oprindelig note";
+"Details" = "Detaljer";
+"Schedule" = "Tidsplan";
+"Frequency" = "Frekvens";
+"Starts" = "Starter";
+"End date" = "Slutdato";
+"Ends" = "Slutter";
+"Active" = "Aktiv";
 "Optional context" = "Valgfri kontekst";
 "Confidence" = "Sikkerhed";
 "Date" = "Dato";
@@ -276,7 +288,6 @@
 "Speak it out" = "Sig det højt";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Sig, hvad du brugte, højt. Notyfi transkriberer og analyserer det øjeblikkeligt.";
 "Smart text" = "Smart tekst";
-"Abbreviations, shorthand, even typos – the AI figures out what you mean." = "Forkortelser, stenografi, selv slåfejl – AI'en finder ud af, hvad du mener.";
 "Stay on track" = "Hold kursen";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Få et dagligt puf til at logge dit forbrug. Folk, der bruger påmindelser, opbygger vanen 3x hurtigere.";
 "Enable Notifications" = "Aktiver notifikationer";
@@ -288,7 +299,7 @@
 "Search for \"Notyfi\" and choose a size" = "Søg efter \"Notyfi\" og vælg en størrelse";
 "Tap the widget any time to open the app" = "Tryk på widgetten til enhver tid for at åbne appen";
 "Set category limits" = "Angiv kategorigrænser";
-"Add a monthly limit for each category. Skip any you're not sure about – you can set these later." = "Tilføj en månedlig grænse for hver kategori. Spring dem over, du er usikker på – du kan angive dem senere.";
+"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Tilføj en månedlig grænse for hver kategori. Spring dem over, du er usikker på – du kan angive dem senere.";
 "/mo" = "/md.";
 "Skip for now" = "Spring over for nu";
 "Follow System" = "Følg system";
@@ -320,7 +331,7 @@
 "per month for \(category.title)" = "pr. måned for \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending – every single day." = "Tilføj Notyfi-widgetten for at holde styr på dine udgifter – hver dag.";
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Tilføj Notyfi-widgetten for at holde styr på dine udgifter – hver dag.";
 
 // Category group titles
 "Essentials" = "Grundlæggende";
@@ -347,7 +358,6 @@
 "3 times a day" = "3 gange om dagen";
 "5 times a day" = "5 gange om dagen";
 "8 times a day" = "8 gange om dagen";
-"Freq Max label" = "Maks";
 
 // Widget
 "spent this month" = "brugt denne måned";
@@ -503,3 +513,31 @@
 "All entries are clear" = "Alle poster er godkendte";
 "Resend in %ds" = "Send igen om %ds";
 "Automation" = "Automatisering";
+"Make recurring" = "Gør tilbagevendende";
+"Recurring" = "Tilbagevendende";
+"Create something that should land in your journal automatically." = "Opret noget, der automatisk lander i din journal.";
+"Edit recurring" = "Rediger tilbagevendende";
+"Turn this entry into a repeating rule." = "Gør denne post til en gentaget regel.";
+"Update the repeating rule behind this entry." = "Opdater den gentagne regel for denne post.";
+"Active rules" = "Aktive regler";
+"Create one from quick add, from an entry, or tap the plus button here." = "Opret en fra hurtig tilføj, fra en post, eller tryk på plusknappen her.";
+"Delete recurring item" = "Slet tilbagevendende post";
+"Every %d %@" = "Hver %d %@";
+"Manage bills, paychecks, and anything that repeats." = "Administrer regninger, lønninger og alt, der gentager sig.";
+"Monthly" = "Månedlig";
+"No expenses logged this month." = "Ingen udgifter logget denne måned.";
+"No recurring items yet" = "Ingen tilbagevendende poster endnu";
+"Offline" = "Offline";
+"Recurring entry" = "Tilbagevendende post";
+"Recurring expense" = "Tilbagevendende udgift";
+"Recurring income" = "Tilbagevendende indkomst";
+"Rent" = "Husleje";
+"Rent 12000" = "Husleje 12000";
+"Save recurring item" = "Gem tilbagevendende post";
+"Set up an expense that repeats on its own." = "Opsaet en udgift, der gentager sig selv.";
+"Set up an income that repeats on its own." = "Opsaet en indkomst, der gentager sig selv.";
+"Streaming 149" = "Streaming 149";
+"Until" = "Indtil";
+"Update recurring item" = "Opdater tilbagevendende post";
+"Weekly" = "Ugentlig";
+"Yearly" = "Årlig";

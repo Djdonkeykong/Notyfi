@@ -74,6 +74,7 @@
 "Plan" = "Plan";
 "Money plan" = "Budget Plan";
 "Monthly spending cap" = "Monthly spending cap";
+"Monthly spend" = "Monthly spend";
 "One gentle limit for the whole month" = "One gentle limit for the whole month";
 "Savings target" = "Savings target";
 "How much you want to keep after expenses" = "How much you want to keep after expenses";
@@ -103,6 +104,7 @@
 "Profile" = "Profile";
 "Name" = "Name";
 "Email" = "Email";
+"Account" = "Account";
 "Preferences" = "Preferences";
 "Currency" = "Currency";
 "Language" = "Language";
@@ -187,10 +189,14 @@
 "Type" = "Type";
 "Category" = "Category";
 "Merchant" = "Merchant";
+"Time" = "Time";
 "Optional" = "Optional";
 "Notes & Review" = "Notes & Review";
 "Note" = "Note";
+"Original note" = "Original note";
 "Optional context" = "Optional context";
+"Details" = "Details";
+"Schedule" = "Schedule";
 "Confidence" = "Confidence";
 "Date" = "Date";
 "Untitled entry" = "Untitled entry";
@@ -277,7 +283,6 @@
 "Speak it out" = "Speak it out";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Say what you spent out loud. Notyfi transcribes and parses it instantly.";
 "Smart text" = "Smart text";
-"Abbreviations, shorthand, even typos â€” the AI figures out what you mean." = "Abbreviations, shorthand, even typos â€” the AI figures out what you mean.";
 "Stay on track" = "Stay on track";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster.";
 "Enable Notifications" = "Enable Notifications";
@@ -289,7 +294,6 @@
 "Search for \"Notyfi\" and choose a size" = "Search for \"Notyfi\" and choose a size";
 "Tap the widget any time to open the app" = "Tap the widget any time to open the app";
 "Set category limits" = "Set category limits";
-"Add a monthly limit for each category. Skip any you're not sure about â€” you can set these later." = "Add a monthly limit for each category. Skip any you're not sure about â€” you can set these later.";
 "/mo" = "/mo";
 "Skip for now" = "Skip for now";
 "Follow System" = "Follow System";
@@ -311,7 +315,6 @@
 "per month for \(category.title)" = "per month for \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending â€” every single day." = "Add the Notyfi widget to stay on top of your spending â€” every single day.";
 
 // Category group titles
 "Essentials" = "Essentials";

@@ -100,6 +100,7 @@
 "Profile" = "Perfil";
 "Name" = "Nombre";
 "Email" = "Correo";
+"Account" = "Cuenta";
 "Preferences" = "Preferencias";
 "Currency" = "Moneda";
 "Language" = "Idioma";
@@ -140,6 +141,8 @@
 "Sign Out" = "Cerrar sesión";
 "Sign out of Notyfi?" = "¿Cerrar sesión en Notyfi?";
 "Delete Account" = "Eliminar cuenta";
+"Signing out" = "Cerrando sesión";
+"Deleting account" = "Eliminando cuenta";
 "Delete Account Failed" = "Error al eliminar la cuenta";
 "Delete your account?" = "¿Eliminar tu cuenta?";
 "This permanently deletes your account and all data. This cannot be undone." = "Esto elimina permanentemente tu cuenta y todos los datos. Esta acción no se puede deshacer.";
@@ -186,9 +189,18 @@
 "Type" = "Tipo";
 "Category" = "Categoría";
 "Merchant" = "Comercio";
+"Time" = "Hora";
 "Optional" = "Opcional";
 "Notes & Review" = "Notas y revisión";
 "Note" = "Nota";
+"Original note" = "Nota original";
+"Details" = "Detalles";
+"Schedule" = "Programación";
+"Frequency" = "Frecuencia";
+"Starts" = "Comienza";
+"End date" = "Fecha de fin";
+"Ends" = "Termina";
+"Active" = "Activo";
 "Optional context" = "Contexto opcional";
 "Confidence" = "Confianza";
 "Date" = "Fecha";
@@ -276,7 +288,6 @@
 "Speak it out" = "Dilo en voz alta";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Di en voz alta lo que gastaste. Notyfi lo transcribe y analiza al instante.";
 "Smart text" = "Texto inteligente";
-"Abbreviations, shorthand, even typos – the AI figures out what you mean." = "Abreviaturas, taquigrafía, incluso errores tipográficos – la IA descubre lo que quieres decir.";
 "Stay on track" = "Mantente en el camino";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Recibe un recordatorio diario para registrar tus gastos. Las personas que usan recordatorios crean el hábito 3 veces más rápido.";
 "Enable Notifications" = "Activar notificaciones";
@@ -288,7 +299,7 @@
 "Search for \"Notyfi\" and choose a size" = "Busca \"Notyfi\" y elige un tamaño";
 "Tap the widget any time to open the app" = "Toca el widget en cualquier momento para abrir la app";
 "Set category limits" = "Establecer límites de categoría";
-"Add a monthly limit for each category. Skip any you're not sure about – you can set these later." = "Añade un límite mensual para cada categoría. Omite las que no estés seguro – puedes establecerlas más tarde.";
+"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Añade un límite mensual para cada categoría. Omite las que no estés seguro – puedes establecerlas más tarde.";
 "/mo" = "/mes";
 "Skip for now" = "Omitir por ahora";
 "Follow System" = "Seguir sistema";
@@ -320,7 +331,7 @@
 "per month for \(category.title)" = "al mes para \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending – every single day." = "Añade el widget de Notyfi para estar al tanto de tus gastos – cada día.";
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Añade el widget de Notyfi para estar al tanto de tus gastos – cada día.";
 
 // Category group titles
 "Essentials" = "Esenciales";
@@ -347,7 +358,6 @@
 "3 times a day" = "3 veces al día";
 "5 times a day" = "5 veces al día";
 "8 times a day" = "8 veces al día";
-"Freq Max label" = "Max";
 
 // Widget
 "spent this month" = "gastado este mes";
@@ -503,3 +513,31 @@
 "All entries are clear" = "Todas las entradas están revisadas";
 "Resend in %ds" = "Reenviar en %ds";
 "Automation" = "Automatización";
+"Make recurring" = "Hacer recurrente";
+"Recurring" = "Recurrente";
+"Create something that should land in your journal automatically." = "Crea algo que aparezca automáticamente en tu diario.";
+"Edit recurring" = "Editar recurrente";
+"Turn this entry into a repeating rule." = "Convierte esta entrada en una regla recurrente.";
+"Update the repeating rule behind this entry." = "Actualiza la regla recurrente de esta entrada.";
+"Active rules" = "Reglas activas";
+"Create one from quick add, from an entry, or tap the plus button here." = "Crea uno desde el acceso rapido, desde una entrada, o toca el boton mas aqui.";
+"Delete recurring item" = "Eliminar elemento recurrente";
+"Every %d %@" = "Cada %d %@";
+"Manage bills, paychecks, and anything that repeats." = "Gestiona facturas, nominas y todo lo que se repite.";
+"Monthly" = "Mensual";
+"No expenses logged this month." = "Sin gastos registrados este mes.";
+"No recurring items yet" = "Aun no hay elementos recurrentes";
+"Offline" = "Sin conexion";
+"Recurring entry" = "Entrada recurrente";
+"Recurring expense" = "Gasto recurrente";
+"Recurring income" = "Ingreso recurrente";
+"Rent" = "Alquiler";
+"Rent 12000" = "Alquiler 12000";
+"Save recurring item" = "Guardar elemento recurrente";
+"Set up an expense that repeats on its own." = "Configura un gasto que se repite solo.";
+"Set up an income that repeats on its own." = "Configura un ingreso que se repite solo.";
+"Streaming 149" = "Streaming 149";
+"Until" = "Hasta";
+"Update recurring item" = "Actualizar elemento recurrente";
+"Weekly" = "Semanal";
+"Yearly" = "Anual";

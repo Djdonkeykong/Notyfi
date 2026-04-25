@@ -134,7 +134,7 @@ struct OnboardingAuthView: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 56)
-            .background(.black)
+            .background(NotyfiTheme.darkButtonSurface)
             .clipShape(Capsule())
         }
         .disabled(isAnyLoading)

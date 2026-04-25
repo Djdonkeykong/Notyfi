@@ -100,6 +100,7 @@
 "Profile" = "Profiili";
 "Name" = "Nimi";
 "Email" = "Sähköposti";
+"Account" = "Tili";
 "Preferences" = "Asetukset";
 "Currency" = "Valuutta";
 "Language" = "Kieli";
@@ -140,6 +141,8 @@
 "Sign Out" = "Kirjaudu ulos";
 "Sign out of Notyfi?" = "Kirjaudutaanko ulos Notyfista?";
 "Delete Account" = "Poista tili";
+"Signing out" = "Kirjaudutaan ulos";
+"Deleting account" = "Poistetaan tiliä";
 "Delete Account Failed" = "Tilin poistaminen epäonnistui";
 "Delete your account?" = "Poistetaanko tilisi?";
 "This permanently deletes your account and all data. This cannot be undone." = "Tämä poistaa tilisi ja kaikki tiedot pysyvästi. Tätä ei voi kumota.";
@@ -186,9 +189,18 @@
 "Type" = "Tyyppi";
 "Category" = "Kategoria";
 "Merchant" = "Kauppias";
+"Time" = "Kellonaika";
 "Optional" = "Valinnainen";
 "Notes & Review" = "Muistiinpanot ja tarkistus";
 "Note" = "Muistiinpano";
+"Original note" = "Alkuperäinen merkintä";
+"Details" = "Tiedot";
+"Schedule" = "Aikataulu";
+"Frequency" = "Toistuvuus";
+"Starts" = "Alkaa";
+"End date" = "Päättymispäivä";
+"Ends" = "Päättyy";
+"Active" = "Aktiivinen";
 "Optional context" = "Valinnainen konteksti";
 "Confidence" = "Varmuus";
 "Date" = "Päivämäärä";
@@ -276,7 +288,6 @@
 "Speak it out" = "Sano se ääneen";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Sano ääneen, mitä käytit. Notyfi litteroi ja analysoi sen välittömästi.";
 "Smart text" = "Älykäs teksti";
-"Abbreviations, shorthand, even typos – the AI figures out what you mean." = "Lyhenteet, pikakirjoitus, jopa kirjoitusvirheet – tekoäly selvittää, mitä tarkoitat.";
 "Stay on track" = "Pysy raiteilla";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Saat päivittäisen muistutuksen kulutuksen kirjaamisesta. Muistutuksia käyttävät ihmiset omaksuvat tavan 3x nopeammin.";
 "Enable Notifications" = "Ota ilmoitukset käyttöön";
@@ -288,7 +299,7 @@
 "Search for \"Notyfi\" and choose a size" = "Etsi \"Notyfi\" ja valitse koko";
 "Tap the widget any time to open the app" = "Napauta widgettia milloin tahansa avataksesi sovelluksen";
 "Set category limits" = "Aseta kategoriarajat";
-"Add a monthly limit for each category. Skip any you're not sure about – you can set these later." = "Lisää kuukausiraja jokaiselle kategorialle. Ohita ne, joista et ole varma – voit asettaa ne myöhemmin.";
+"Add a monthly limit for each category. Skip any you're not sure about — you can set these later." = "Lisää kuukausiraja jokaiselle kategorialle. Ohita ne, joista et ole varma – voit asettaa ne myöhemmin.";
 "/mo" = "/kk";
 "Skip for now" = "Ohita toistaiseksi";
 "Follow System" = "Seuraa järjestelmää";
@@ -320,7 +331,7 @@
 "per month for \(category.title)" = "kuukaudessa kategorialle \(category.title)";
 
 // Widget onboarding
-"Add the Notyfi widget to stay on top of your spending – every single day." = "Lisää Notyfi-widget seurataksesi menojasi – joka päivä.";
+"Add the Notyfi widget to stay on top of your spending — every single day." = "Lisää Notyfi-widget seurataksesi menojasi – joka päivä.";
 
 // Category group titles
 "Essentials" = "Perustarpeet";
@@ -347,7 +358,6 @@
 "3 times a day" = "3 kertaa päivässä";
 "5 times a day" = "5 kertaa päivässä";
 "8 times a day" = "8 kertaa päivässä";
-"Freq Max label" = "Max";
 
 // Widget
 "spent this month" = "käytetty tässä kuussa";
@@ -503,3 +513,31 @@
 "All entries are clear" = "Kaikki tapahtumat on tarkistettu";
 "Resend in %ds" = "Lähetä uudelleen %ds kuluttua";
 "Automation" = "Automaatio";
+"Make recurring" = "Tee toistuvaksi";
+"Recurring" = "Toistuva";
+"Create something that should land in your journal automatically." = "Luo asia, joka lisätään automaattisesti päiväkirjaasi.";
+"Edit recurring" = "Muokkaa toistuvaa";
+"Turn this entry into a repeating rule." = "Muuta tämä merkintä toistuvaksi säännöksi.";
+"Update the repeating rule behind this entry." = "Päivitä tämän merkinnän toistuva sääntö.";
+"Active rules" = "Aktiiviset säännöt";
+"Create one from quick add, from an entry, or tap the plus button here." = "Luo yksi pikalisäyksen kautta, merkinnästä tai paina plus-painiketta tässä.";
+"Delete recurring item" = "Poista toistuva merkintä";
+"Every %d %@" = "Joka %d %@";
+"Manage bills, paychecks, and anything that repeats." = "Hallinnoi laskuja, palkkoja ja kaikkea toistuvaa.";
+"Monthly" = "Kuukausittain";
+"No expenses logged this month." = "Ei kirjattuja kuluja tällä kuulla.";
+"No recurring items yet" = "Ei viela toistuvia merkintoja";
+"Offline" = "Offline";
+"Recurring entry" = "Toistuva merkintä";
+"Recurring expense" = "Toistuva kulu";
+"Recurring income" = "Toistuva tulo";
+"Rent" = "Vuokra";
+"Rent 12000" = "Vuokra 12000";
+"Save recurring item" = "Tallenna toistuva merkintä";
+"Set up an expense that repeats on its own." = "Aseta kulu, joka toistuu itsestään.";
+"Set up an income that repeats on its own." = "Aseta tulo, joka toistuu itsestään.";
+"Streaming 149" = "Suoratoisto 149";
+"Until" = "Saakka";
+"Update recurring item" = "Päivitä toistuva merkintä";
+"Weekly" = "Viikoittain";
+"Yearly" = "Vuosittain";

@@ -102,6 +102,7 @@
 "Profile" = "Profil";
 "Name" = "Navn";
 "Email" = "E-post";
+"Account" = "Konto";
 "Preferences" = "Preferanser";
 "Currency" = "Valuta";
 "Language" = "Språk";
@@ -188,9 +189,13 @@
 "Type" = "Type";
 "Category" = "Kategori";
 "Merchant" = "Sted";
+"Time" = "Tid";
 "Optional" = "Valgfritt";
 "Notes & Review" = "Notater og gjennomgang";
 "Note" = "Notat";
+"Original note" = "Originalt notat";
+"Details" = "Detaljer";
+"Schedule" = "Tidsplan";
 "Optional context" = "Valgfri kontekst";
 "Confidence" = "Sikkerhet";
 "Date" = "Dato";
@@ -278,7 +283,6 @@
 "Speak it out" = "Si det høyt";
 "Say what you spent out loud. Notyfi transcribes and parses it instantly." = "Si hva du brukte høyt. Notyfi transkriberer og analyserer det umiddelbart.";
 "Smart text" = "Smart tekst";
-"Abbreviations, shorthand, even typos — the AI figures out what you mean." = "Forkortelser, stenografi, selv skrivefeil — AI-en finner ut hva du mener.";
 "Stay on track" = "Hold deg på sporet";
 "Get a daily nudge to log your spending. People who use reminders build the habit 3x faster." = "Få en daglig påminnelse om å logge forbruket ditt. Folk som bruker påminnelser, bygger vanen 3x raskere.";
 "Enable Notifications" = "Aktiver varsler";
@@ -533,3 +537,7 @@
 "All entries are clear" = "Alle oppføringer er klare";
 "Resend in %ds" = "Send på nytt om %ds";
 "Automation" = "Automatisering";
+"No expenses logged this month." = "Ingen utgifter registrert denne måneden.";
+"Rent" = "Husleie";
+"Rent 12000" = "Husleie 12000";
+"Streaming 149" = "Strømmetjeneste 149";

@@ -578,7 +578,7 @@ private struct PricingBottomCard: View {
         }
         .background {
             RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(Color(uiColor: .systemBackground))
+                .fill(NotyfiTheme.elevatedSurface)
                 .shadow(color: .black.opacity(0.09), radius: 20, x: 0, y: -10)
         }
         .padding(.horizontal, 16)
