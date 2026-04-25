@@ -16,6 +16,8 @@
 "Clear" = "Claro";
 "Low" = "Bajo";
 "Needs review" = "Necesita revisión";
+"1 entry needs attention" = "1 entrada necesita atención";
+"%d entries need attention" = "%d entradas necesitan atención";
 "Estimated price" = "Precio estimado";
 "Ready" = "Listo";
 "estimated total" = "total estimado";

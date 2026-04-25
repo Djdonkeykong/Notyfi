@@ -16,6 +16,8 @@
 "Clear" = "Klar";
 "Low" = "Lav";
 "Needs review" = "Skal gennemgås";
+"1 entry needs attention" = "1 post skal tjekkes";
+"%d entries need attention" = "%d poster skal tjekkes";
 "Estimated price" = "Anslået pris";
 "Ready" = "Klar";
 "estimated total" = "anslået total";

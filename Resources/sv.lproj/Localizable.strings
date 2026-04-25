@@ -16,6 +16,8 @@
 "Clear" = "Tydlig";
 "Low" = "Låg";
 "Needs review" = "Behöver granskas";
+"1 entry needs attention" = "1 post behöver granskas";
+"%d entries need attention" = "%d poster behöver granskas";
 "Estimated price" = "Beräknat pris";
 "Ready" = "Klar";
 "estimated total" = "beräknad totalsumma";

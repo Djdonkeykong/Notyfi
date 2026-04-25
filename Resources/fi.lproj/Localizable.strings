@@ -16,6 +16,8 @@
 "Clear" = "Selkeä";
 "Low" = "Matala";
 "Needs review" = "Tarvitsee tarkistuksen";
+"1 entry needs attention" = "1 merkintä vaatii huomion";
+"%d entries need attention" = "%d merkintää vaatii huomion";
 "Estimated price" = "Arvioitu hinta";
 "Ready" = "Valmis";
 "estimated total" = "arvioitu summa";

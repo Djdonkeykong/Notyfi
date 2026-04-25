@@ -16,6 +16,8 @@
 "Clear" = "Klar";
 "Low" = "Niedrig";
 "Needs review" = "Muss geprüft werden";
+"1 entry needs attention" = "1 Eintrag muss geprüft werden";
+"%d entries need attention" = "%d Einträge müssen geprüft werden";
 "Estimated price" = "Geschätzter Preis";
 "Ready" = "Bereit";
 "estimated total" = "geschätzte Summe";

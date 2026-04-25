@@ -16,6 +16,8 @@
 "Clear" = "Duidelijk";
 "Low" = "Laag";
 "Needs review" = "Moet worden nagekeken";
+"1 entry needs attention" = "1 item heeft aandacht nodig";
+"%d entries need attention" = "%d items hebben aandacht nodig";
 "Estimated price" = "Geschatte prijs";
 "Ready" = "Klaar";
 "estimated total" = "geschat totaal";

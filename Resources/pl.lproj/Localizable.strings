@@ -16,6 +16,8 @@
 "Clear" = "Jasne";
 "Low" = "Niski";
 "Needs review" = "Wymaga sprawdzenia";
+"1 entry needs attention" = "1 wpis wymaga uwagi";
+"%d entries need attention" = "%d wpisy wymagają uwagi";
 "Estimated price" = "Szacowana cena";
 "Ready" = "Gotowe";
 "estimated total" = "szacowana suma";

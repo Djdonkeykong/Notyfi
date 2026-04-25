@@ -1179,8 +1179,8 @@ private struct NeedsReviewSheet: View {
 
                 Text(
                     reviewEntries.count == 1
-                        ? "1 entry needs attention"
-                        : String(format: "%d entries need attention", reviewEntries.count)
+                        ? "1 entry needs attention".notyfiLocalized
+                        : String(format: "%d entries need attention".notyfiLocalized, reviewEntries.count)
                 )
                 .font(.notyfi(.footnote, weight: .medium))
                 .foregroundStyle(NotyfiTheme.secondaryText)

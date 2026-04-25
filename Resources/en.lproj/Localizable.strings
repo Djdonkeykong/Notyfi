@@ -19,6 +19,8 @@
 "Clear" = "Clear";
 "Low" = "Low";
 "Needs review" = "Needs review";
+"1 entry needs attention" = "1 entry needs attention";
+"%d entries need attention" = "%d entries need attention";
 "Estimated price" = "Estimated price";
 "Ready" = "Ready";
 "estimated total" = "estimated total";
