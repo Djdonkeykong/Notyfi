@@ -676,7 +676,7 @@ private struct PlanCard: View {
             .background(
                 isSelected
                     ? NotyfiTheme.brandPrimary.opacity(0.07)
-                    : Color(uiColor: .systemBackground)
+                    : NotyfiTheme.planCardUnselected
             )
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay {
@@ -747,7 +747,7 @@ private struct PlaceholderPlanCard: View {
         .background(
             isSelected
                 ? NotyfiTheme.brandPrimary.opacity(0.07)
-                : Color(uiColor: .systemBackground)
+                : NotyfiTheme.planCardUnselected
         )
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay {
