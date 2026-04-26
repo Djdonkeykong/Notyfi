@@ -201,6 +201,16 @@ struct JournalLogTextView: UIViewRepresentable {
                 EditableJournalTextView.activate(editableTextView)
             }
 
+            // Collapse any persisted range selection to a cursor. When iOS restores
+            // first responder after a sheet dismissal the old selectedRange survives,
+            // causing handles to float over list rows in the paragraph-spacing gaps.
+            if textView.selectedRange.length > 0 {
+                textView.selectedRange = NSRange(
+                    location: textView.selectedRange.location,
+                    length: 0
+                )
+            }
+
             if let focusRequest = parent.focusRequest,
                focusRequest.target != parent.editorTarget {
                 parent.focusRequest = nil
