@@ -260,8 +260,8 @@ final class HomeViewModel: ObservableObject {
         switch action {
         case .expense:
             entry = ExpenseEntry(
-                rawText: "New expense".notyfiLocalized,
-                title: "New expense".notyfiLocalized,
+                rawText: "",
+                title: "",
                 amount: 0,
                 currencyCode: currencyCode,
                 transactionKind: .expense,
@@ -269,14 +269,14 @@ final class HomeViewModel: ObservableObject {
                 merchant: nil,
                 date: date,
                 note: "",
-                confidence: .review,
+                confidence: .certain,
                 isAmountEstimated: false,
                 createdAt: Date()
             )
         case .income:
             entry = ExpenseEntry(
-                rawText: "New income".notyfiLocalized,
-                title: "New income".notyfiLocalized,
+                rawText: "",
+                title: "",
                 amount: 0,
                 currencyCode: currencyCode,
                 transactionKind: .income,
@@ -284,14 +284,14 @@ final class HomeViewModel: ObservableObject {
                 merchant: nil,
                 date: date,
                 note: "",
-                confidence: .review,
+                confidence: .certain,
                 isAmountEstimated: false,
                 createdAt: Date()
             )
         case .transfer:
             entry = ExpenseEntry(
-                rawText: "Transfer".notyfiLocalized,
-                title: "Transfer".notyfiLocalized,
+                rawText: "",
+                title: "",
                 amount: 0,
                 currencyCode: currencyCode,
                 transactionKind: .expense,
@@ -299,7 +299,7 @@ final class HomeViewModel: ObservableObject {
                 merchant: nil,
                 date: date,
                 note: "Move between accounts. Adjust type if needed.".notyfiLocalized,
-                confidence: .review,
+                confidence: .certain,
                 isAmountEstimated: false,
                 createdAt: Date()
             )
@@ -591,8 +591,8 @@ final class HomeViewModel: ObservableObject {
         switch action {
         case .recurringExpense:
             return RecurringTransactionDraft(
-                title: "Recurring expense".notyfiLocalized,
-                rawTextTemplate: "Recurring expense".notyfiLocalized,
+                title: "",
+                rawTextTemplate: "",
                 amountText: "",
                 currencyCode: currencyCode,
                 transactionKind: .expense,
@@ -601,8 +601,8 @@ final class HomeViewModel: ObservableObject {
             )
         case .recurringIncome:
             return RecurringTransactionDraft(
-                title: "Recurring income".notyfiLocalized,
-                rawTextTemplate: "Recurring income".notyfiLocalized,
+                title: "",
+                rawTextTemplate: "",
                 amountText: "",
                 currencyCode: currencyCode,
                 transactionKind: .income,

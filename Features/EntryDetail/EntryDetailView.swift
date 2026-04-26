@@ -33,16 +33,18 @@ struct EntryDetailView: View {
                 VStack(spacing: 22) {
                     header
                     summaryCard
-                    SectionHeader(title: "Original Note")
-                    detailCard {
-                        VStack(alignment: .leading, spacing: 14) {
-                            TextField("\("Coffee".notyfiLocalized) \(NotyfiCurrency.coffeePlaceholderAmount(for: currencyCode).formattedCurrency(code: currencyCode))", text: $viewModel.rawText, axis: .vertical)
-                                .lineLimit(3...6)
-                                .font(.notyfi(.title3, weight: .medium))
-                                .foregroundStyle(.primary.opacity(0.86))
+                    if !isNewEntryDraft {
+                        SectionHeader(title: "Original Note")
+                        detailCard {
+                            VStack(alignment: .leading, spacing: 14) {
+                                TextField("\("Coffee".notyfiLocalized) \(NotyfiCurrency.coffeePlaceholderAmount(for: currencyCode).formattedCurrency(code: currencyCode))", text: $viewModel.rawText, axis: .vertical)
+                                    .lineLimit(3...6)
+                                    .font(.notyfi(.title3, weight: .medium))
+                                    .foregroundStyle(.primary.opacity(0.86))
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 18)
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 18)
                     }
 
                     SectionHeader(title: "Entry Details")

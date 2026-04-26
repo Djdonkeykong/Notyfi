@@ -43,10 +43,12 @@ final class EntryDetailViewModel: ObservableObject {
     func save() {
         let amount = Double(amountText.replacingOccurrences(of: ",", with: ".")) ?? 0
         let currentStoredEntry = store.entries.first(where: { $0.id == entryID })
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedRawText = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
         let updated = ExpenseEntry(
             id: entryID,
-            rawText: rawText.trimmingCharacters(in: .whitespacesAndNewlines),
-            title: title.trimmingCharacters(in: .whitespacesAndNewlines),
+            rawText: trimmedRawText.isEmpty ? trimmedTitle : trimmedRawText,
+            title: trimmedTitle,
             amount: amount,
             currencyCode: currencyCode,
             transactionKind: transactionKind,
