@@ -16,6 +16,7 @@ struct HomeView: View {
     @State private var isCameraPresented = false
     @State private var cameraSourceType: UIImagePickerController.SourceType = .camera
     @State private var isQuickAddPresented = false
+    @State private var pendingRecurringAction: QuickAddAction?
     @State private var recurringDraft: RecurringTransactionDraft?
     @State private var isFileImporterPresented = false
     @State private var isImportingPhoto = false
@@ -165,7 +166,12 @@ private extension HomeView {
                     .presentationBackground(NotyfiTheme.background.opacity(0.98))
                     .presentationCornerRadius(34)
             }
-            .sheet(isPresented: $isQuickAddPresented) {
+            .sheet(isPresented: $isQuickAddPresented, onDismiss: {
+                if let action = pendingRecurringAction {
+                    pendingRecurringAction = nil
+                    recurringDraft = viewModel.recurringDraft(for: action)
+                }
+            }) {
                 QuickAddSheetView { action in
                     handleQuickAddSelection(action)
                 }
@@ -316,6 +322,7 @@ private extension HomeView {
             || isQuickAddPresented
             || isCameraPresented
             || selectedEntry != nil
+            || recurringDraft != nil
     }
 
     var usesScrollEdgeTopBar: Bool {
@@ -527,17 +534,20 @@ private extension HomeView {
     }
 
     func handleQuickAddSelection(_ action: QuickAddAction) {
-        isQuickAddPresented = false
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
-            switch action {
-            case .attachFiles:
-                isFileImporterPresented = true
-            case .recurringExpense, .recurringIncome:
-                recurringDraft = viewModel.recurringDraft(for: action)
-            default:
-                selectedEntryIsDraft = true
-                selectedEntry = viewModel.createManualEntryDraft(for: action)
+        switch action {
+        case .recurringExpense, .recurringIncome:
+            pendingRecurringAction = action
+            isQuickAddPresented = false
+        default:
+            isQuickAddPresented = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+                switch action {
+                case .attachFiles:
+                    isFileImporterPresented = true
+                default:
+                    selectedEntryIsDraft = true
+                    selectedEntry = viewModel.createManualEntryDraft(for: action)
+                }
             }
         }
     }
