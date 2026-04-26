@@ -781,7 +781,7 @@ final class HomeViewModel: ObservableObject {
 
     private func sortEntriesChronologically(_ entries: [ExpenseEntry]) -> [ExpenseEntry] {
         entries.sorted { lhs, rhs in
-            if calendar.isDate(lhs.date, equalTo: rhs.date, toGranularity: .minute) {
+            if calendar.isDate(lhs.date, equalTo: rhs.date, toGranularity: .day) {
                 return lhs.createdAt < rhs.createdAt
             }
 

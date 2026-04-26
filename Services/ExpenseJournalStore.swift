@@ -484,7 +484,7 @@ final class ExpenseJournalStore: ObservableObject {
         }
 
         entries = decoded.sorted { lhs, rhs in
-            if calendar.isDate(lhs.date, equalTo: rhs.date, toGranularity: .minute) {
+            if calendar.isDate(lhs.date, equalTo: rhs.date, toGranularity: .day) {
                 return lhs.createdAt > rhs.createdAt
             }
             return lhs.date > rhs.date
@@ -493,7 +493,7 @@ final class ExpenseJournalStore: ObservableObject {
 
     private func sortAndPersist() {
         entries.sort { lhs, rhs in
-            if calendar.isDate(lhs.date, equalTo: rhs.date, toGranularity: .minute) {
+            if calendar.isDate(lhs.date, equalTo: rhs.date, toGranularity: .day) {
                 return lhs.createdAt > rhs.createdAt
             }
 

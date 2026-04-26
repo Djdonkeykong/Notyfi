@@ -474,7 +474,7 @@ private enum SupabaseFinanceService {
                 return lhs.nextOccurrenceAt < rhs.nextOccurrenceAt
             },
             entries: entries.sorted { lhs, rhs in
-                if Calendar.current.isDate(lhs.date, equalTo: rhs.date, toGranularity: .minute) {
+                if Calendar.current.isDate(lhs.date, equalTo: rhs.date, toGranularity: .day) {
                     return lhs.createdAt > rhs.createdAt
                 }
 
