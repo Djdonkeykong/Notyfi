@@ -116,6 +116,10 @@ final class AuthManager: ObservableObject {
     func sendOTP(email: String, shouldCreateUser: Bool = true) async throws {
         isLoading = true
         defer { isLoading = false }
+        if email.lowercased() == "appstore@notyfi.app" {
+            setDebugMessage("Review account detected — skipping OTP send")
+            return
+        }
         setDebugMessage("Sending email OTP to \(email) (shouldCreateUser=\(shouldCreateUser))")
         try await SupabaseService.client.auth.signInWithOTP(
             email: email,
@@ -127,6 +131,18 @@ final class AuthManager: ObservableObject {
     func verifyOTP(email: String, token: String) async throws {
         isLoading = true
         defer { isLoading = false }
+        if email.lowercased() == "appstore@notyfi.app" && token == "123456" {
+            setDebugMessage("Review account bypass — signing in with password")
+            let session = try await SupabaseService.client.auth.signIn(
+                email: email,
+                password: token
+            )
+            try await applyVerifiedAuthState(
+                preferredSession: session,
+                context: "Review account sign-in"
+            )
+            return
+        }
         setDebugMessage("Verifying email OTP for \(email)")
         try await SupabaseService.client.auth.verifyOTP(
             email: email,

@@ -543,3 +543,5 @@
 "Update recurring item" = "Päivitä toistuva merkintä";
 "Weekly" = "Viikoittain";
 "Yearly" = "Vuosittain";
+
+"%d%% OFF" = "%d%% ALE";

@@ -543,3 +543,5 @@
 "Update recurring item" = "Mettre a jour l'element recurrent";
 "Weekly" = "Hebdomadaire";
 "Yearly" = "Annuel";
+
+"%d%% OFF" = "-%d%%";

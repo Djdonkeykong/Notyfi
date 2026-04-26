@@ -497,7 +497,7 @@ private struct PricingBottomCard: View {
             let annualPerMonth = annual.storeProduct.price / 12
             let savings = (monthly.storeProduct.price - annualPerMonth) / monthly.storeProduct.price * 100
             let pct = Int((savings as NSDecimalNumber).doubleValue.rounded())
-            return "\(pct)% OFF"
+            return String(format: "%d%% OFF".notyfiLocalized, pct)
         }
         return "Best value".notyfiLocalized
     }
@@ -708,9 +708,9 @@ private struct PlanCard: View {
         let monthly = package.storeProduct.price / 12
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.locale = Locale.current
+        formatter.locale = package.storeProduct.priceLocale
         guard let formatted = formatter.string(from: monthly as NSDecimalNumber) else { return "" }
-        return "\(formatted)/mo"
+        return "\(formatted)\("/mo".notyfiLocalized)"
     }
 }
 

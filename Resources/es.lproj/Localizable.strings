@@ -543,3 +543,5 @@
 "Update recurring item" = "Actualizar elemento recurrente";
 "Weekly" = "Semanal";
 "Yearly" = "Anual";
+
+"%d%% OFF" = "%d%% DTO.";
