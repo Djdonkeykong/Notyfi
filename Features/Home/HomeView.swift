@@ -1493,13 +1493,7 @@ private struct KeyboardAccessoryBar: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            KeyboardCircleButton(
-                systemImage: isDictating ? "waveform.circle.fill" : "mic.fill",
-                tint: isDictating ? Color(red: 0.90, green: 0.22, blue: 0.24) : Color(red: 0.03, green: 0.51, blue: 0.98),
-                action: {
-                    Task { await onToggleDictation() }
-                }
-            )
+            DictationButton(isDictating: isDictating, action: onToggleDictation)
             cameraMenuButton
             KeyboardCircleButton(
                 systemImage: "plus",
@@ -1839,6 +1833,85 @@ private struct KeyboardCircleButtonLabel: View {
                     }
                     .shadow(color: NotyfiTheme.shadow, radius: 18, x: 0, y: 10)
             }
+    }
+}
+
+private struct DictationButton: View {
+    let isDictating: Bool
+    let action: () async -> Void
+
+    private let activeTint = Color(red: 0.90, green: 0.22, blue: 0.24)
+    private let idleTint  = Color(red: 0.03, green: 0.51, blue: 0.98)
+
+    var body: some View {
+        Button {
+            Haptics.mediumImpact()
+            Task { await action() }
+        } label: {
+            ZStack {
+                if isDictating {
+                    DictationPulseRing(color: activeTint, delay: 0)
+                    DictationPulseRing(color: activeTint, delay: 0.6)
+                }
+                Image(systemName: isDictating ? "waveform" : "mic.fill")
+                    .font(.system(size: 19, weight: .medium))
+                    .foregroundStyle(isDictating ? activeTint : idleTint)
+                    .contentTransition(.symbolEffect(.replace))
+                    .animation(.easeInOut(duration: 0.2), value: isDictating)
+                    .frame(width: 46, height: 46)
+                    .background {
+                        Circle()
+                            .fill(NotyfiTheme.surface)
+                            .overlay {
+                                Circle()
+                                    .stroke(
+                                        isDictating ? activeTint.opacity(0.3) : NotyfiTheme.surfaceBorder,
+                                        lineWidth: isDictating ? 1.5 : 1
+                                    )
+                            }
+                            .shadow(
+                                color: isDictating ? activeTint.opacity(0.35) : NotyfiTheme.shadow,
+                                radius: 18, x: 0, y: 10
+                            )
+                            .animation(.easeInOut(duration: 0.2), value: isDictating)
+                    }
+            }
+        }
+        .buttonStyle(DictationButtonPressStyle())
+    }
+}
+
+private struct DictationPulseRing: View {
+    let color: Color
+    let delay: Double
+
+    @State private var scale: CGFloat = 1
+    @State private var opacity: Double = 0.5
+
+    var body: some View {
+        Circle()
+            .stroke(color, lineWidth: 1.5)
+            .frame(width: 46, height: 46)
+            .scaleEffect(scale)
+            .opacity(opacity)
+            .onAppear {
+                withAnimation(
+                    .easeOut(duration: 1.3)
+                    .delay(delay)
+                    .repeatForever(autoreverses: false)
+                ) {
+                    scale = 1.75
+                    opacity = 0
+                }
+            }
+    }
+}
+
+private struct DictationButtonPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.88 : 1.0)
+            .animation(.spring(response: 0.22, dampingFraction: 0.6), value: configuration.isPressed)
     }
 }
 
