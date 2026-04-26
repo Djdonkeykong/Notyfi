@@ -24,15 +24,23 @@ struct HomeSummaryBar: View {
                                 .foregroundStyle(.primary.opacity(0.88))
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.78)
+                                .contentTransition(.numericText())
+                                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: headlineText)
                         }
                         .frame(minHeight: 40, alignment: .topLeading)
 
                         Spacer(minLength: 12)
 
-                        Text(statusEmoji)
-                            .font(.system(size: 28))
-                            .frame(width: 36, height: 36)
-                            .accessibilityLabel(statusText)
+                        ZStack {
+                            Text(statusEmoji)
+                                .font(.system(size: 28))
+                                .frame(width: 36, height: 36)
+                                .accessibilityLabel(statusText)
+                                .id(statusEmoji)
+                                .transition(.scale(scale: 0.5).combined(with: .opacity))
+                        }
+                        .frame(width: 36, height: 36)
+                        .animation(.spring(response: 0.35, dampingFraction: 0.5), value: statusEmoji)
                     }
 
                     if budgetInsight.plan.hasSpendingLimit {
@@ -40,6 +48,7 @@ struct HomeSummaryBar: View {
                             ProgressView(value: budgetInsight.spendingProgress)
                                 .tint(accentColor)
                                 .scaleEffect(x: 1, y: 1.35, anchor: .center)
+                                .animation(.spring(response: 0.5, dampingFraction: 0.85), value: budgetInsight.spendingProgress)
 
                             HStack(spacing: 8) {
                                 Text(
@@ -196,6 +205,8 @@ private struct FooterMetricPill: View {
                 .minimumScaleFactor(0.76)
                 .monospacedDigit()
                 .frame(height: valueHeight, alignment: .topLeading)
+                .contentTransition(.numericText())
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: value)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.horizontal, 12)
