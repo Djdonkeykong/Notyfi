@@ -14,6 +14,7 @@ struct AppRootView: View {
     @AppStorage("notyfi.onboarding.complete") private var hasCompletedOnboarding = false
     @AppStorage(NotyfiAppearanceMode.storageKey) private var appearanceModeRawValue = NotyfiAppearanceMode.system.rawValue
     @AppStorage("notyfi.review.promptedAtCount") private var reviewPromptedAtCount = 0
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var minimumSplashElapsed = false
     @State private var showPaywall = false
 
@@ -97,7 +98,7 @@ struct AppRootView: View {
             Image("LaunchImage")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 350, height: 120)
+                .frame(maxWidth: horizontalSizeClass == .regular ? 500 : 350)
         }
         .ignoresSafeArea()
     }

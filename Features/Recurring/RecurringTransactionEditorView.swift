@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RecurringTransactionEditorView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @State private var draft: RecurringTransactionDraft
     @ObservedObject private var store: ExpenseJournalStore
@@ -34,6 +35,8 @@ struct RecurringTransactionEditorView: View {
                 .padding(.horizontal, 20)
                 .safeAreaPadding(.top, 14)
                 .padding(.bottom, 120)
+                .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
+                .frame(maxWidth: .infinity)
             }
         }
         .safeAreaInset(edge: .bottom) {

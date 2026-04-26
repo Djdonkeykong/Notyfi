@@ -6,6 +6,7 @@ import WebKit
 struct SettingsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.requestReview) private var requestReview
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @EnvironmentObject private var languageManager: LanguageManager
     @ObservedObject var viewModel: SettingsViewModel
     @ObservedObject var authManager: AuthManager
@@ -266,6 +267,8 @@ struct SettingsSheetView: View {
                 .padding(.horizontal, 20)
                 .safeAreaPadding(.top, 14)
                 .padding(.bottom, 28)
+                .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
+                .frame(maxWidth: .infinity)
             }
             .disabled(isPerformingAccountAction)
 

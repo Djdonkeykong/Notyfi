@@ -8,6 +8,7 @@ private enum MoneyPlanFocusField: Hashable {
 
 struct StatsSheetView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @ObservedObject var viewModel: HomeViewModel
     let store: ExpenseJournalStore
 
@@ -242,6 +243,8 @@ struct StatsSheetView: View {
                 .padding(.horizontal, 20)
                 .safeAreaPadding(.top, 14)
                 .padding(.bottom, 28)
+                .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
+                .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture {
                     focusedField = nil

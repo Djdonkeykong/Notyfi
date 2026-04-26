@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EntryDetailView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @EnvironmentObject private var languageManager: LanguageManager
     @StateObject private var viewModel: EntryDetailViewModel
     @State private var shouldPersistOnDisappear = true
@@ -190,6 +191,8 @@ struct EntryDetailView: View {
                 .padding(.horizontal, 20)
                 .safeAreaPadding(.top, 14)
                 .padding(.bottom, 32)
+                .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
+                .frame(maxWidth: .infinity)
             }
         }
         .sheet(item: $recurringDraft) { draft in

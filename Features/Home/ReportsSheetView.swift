@@ -3,6 +3,7 @@ import Charts
 
 struct ReportsSheetView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @ObservedObject var viewModel: HomeViewModel
 
     @State private var reportMonth: Date = Date()
@@ -77,6 +78,8 @@ struct ReportsSheetView: View {
                 .padding(.horizontal, 20)
                 .safeAreaPadding(.top, 14)
                 .padding(.bottom, 28)
+                .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
+                .frame(maxWidth: .infinity)
             }
         }
         .task(id: insightCacheKey(for: reportMonth)) {

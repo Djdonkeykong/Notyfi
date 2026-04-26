@@ -1621,6 +1621,7 @@ private enum FileImportError: Error {
 
 private struct QuickAddSheetView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     let onSelect: (QuickAddAction) -> Void
 
     var body: some View {
@@ -1642,6 +1643,8 @@ private struct QuickAddSheetView: View {
                 .padding(.horizontal, 20)
                 .safeAreaPadding(.top, 14)
                 .padding(.bottom, 28)
+                .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
+                .frame(maxWidth: .infinity)
             }
         }
     }
