@@ -40,6 +40,18 @@ interface ServiceAccount {
   project_id: string;
 }
 
+interface UserContext {
+  streak: number;
+  loggedYesterday: boolean;
+  budgetPct: number | null;
+  budgetRemaining: number | null;
+  daysLeftInMonth: number;
+  currency: string;
+  categoryOverTarget: { category: string; ratio: number } | null;
+  savedVsTarget: { saved: number; target: number } | null;
+  language: string;
+}
+
 // ---------------------------------------------------------------------------
 // Firebase access token via service account JWT
 // ---------------------------------------------------------------------------
@@ -147,24 +159,38 @@ async function sendFCMNotification(
 }
 
 // ---------------------------------------------------------------------------
-// Message selection
+// User context derivation
 // ---------------------------------------------------------------------------
 
-function pickMessage(
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English",
+  da: "Danish",
+  de: "German",
+  es: "Spanish",
+  fi: "Finnish",
+  fr: "French",
+  it: "Italian",
+  nb: "Norwegian",
+  nl: "Dutch",
+  pl: "Polish",
+  pt: "Portuguese",
+  sv: "Swedish",
+};
+
+function deriveContext(
   user: UserRow,
   plan: BudgetPlanRow | null,
   targets: CategoryTargetRow[],
   entries: EntryRow[],
-): { title: string; body: string } {
+): UserContext {
   const currency = user.currency_code ?? "USD";
+  const language = LANGUAGE_NAMES[user.language_code ?? ""] ?? "English";
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const daysLeft = daysInMonth - now.getDate();
+  const daysLeftInMonth = daysInMonth - now.getDate();
 
-  const monthEntries = entries.filter(
-    (e) => new Date(e.occurred_at) >= startOfMonth,
-  );
+  const monthEntries = entries.filter((e) => new Date(e.occurred_at) >= startOfMonth);
   const monthExpenses = monthEntries
     .filter((e) => e.entry_type === "expense")
     .reduce((sum, e) => sum + e.amount, 0);
@@ -187,63 +213,7 @@ function pickMessage(
     checkDate.setDate(checkDate.getDate() - 1);
   }
 
-  // Budget status
-  if (plan && plan.monthly_limit > 0) {
-    const pct = monthExpenses / plan.monthly_limit;
-    const remaining = plan.monthly_limit - monthExpenses;
-    const fmt = (n: number) => `${currency} ${n.toFixed(0)}`;
-
-    if (pct >= 0.9) {
-      return {
-        title: "Budget nearly gone",
-        body: `${Math.round(pct * 100)}% used this month. Only ${fmt(remaining)} left.`,
-      };
-    }
-
-    if (pct >= 0.7) {
-      return {
-        title: "Budget check",
-        body: `${Math.round(pct * 100)}% of your budget used. ${fmt(remaining)} left over ${daysLeft} days.`,
-      };
-    }
-  }
-
-  // Savings target
-  if (plan && plan.monthly_savings_target > 0) {
-    const saved = monthIncome - monthExpenses;
-    const gap = plan.monthly_savings_target - saved;
-    if (gap <= 0) {
-      return {
-        title: "Savings goal hit",
-        body: "You've hit your savings target this month. Nice work.",
-      };
-    }
-  }
-
-  // Category over target
-  for (const target of targets) {
-    if (target.target_amount <= 0) continue;
-    const spent = monthEntries
-      .filter((e) => e.entry_type === "expense" && e.category === target.category)
-      .reduce((sum, e) => sum + e.amount, 0);
-    const ratio = spent / target.target_amount;
-    if (ratio >= 1.1) {
-      return {
-        title: `${target.category} over target`,
-        body: `You're at ${Math.round(ratio * 100)}% of your ${target.category} guide this month.`,
-      };
-    }
-  }
-
-  // Streak
-  if (streak >= 3) {
-    return {
-      title: `${streak} days in a row`,
-      body: "You've been consistent. Keep the streak alive today.",
-    };
-  }
-
-  // Missed yesterday
+  // Yesterday
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
   yesterday.setHours(0, 0, 0, 0);
@@ -252,15 +222,133 @@ function pickMessage(
     d.setHours(0, 0, 0, 0);
     return d.getTime() === yesterday.getTime();
   });
-  if (!loggedYesterday) {
-    return {
-      title: "Yesterday unlogged",
-      body: "Nothing logged for yesterday — want to add anything from memory?",
-    };
+
+  // Budget
+  let budgetPct: number | null = null;
+  let budgetRemaining: number | null = null;
+  if (plan && plan.monthly_limit > 0) {
+    budgetPct = monthExpenses / plan.monthly_limit;
+    budgetRemaining = plan.monthly_limit - monthExpenses;
   }
 
-  // Generic fallback pool — rotate by day of month for variety
-  const generics = [
+  // Worst category over target
+  let categoryOverTarget: { category: string; ratio: number } | null = null;
+  for (const target of targets) {
+    if (target.target_amount <= 0) continue;
+    const spent = monthEntries
+      .filter((e) => e.entry_type === "expense" && e.category === target.category)
+      .reduce((sum, e) => sum + e.amount, 0);
+    const ratio = spent / target.target_amount;
+    if (ratio >= 1.1 && (!categoryOverTarget || ratio > categoryOverTarget.ratio)) {
+      categoryOverTarget = { category: target.category, ratio };
+    }
+  }
+
+  // Savings vs target
+  let savedVsTarget: { saved: number; target: number } | null = null;
+  if (plan && plan.monthly_savings_target > 0) {
+    savedVsTarget = { saved: monthIncome - monthExpenses, target: plan.monthly_savings_target };
+  }
+
+  return {
+    streak,
+    loggedYesterday,
+    budgetPct,
+    budgetRemaining,
+    daysLeftInMonth,
+    currency,
+    categoryOverTarget,
+    savedVsTarget,
+    language,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Claude notification generation
+// ---------------------------------------------------------------------------
+
+const SYSTEM_PROMPT =
+  `You write push notification copy for Notyfi, a personal finance journaling app. ` +
+  `Write a short, personal, and varied daily check-in notification based on the user's actual financial context.\n\n` +
+  `Rules:\n` +
+  `- Title: 2-5 words, punchy and direct\n` +
+  `- Body: 8-15 words, warm and conversational\n` +
+  `- Never open with "Hey", "Hi", or "Hello"\n` +
+  `- Reference specific numbers when available (amounts, streak count, percentages)\n` +
+  `- Vary the tone — sometimes motivating, sometimes playful, sometimes a gentle nudge, sometimes matter-of-fact\n` +
+  `- Occasionally use a single emoji in the title or body — not every notification, maybe 1 in 3\n` +
+  `- Write entirely in the language specified in the context\n` +
+  `- Return only valid JSON with no markdown or extra keys: {"title": "...", "body": "..."}`;
+
+async function generateNotification(
+  context: UserContext,
+  openAIApiKey: string,
+): Promise<{ title: string; body: string }> {
+  const facts: string[] = [];
+
+  if (context.streak >= 2) {
+    facts.push(`Logging streak: ${context.streak} consecutive days`);
+  }
+  if (!context.loggedYesterday) {
+    facts.push("Did not log anything yesterday");
+  }
+  if (context.budgetPct !== null && context.budgetRemaining !== null) {
+    facts.push(
+      `Budget: ${Math.round(context.budgetPct * 100)}% used this month, ` +
+        `${context.currency} ${Math.round(context.budgetRemaining)} remaining, ` +
+        `${context.daysLeftInMonth} days left`,
+    );
+  }
+  if (context.categoryOverTarget) {
+    facts.push(
+      `${context.categoryOverTarget.category} spending is at ` +
+        `${Math.round(context.categoryOverTarget.ratio * 100)}% of monthly guide`,
+    );
+  }
+  if (context.savedVsTarget) {
+    const gap = context.savedVsTarget.target - context.savedVsTarget.saved;
+    if (gap <= 0) {
+      facts.push("Has hit monthly savings goal");
+    } else {
+      facts.push(
+        `${context.currency} ${Math.round(gap)} away from monthly savings goal`,
+      );
+    }
+  }
+  if (facts.length === 0) {
+    facts.push("No notable financial events this month yet");
+  }
+
+  const userMessage =
+    `User context:\n${facts.join("\n")}\nLanguage: ${context.language}`;
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${openAIApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4.1-mini",
+      max_tokens: 100,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userMessage },
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`OpenAI API error ${res.status}: ${await res.text()}`);
+  }
+
+  const json = await res.json();
+  const text: string = json.choices?.[0]?.message?.content ?? "";
+  return JSON.parse(text);
+}
+
+function fallbackNotification(): { title: string; body: string } {
+  const pool = [
     { title: "Quick check-in", body: "Any spending today? Tap to log it while it's fresh." },
     { title: "Money notes", body: "The best time to log is right after spending. Second best? Now." },
     { title: "Stay on track", body: "Keeping track takes seconds. Your budget will thank you." },
@@ -269,8 +357,7 @@ function pickMessage(
     { title: "Journal time", body: "A quick log now saves a lot of guessing later." },
     { title: "Don't forget", body: "Small habits, big clarity. Take 30 seconds to log today." },
   ];
-
-  return generics[now.getDate() % generics.length];
+  return pool[new Date().getDate() % pool.length];
 }
 
 // ---------------------------------------------------------------------------
@@ -279,7 +366,6 @@ function pickMessage(
 
 Deno.serve(async (req) => {
   try {
-    // Allow cron invocations (no auth header) or explicit calls with the service role key
     const authHeader = req.headers.get("Authorization") ?? "";
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const isCron = req.headers.get("x-supabase-cron") === "1";
@@ -294,12 +380,16 @@ Deno.serve(async (req) => {
     }
     const sa: ServiceAccount = JSON.parse(saJson);
 
+    const openAIApiKey = Deno.env.get("OPENAI_API_KEY");
+    if (!openAIApiKey) {
+      return new Response("OPENAI_API_KEY not set", { status: 500 });
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       serviceRoleKey,
     );
 
-    // Fetch all device tokens
     const { data: tokens, error: tokensErr } = await supabase
       .from("device_tokens")
       .select("user_id, token");
@@ -312,7 +402,6 @@ Deno.serve(async (req) => {
     const accessToken = await getFirebaseAccessToken(sa);
     const userIDs = [...new Set((tokens as DeviceTokenRow[]).map((t) => t.user_id))];
 
-    // Fetch all user data in bulk
     const [usersRes, plansRes, entriesRes] = await Promise.all([
       supabase.from("users").select("id, currency_code, language_code, monthly_budget").in("id", userIDs),
       supabase.from("budget_plans").select("id, user_id, monthly_limit, monthly_savings_target").eq("is_active", true).in("user_id", userIDs),
@@ -323,7 +412,6 @@ Deno.serve(async (req) => {
     const plans = (plansRes.data ?? []) as (BudgetPlanRow & { user_id: string })[];
     const allEntries = (entriesRes.data ?? []) as (EntryRow & { user_id: string })[];
 
-    // Fetch category targets for each active plan
     const planIDs = plans.map((p) => p.id);
     const { data: allTargets } = planIDs.length > 0
       ? await supabase.from("budget_category_targets").select("plan_id, user_id, category, target_amount").in("plan_id", planIDs)
@@ -336,7 +424,6 @@ Deno.serve(async (req) => {
       targetsMap.set(t.user_id, existing);
     }
 
-    // Send one notification per token
     let sent = 0;
     let failed = 0;
 
@@ -348,14 +435,21 @@ Deno.serve(async (req) => {
       const targets = targetsMap.get(user_id) ?? [];
       const entries = allEntries.filter((e) => e.user_id === user_id);
 
-      const { title, body } = pickMessage(user, plan, targets, entries);
+      const context = deriveContext(user, plan, targets, entries);
+
+      let title: string;
+      let body: string;
+      try {
+        ({ title, body } = await generateNotification(context, openAIApiKey));
+      } catch {
+        ({ title, body } = fallbackNotification());
+      }
 
       try {
         await sendFCMNotification(accessToken, sa.project_id, token, title, body);
         sent++;
       } catch {
         failed++;
-        // Remove stale tokens that FCM rejects
       }
     }
 
