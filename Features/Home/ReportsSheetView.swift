@@ -38,8 +38,8 @@ struct ReportsSheetView: View {
                     )
 
                     if hasData {
-                        MonthlyNarrativeCard(
-                            narrative: insightsResults[key]?.narrative,
+                        AIReportCard(
+                            result: insightsResults[key],
                             isLoading: insightsLoadingKey == key,
                             monthLabel: monthLabel(for: reportMonth)
                         )
@@ -67,13 +67,6 @@ struct ReportsSheetView: View {
                         summary: recurringLoadSummary
                     )
 
-                    if hasData {
-                        SpendingInsightsCard(
-                            insights: insightsResults[key]?.insights ?? [],
-                            isLoading: insightsLoadingKey == key,
-                            monthLabel: monthLabel(for: reportMonth)
-                        )
-                    }
                 }
                 .padding(.horizontal, 20)
                 .safeAreaPadding(.top, 14)
@@ -288,6 +281,8 @@ private extension ReportsSheetView {
 
         if let cached = loadCachedInsights(key: key) {
             insightsResults[key] = cached
+            let isCurrentMonth = calendar.isDate(month, equalTo: Date(), toGranularity: .month)
+            if isCurrentMonth { viewModel.markInsightsGenerated(forMonthKey: key) }
             return
         }
 
@@ -849,23 +844,38 @@ private struct RecurringMetricPill: View {
     }
 }
 
-// MARK: - Monthly Narrative Card
+// MARK: - AI Report Card
 
-private struct MonthlyNarrativeCard: View {
-    let narrative: String?
+private struct AIReportCard: View {
+    let result: InsightsResult?
     let isLoading: Bool
     let monthLabel: String
 
+    @State private var isExpanded = false
+
     var body: some View {
-        if narrative != nil {
-            SoftSurface(cornerRadius: 28, padding: 20) {
-                VStack(alignment: .leading, spacing: 12) {
+        SoftSurface(cornerRadius: 28, padding: 20) {
+            VStack(alignment: .leading, spacing: 12) {
+                Button {
+                    guard result != nil else { return }
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                        isExpanded.toggle()
+                    }
+                } label: {
                     HStack(spacing: 8) {
-                        Text("Monthly summary".notyfiLocalized)
+                        Text("Monthly AI report".notyfiLocalized)
                             .font(.notyfi(.subheadline, weight: .semibold))
                             .foregroundStyle(NotyfiTheme.primaryText)
 
                         Spacer(minLength: 0)
+
+                        if isLoading {
+                            ProgressView().scaleEffect(0.75)
+                        } else if result != nil {
+                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(NotyfiTheme.secondaryText)
+                        }
 
                         Text("AI")
                             .font(.notyfi(.caption2, weight: .bold))
@@ -877,52 +887,38 @@ private struct MonthlyNarrativeCard: View {
                                     .fill(NotyfiTheme.brandBlue.opacity(0.12))
                             }
                     }
-
-                    if isLoading {
-                        HStack(spacing: 10) {
-                            ProgressView().scaleEffect(0.8)
-                            Text("Analysing your month...".notyfiLocalized)
-                                .font(.notyfi(.footnote))
-                                .foregroundStyle(NotyfiTheme.secondaryText)
-                        }
-                    } else if let narrative {
-                        Text(narrative)
-                            .font(.notyfi(.subheadline))
-                            .foregroundStyle(.primary.opacity(0.78))
-                            .fixedSize(horizontal: false, vertical: true)
-                            .lineSpacing(3)
-                    }
                 }
-            }
-        }
-    }
-}
+                .buttonStyle(.plain)
 
-// MARK: - Spending Insights Card
-
-private struct SpendingInsightsCard: View {
-    let insights: [SpendingInsight]
-    let isLoading: Bool
-    let monthLabel: String
-
-    var body: some View {
-        if !insights.isEmpty {
-            ReportCard(title: "Spending insights", subtitle: monthLabel) {
                 if isLoading {
-                    HStack(spacing: 10) {
-                        ProgressView()
-                            .scaleEffect(0.8)
+                    HStack(spacing: 8) {
                         Text("Analysing your month...".notyfiLocalized)
                             .font(.notyfi(.footnote))
                             .foregroundStyle(NotyfiTheme.secondaryText)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 6)
-                } else {
-                    VStack(spacing: 12) {
-                        ForEach(insights) { insight in
-                            InsightRow(insight: insight)
+                } else if let result {
+                    if isExpanded {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text(result.narrative)
+                                .font(.notyfi(.subheadline))
+                                .foregroundStyle(.primary.opacity(0.78))
+                                .fixedSize(horizontal: false, vertical: true)
+                                .lineSpacing(3)
+
+                            if !result.insights.isEmpty {
+                                Divider()
+                                VStack(spacing: 10) {
+                                    ForEach(result.insights) { insight in
+                                        InsightRow(insight: insight)
+                                    }
+                                }
+                            }
                         }
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    } else {
+                        Text(monthLabel)
+                            .font(.notyfi(.footnote))
+                            .foregroundStyle(NotyfiTheme.secondaryText)
                     }
                 }
             }
