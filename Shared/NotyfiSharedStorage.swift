@@ -72,8 +72,8 @@ enum ReminderFrequency: Int, CaseIterable {
         case .subtle:  return [20]
         case .light:   return [9, 20]
         case .regular: return [9, 14, 20]
-        case .often:   return [8, 11, 14, 17, 20]
-        case .max:     return [8, 10, 12, 14, 16, 18, 20, 22]
+        case .often:   return [9, 11, 14, 17, 20]
+        case .max:     return [9, 10, 12, 14, 16, 18, 20, 22]
         }
     }
 }
