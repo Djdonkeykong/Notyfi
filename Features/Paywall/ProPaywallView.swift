@@ -708,7 +708,7 @@ private struct PlanCard: View {
         let monthly = package.storeProduct.price / 12
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.locale = package.storeProduct.priceLocale
+        formatter.currencyCode = package.storeProduct.currencyCode
         guard let formatted = formatter.string(from: monthly as NSDecimalNumber) else { return "" }
         return "\(formatted)\("/mo".notyfiLocalized)"
     }
