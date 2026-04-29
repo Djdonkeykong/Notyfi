@@ -1169,10 +1169,6 @@ private struct DayJournalPage: View {
                 }
             }
             .onChange(of: journalText) { _, newValue in
-                guard focusedEditor == nil else {
-                    return
-                }
-
                 let resolvedFrames = Self.resolvedLineFrames(
                     for: newValue,
                     cachedFrames: lineFramesByDate[dayKey]

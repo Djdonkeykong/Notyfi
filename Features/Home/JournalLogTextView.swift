@@ -265,7 +265,9 @@ struct JournalLogTextView: UIViewRepresentable {
 
             lastAppliedFocusToken = nil
             publishCursorLineIndex(from: textView)
-            publishLineFrames(from: textView)
+            // Do NOT call publishLineFrames here. Firing a frame update during keyboard
+            // dismissal dispatches an async onLineFramesChange that re-renders the
+            // accessory overlay mid-animation, causing entries near the keyboard to flash.
         }
 
         func textViewDidChange(_ textView: UITextView) {
