@@ -419,6 +419,7 @@
 // AI Insights
 "Spending insights" = "Uitgaven-inzichten";
 "Monthly summary" = "Maandoverzicht";
+"Monthly AI report" = "Maandelijks AI-rapport";
 "Analysing your month..." = "Jouw maand analyseren...";
 // Notification strings
 "notif.generic.checkin.title" = "Snelle check-in";

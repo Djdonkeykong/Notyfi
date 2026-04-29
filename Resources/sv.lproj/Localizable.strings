@@ -420,6 +420,7 @@
 // AI Insights
 "Spending insights" = "Utgiftsinsikter";
 "Monthly summary" = "Månadssammanfattning";
+"Monthly AI report" = "Månadsvis AI-rapport";
 "Analysing your month..." = "Analyserar din månad...";
 // Notification strings
 "notif.generic.checkin.title" = "Snabb incheckning";

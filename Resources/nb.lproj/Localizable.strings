@@ -442,6 +442,7 @@
 // AI Insights
 "Spending insights" = "Forbruksinnsikt";
 "Monthly summary" = "Månedlig sammendrag";
+"Monthly AI report" = "Månedlig AI-rapport";
 "Analysing your month..." = "Analyserer måneden din...";
 // Notification strings
 "notif.generic.checkin.title" = "Rask sjekk";

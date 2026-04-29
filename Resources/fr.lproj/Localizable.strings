@@ -418,6 +418,7 @@
 // AI Insights
 "Spending insights" = "Aperçus des dépenses";
 "Monthly summary" = "Résumé mensuel";
+"Monthly AI report" = "Rapport IA mensuel";
 "Analysing your month..." = "Analyse de ton mois...";
 // Notification strings
 "notif.generic.checkin.title" = "Vérification rapide";
