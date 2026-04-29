@@ -851,16 +851,14 @@ private struct AIReportCard: View {
     let isLoading: Bool
     let monthLabel: String
 
-    @State private var isExpanded = false
+    @State private var isDetailPresented = false
 
     var body: some View {
         SoftSurface(cornerRadius: 28, padding: 20) {
             VStack(alignment: .leading, spacing: 12) {
                 Button {
                     guard result != nil else { return }
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
-                        isExpanded.toggle()
-                    }
+                    isDetailPresented = true
                 } label: {
                     HStack(spacing: 8) {
                         Text("Monthly AI report".notyfiLocalized)
@@ -872,7 +870,7 @@ private struct AIReportCard: View {
                         if isLoading {
                             ProgressView().scaleEffect(0.75)
                         } else if result != nil {
-                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            Image(systemName: "chevron.right")
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(NotyfiTheme.secondaryText)
                         }
@@ -891,37 +889,74 @@ private struct AIReportCard: View {
                 .buttonStyle(.plain)
 
                 if isLoading {
-                    HStack(spacing: 8) {
-                        Text("Analysing your month...".notyfiLocalized)
-                            .font(.notyfi(.footnote))
-                            .foregroundStyle(NotyfiTheme.secondaryText)
-                    }
-                } else if let result {
-                    if isExpanded {
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text(result.narrative)
-                                .font(.notyfi(.subheadline))
-                                .foregroundStyle(.primary.opacity(0.78))
-                                .fixedSize(horizontal: false, vertical: true)
-                                .lineSpacing(3)
+                    Text("Analysing your month...".notyfiLocalized)
+                        .font(.notyfi(.footnote))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                } else if result != nil {
+                    Text(monthLabel)
+                        .font(.notyfi(.footnote))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                }
+            }
+        }
+        .sheet(isPresented: $isDetailPresented) {
+            if let result {
+                AIReportDetailView(result: result, monthLabel: monthLabel)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                    .presentationBackground(NotyfiTheme.background.opacity(0.98))
+                    .presentationCornerRadius(34)
+            }
+        }
+    }
+}
 
-                            if !result.insights.isEmpty {
-                                Divider()
-                                VStack(spacing: 10) {
-                                    ForEach(result.insights) { insight in
-                                        InsightRow(insight: insight)
-                                    }
-                                }
+private struct AIReportDetailView: View {
+    let result: InsightsResult
+    let monthLabel: String
+
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        Text("Monthly AI report".notyfiLocalized)
+                            .font(.notyfi(.title3, weight: .semibold))
+                            .foregroundStyle(NotyfiTheme.primaryText)
+
+                        Text("AI")
+                            .font(.notyfi(.caption2, weight: .bold))
+                            .foregroundStyle(NotyfiTheme.brandBlue)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background {
+                                Capsule(style: .continuous)
+                                    .fill(NotyfiTheme.brandBlue.opacity(0.12))
                             }
+                    }
+
+                    Text(monthLabel)
+                        .font(.notyfi(.subheadline))
+                        .foregroundStyle(NotyfiTheme.secondaryText)
+                }
+
+                Text(result.narrative)
+                    .font(.notyfi(.subheadline))
+                    .foregroundStyle(.primary.opacity(0.78))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .lineSpacing(3)
+
+                if !result.insights.isEmpty {
+                    VStack(spacing: 10) {
+                        ForEach(result.insights) { insight in
+                            InsightRow(insight: insight)
                         }
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                    } else {
-                        Text(monthLabel)
-                            .font(.notyfi(.footnote))
-                            .foregroundStyle(NotyfiTheme.secondaryText)
                     }
                 }
             }
+            .padding(.horizontal, 24)
+            .padding(.top, 28)
+            .padding(.bottom, 40)
         }
     }
 }
