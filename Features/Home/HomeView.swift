@@ -469,16 +469,16 @@ private extension HomeView {
 
         let activeEditor = focusedEditor
 
+        // Capture before resign; deferred ops run after focusedEditor = nil so lineFrames is settled.
+        var entryToReparseID: UUID?
+        let shouldAddEntry: Bool
         if case .composer = activeEditor {
-            if journalCursorLineIndex < viewModel.displayedEntries.count,
-               journalCursorLineIndex >= 0 {
-                let editedEntry = viewModel.displayedEntries[journalCursorLineIndex]
-                store.reparseEntryImmediately(id: editedEntry.id)
+            if journalCursorLineIndex >= 0, journalCursorLineIndex < viewModel.displayedEntries.count {
+                entryToReparseID = viewModel.displayedEntries[journalCursorLineIndex].id
             }
-
-            if viewModel.hasPendingComposerDraft {
-                viewModel.addEntry()
-            }
+            shouldAddEntry = viewModel.hasPendingComposerDraft
+        } else {
+            shouldAddEntry = false
         }
 
         if cancelsPendingPresentation {
@@ -496,6 +496,13 @@ private extension HomeView {
             }
 
             focusedEditor = nil
+
+            if let id = entryToReparseID {
+                store.reparseEntryImmediately(id: id)
+            }
+            if shouldAddEntry {
+                viewModel.addEntry()
+            }
         }
     }
 
