@@ -30,6 +30,7 @@ struct JournalLogTextView: UIViewRepresentable {
     let minHeight: CGFloat
     let isEditable: Bool
     let trailingInset: CGFloat
+    let accessoryConfig: KeyboardAccessoryConfiguration?
     let onTextChange: (String) -> Void
     let onReturnKey: (JournalLogLineEdit) -> Void
     let onBackspaceAtLineStart: (Int) -> Void
@@ -84,6 +85,33 @@ struct JournalLogTextView: UIViewRepresentable {
             coordinator?.publishLineFrames(from: textView)
         }
 
+        if let config = accessoryConfig {
+            let wrapper = KeyboardAccessoryBarWrapper(config: config)
+            let hostingVC = UIHostingController(rootView: wrapper)
+            hostingVC.view.backgroundColor = .clear
+            hostingVC.view.translatesAutoresizingMaskIntoConstraints = false
+
+            let fittingHeight = ceil(hostingVC.sizeThatFits(
+                in: CGSize(width: UIScreen.main.bounds.width, height: .greatestFiniteMagnitude)
+            ).height)
+
+            let container = UIInputView(
+                frame: CGRect(x: 0, y: 0, width: 0, height: fittingHeight),
+                inputViewStyle: .keyboard
+            )
+            container.autoresizingMask = [.flexibleWidth]
+            container.addSubview(hostingVC.view)
+            NSLayoutConstraint.activate([
+                hostingVC.view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                hostingVC.view.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+                hostingVC.view.topAnchor.constraint(equalTo: container.topAnchor),
+                hostingVC.view.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            ])
+
+            context.coordinator.accessoryHostingVC = hostingVC
+            textView.inputAccessoryView = container
+        }
+
         return textView
     }
 
@@ -119,6 +147,10 @@ struct JournalLogTextView: UIViewRepresentable {
             if uiView.isFirstResponder {
                 uiView.selectedRange = NSRange(location: cursorLocation, length: 0)
             }
+        }
+
+        if let config = accessoryConfig, let hostingVC = context.coordinator.accessoryHostingVC {
+            hostingVC.rootView = KeyboardAccessoryBarWrapper(config: config)
         }
 
         if let focusRequest, focusRequest.target == editorTarget {
@@ -190,6 +222,7 @@ struct JournalLogTextView: UIViewRepresentable {
     final class Coordinator: NSObject, UITextViewDelegate {
         var parent: JournalLogTextView
         var lastAppliedFocusToken: UUID?
+        var accessoryHostingVC: UIHostingController<KeyboardAccessoryBarWrapper>?
         private var lastPublishedLineFrames: [JournalTextLineFrame] = []
 
         init(parent: JournalLogTextView) {
