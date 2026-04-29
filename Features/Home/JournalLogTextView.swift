@@ -78,11 +78,13 @@ struct JournalLogTextView: UIViewRepresentable {
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.setContentHuggingPriority(.defaultLow, for: .horizontal)
         textView.onLayoutUpdate = { [weak coordinator = context.coordinator, weak textView] in
-            guard let textView else {
-                return
+            // Defer to after layoutSubviews returns so TextKit 2 has fully settled its
+            // layout before we call caretRect(for:). Measuring inside the layout pass
+            // returns intermediate geometry, causing the right-column overlay to flash.
+            DispatchQueue.main.async { [weak coordinator, weak textView] in
+                guard let textView else { return }
+                coordinator?.publishLineFrames(from: textView)
             }
-
-            coordinator?.publishLineFrames(from: textView)
         }
 
         if let config = accessoryConfig {
@@ -130,11 +132,10 @@ struct JournalLogTextView: UIViewRepresentable {
         uiView.typingAttributes = Self.textAttributes
         uiView.textContainerInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: trailingInset)
         uiView.onLayoutUpdate = { [weak coordinator = context.coordinator, weak uiView] in
-            guard let uiView else {
-                return
+            DispatchQueue.main.async { [weak coordinator, weak uiView] in
+                guard let uiView else { return }
+                coordinator?.publishLineFrames(from: uiView)
             }
-
-            coordinator?.publishLineFrames(from: uiView)
         }
 
         if uiView.text != text {

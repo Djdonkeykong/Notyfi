@@ -1512,7 +1512,7 @@ struct KeyboardAccessoryBarWrapper: View {
         .padding(.horizontal, 8)
         .padding(.top, 10)
         .padding(.bottom, 14)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 }
 
