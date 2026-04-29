@@ -22,6 +22,11 @@ struct ReportsSheetView: View {
 
                     let key = insightCacheKey(for: reportMonth)
                     let hasData = !categoryBreakdown(for: reportMonth).isEmpty
+                    let isLastCompletedMonth = calendar.isDate(
+                        reportMonth,
+                        equalTo: viewModel.lastCompletedMonthDate,
+                        toGranularity: .month
+                    )
 
                     CategoryDonutCard(
                         currencyCode: viewModel.currencyCode,
@@ -39,8 +44,8 @@ struct ReportsSheetView: View {
 
                     if hasData {
                         AIReportCard(
-                            result: insightsResults[key],
-                            isLoading: insightsLoadingKey == key,
+                            result: isLastCompletedMonth ? viewModel.monthlyInsightsResult : insightsResults[key],
+                            isLoading: isLastCompletedMonth ? viewModel.monthlyInsightsIsLoading : insightsLoadingKey == key,
                             monthLabel: monthLabel(for: reportMonth)
                         )
                     }
@@ -76,6 +81,7 @@ struct ReportsSheetView: View {
             }
         }
         .task(id: insightCacheKey(for: reportMonth)) {
+            guard !calendar.isDate(reportMonth, equalTo: viewModel.lastCompletedMonthDate, toGranularity: .month) else { return }
             await loadInsights(for: reportMonth)
         }
     }
@@ -268,10 +274,7 @@ private extension ReportsSheetView {
 
     func insightCacheKey(for date: Date) -> String {
         let components = calendar.dateComponents([.year, .month], from: date)
-        let yearMonth = "\(components.year ?? 0)-\(components.month ?? 0)"
-        let breakdown = categoryBreakdown(for: date)
-        let bucketedTotal = Int(monthExpenseTotal(for: date) / 100) * 100
-        return "\(yearMonth).\(viewModel.currencyCode).\(bucketedTotal).\(breakdown.count)"
+        return "notyfi.insights.v2.\(components.year ?? 0)-\(components.month ?? 0).\(viewModel.currencyCode)"
     }
 
     func loadInsights(for month: Date) async {
@@ -340,7 +343,7 @@ private extension ReportsSheetView {
     }
 
     private func loadCachedInsights(key: String) -> InsightsResult? {
-        guard let data = UserDefaults.standard.data(forKey: "notyfi.insights.\(key)"),
+        guard let data = UserDefaults.standard.data(forKey: key),
               let decoded = try? JSONDecoder().decode(InsightsResult.self, from: data) else {
             return nil
         }
@@ -349,7 +352,7 @@ private extension ReportsSheetView {
 
     private func saveCachedInsights(_ result: InsightsResult, key: String) {
         guard let data = try? JSONEncoder().encode(result) else { return }
-        UserDefaults.standard.set(data, forKey: "notyfi.insights.\(key)")
+        UserDefaults.standard.set(data, forKey: key)
     }
 }
 
@@ -854,51 +857,41 @@ private struct AIReportCard: View {
     @State private var isDetailPresented = false
 
     var body: some View {
-        SoftSurface(cornerRadius: 28, padding: 20) {
-            VStack(alignment: .leading, spacing: 12) {
-                Button {
-                    guard result != nil else { return }
-                    isDetailPresented = true
-                } label: {
-                    HStack(spacing: 8) {
+        Button {
+            guard result != nil else { return }
+            isDetailPresented = true
+        } label: {
+            SoftSurface(cornerRadius: 28, padding: 20) {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text("Monthly AI report".notyfiLocalized)
                             .font(.notyfi(.subheadline, weight: .semibold))
                             .foregroundStyle(NotyfiTheme.primaryText)
 
-                        Spacer(minLength: 0)
-
                         if isLoading {
-                            ProgressView().scaleEffect(0.75)
+                            Text("Analysing your month...".notyfiLocalized)
+                                .font(.notyfi(.footnote))
+                                .foregroundStyle(NotyfiTheme.secondaryText)
                         } else if result != nil {
-                            Image(systemName: "chevron.right")
-                                .font(.caption.weight(.semibold))
+                            Text(monthLabel)
+                                .font(.notyfi(.footnote))
                                 .foregroundStyle(NotyfiTheme.secondaryText)
                         }
-
-                        Text("AI")
-                            .font(.notyfi(.caption2, weight: .bold))
-                            .foregroundStyle(NotyfiTheme.brandBlue)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background {
-                                Capsule(style: .continuous)
-                                    .fill(NotyfiTheme.brandBlue.opacity(0.12))
-                            }
                     }
-                }
-                .buttonStyle(.plain)
 
-                if isLoading {
-                    Text("Analysing your month...".notyfiLocalized)
-                        .font(.notyfi(.footnote))
-                        .foregroundStyle(NotyfiTheme.secondaryText)
-                } else if result != nil {
-                    Text(monthLabel)
-                        .font(.notyfi(.footnote))
-                        .foregroundStyle(NotyfiTheme.secondaryText)
+                    Spacer(minLength: 0)
+
+                    if isLoading {
+                        ProgressView().scaleEffect(0.75)
+                    } else if result != nil {
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(NotyfiTheme.secondaryText)
+                    }
                 }
             }
         }
+        .buttonStyle(.plain)
         .sheet(isPresented: $isDetailPresented) {
             if let result {
                 AIReportDetailView(result: result, monthLabel: monthLabel)

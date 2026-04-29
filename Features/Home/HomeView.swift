@@ -213,9 +213,11 @@ private extension HomeView {
             }
             .onAppear {
                 _ = store.materializeDueRecurringEntries(upTo: Date())
+                viewModel.generateMonthlyInsightsIfNeeded()
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
                 _ = store.materializeDueRecurringEntries(upTo: Date())
+                viewModel.generateMonthlyInsightsIfNeeded()
             }
     }
 

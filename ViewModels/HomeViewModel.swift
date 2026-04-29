@@ -46,6 +46,9 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var recurringTransactionsSnapshot: [RecurringTransaction] = []
     @Published private(set) var hasNewInsightsBadge = false
 
+    @Published private(set) var monthlyInsightsResult: InsightsResult?
+    @Published private(set) var monthlyInsightsIsLoading = false
+
     private let store: ExpenseJournalStore
     private let calendar: Calendar
     private let insightsBadgeGeneratedKey = "notyfi.insights.badge.generated"
@@ -55,6 +58,7 @@ final class HomeViewModel: ObservableObject {
     @Published private var composerPreviewDraft: ParsedExpenseDraft?
     @Published private var composerPreviewFailedText: String?
     private var composerPreviewTask: Task<Void, Never>?
+    private let insightsService = SpendingInsightsService()
     private var cancellables = Set<AnyCancellable>()
 
     init(
@@ -117,6 +121,112 @@ final class HomeViewModel: ObservableObject {
         let generated = UserDefaults.standard.string(forKey: insightsBadgeGeneratedKey) ?? ""
         UserDefaults.standard.set(generated, forKey: insightsBadgeViewedKey)
         hasNewInsightsBadge = false
+    }
+
+    var lastCompletedMonthDate: Date {
+        calendar.date(byAdding: .month, value: -1, to: Date()) ?? Date()
+    }
+
+    var lastCompletedMonthLabel: String {
+        let formatter = DateFormatter()
+        formatter.locale = NotyfiLocale.current()
+        formatter.setLocalizedDateFormatFromTemplate("MMMM yyyy")
+        return formatter.string(from: lastCompletedMonthDate)
+    }
+
+    func generateMonthlyInsightsIfNeeded() {
+        guard !monthlyInsightsIsLoading, monthlyInsightsResult == nil else { return }
+        Task { await generateMonthlyInsights() }
+    }
+
+    private func generateMonthlyInsights() async {
+        let month = lastCompletedMonthDate
+        let key = monthlyInsightsCacheKey(for: month)
+
+        if let cached = loadCachedMonthlyInsights(key: key) {
+            monthlyInsightsResult = cached
+            markInsightsGenerated(forMonthKey: key)
+            return
+        }
+
+        let entries = allEntriesSnapshot.filter {
+            $0.currencyCode.caseInsensitiveCompare(currencyCode) == .orderedSame
+        }
+        let monthExpenses = entries.filter {
+            $0.transactionKind == .expense
+                && calendar.isDate($0.date, equalTo: month, toGranularity: .month)
+        }
+        let expenseTotal = monthExpenses.reduce(0) { $0 + $1.amount }
+        guard expenseTotal > 0 else { return }
+
+        let categoryTotals = Dictionary(grouping: monthExpenses) { $0.category }
+            .filter { $0.key != .uncategorized }
+            .map { category, items in
+                SpendingInsightsService.CategoryTotal(
+                    category: category.rawValue,
+                    total: items.reduce(0) { $0 + $1.amount },
+                    entryCount: items.count
+                )
+            }
+            .sorted { $0.total > $1.total }
+        guard !categoryTotals.isEmpty else { return }
+
+        let incomeTotal = entries.filter {
+            $0.transactionKind == .income
+                && calendar.isDate($0.date, equalTo: month, toGranularity: .month)
+        }.reduce(0) { $0 + $1.amount }
+
+        let prevMonth = calendar.date(byAdding: .month, value: -1, to: month) ?? month
+        let prevExpenseTotal = entries.filter {
+            $0.transactionKind == .expense
+                && calendar.isDate($0.date, equalTo: prevMonth, toGranularity: .month)
+        }.reduce(0) { $0 + $1.amount }
+
+        let topMerchants = Array(
+            Dictionary(grouping: monthExpenses) { $0.merchant ?? "" }
+                .filter { !$0.key.isEmpty }
+                .sorted { $0.value.count > $1.value.count }
+                .prefix(5)
+                .map(\.key)
+        )
+
+        monthlyInsightsIsLoading = true
+        do {
+            let result = try await insightsService.generate(
+                monthLabel: lastCompletedMonthLabel,
+                currencyCode: currencyCode,
+                expenseTotal: expenseTotal,
+                incomeTotal: incomeTotal,
+                budgetLimit: budgetPlan.monthlySpendingLimit,
+                categoryTotals: categoryTotals,
+                previousMonthExpenseTotal: prevExpenseTotal,
+                topMerchants: topMerchants
+            )
+            monthlyInsightsResult = result
+            saveCachedMonthlyInsights(result, key: key)
+            markInsightsGenerated(forMonthKey: key)
+        } catch {
+            // Silent fail — will retry next app launch
+        }
+        monthlyInsightsIsLoading = false
+    }
+
+    func monthlyInsightsCacheKey(for date: Date) -> String {
+        let comps = calendar.dateComponents([.year, .month], from: date)
+        return "notyfi.insights.v2.\(comps.year ?? 0)-\(comps.month ?? 0).\(currencyCode)"
+    }
+
+    private func loadCachedMonthlyInsights(key: String) -> InsightsResult? {
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let decoded = try? JSONDecoder().decode(InsightsResult.self, from: data) else {
+            return nil
+        }
+        return decoded
+    }
+
+    private func saveCachedMonthlyInsights(_ result: InsightsResult, key: String) {
+        guard let data = try? JSONEncoder().encode(result) else { return }
+        UserDefaults.standard.set(data, forKey: key)
     }
 
     var entryCountText: String {
