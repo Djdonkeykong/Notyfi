@@ -232,7 +232,9 @@ struct JournalLogTextView: UIViewRepresentable {
 
             lastAppliedFocusToken = nil
             publishCursorLineIndex(from: textView)
-            publishLineFrames(from: textView)
+            // Do NOT call publishLineFrames here. With caretRect-based measurement,
+            // calling this mid-keyboard-dismiss returns intermediate TextKit 2 geometry
+            // and causes entries near the keyboard bar to flash to wrong positions.
         }
 
         func textViewDidChange(_ textView: UITextView) {
