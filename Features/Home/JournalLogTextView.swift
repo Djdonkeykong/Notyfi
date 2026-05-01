@@ -30,7 +30,6 @@ struct JournalLogTextView: UIViewRepresentable {
     let minHeight: CGFloat
     let isEditable: Bool
     let trailingInset: CGFloat
-    let accessoryConfig: KeyboardAccessoryConfiguration?
     let onTextChange: (String) -> Void
     let onReturnKey: (JournalLogLineEdit) -> Void
     let onBackspaceAtLineStart: (Int) -> Void
@@ -78,43 +77,11 @@ struct JournalLogTextView: UIViewRepresentable {
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.setContentHuggingPriority(.defaultLow, for: .horizontal)
         textView.onLayoutUpdate = { [weak coordinator = context.coordinator, weak textView] in
-            // Skip layout-driven updates when the text view is not the first responder.
-            // resignFirstResponder() sets isFirstResponder = false immediately; subsequent
-            // layoutSubviews calls during the keyboard-dismiss animation arrive after that,
-            // so this guard prevents the async chain from firing mid-animation and causing
-            // entries to flash to stale positions.
-            guard textView?.isFirstResponder == true else { return }
-            DispatchQueue.main.async { [weak coordinator, weak textView] in
-                guard let textView, textView.isFirstResponder else { return }
-                coordinator?.publishLineFrames(from: textView)
+            guard let textView else {
+                return
             }
-        }
 
-        if let config = accessoryConfig {
-            let wrapper = KeyboardAccessoryBarWrapper(config: config)
-            let hostingVC = UIHostingController(rootView: wrapper)
-            hostingVC.view.backgroundColor = .clear
-            hostingVC.view.translatesAutoresizingMaskIntoConstraints = false
-
-            let fittingHeight = ceil(hostingVC.sizeThatFits(
-                in: CGSize(width: UIScreen.main.bounds.width, height: .greatestFiniteMagnitude)
-            ).height)
-
-            let container = UIInputView(
-                frame: CGRect(x: 0, y: 0, width: 0, height: fittingHeight),
-                inputViewStyle: .keyboard
-            )
-            container.autoresizingMask = [.flexibleWidth]
-            container.addSubview(hostingVC.view)
-            NSLayoutConstraint.activate([
-                hostingVC.view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-                hostingVC.view.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-                hostingVC.view.topAnchor.constraint(equalTo: container.topAnchor),
-                hostingVC.view.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-            ])
-
-            context.coordinator.accessoryHostingVC = hostingVC
-            textView.inputAccessoryView = container
+            coordinator?.publishLineFrames(from: textView)
         }
 
         return textView
@@ -135,11 +102,11 @@ struct JournalLogTextView: UIViewRepresentable {
         uiView.typingAttributes = Self.textAttributes
         uiView.textContainerInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: trailingInset)
         uiView.onLayoutUpdate = { [weak coordinator = context.coordinator, weak uiView] in
-            guard uiView?.isFirstResponder == true else { return }
-            DispatchQueue.main.async { [weak coordinator, weak uiView] in
-                guard let uiView, uiView.isFirstResponder else { return }
-                coordinator?.publishLineFrames(from: uiView)
+            guard let uiView else {
+                return
             }
+
+            coordinator?.publishLineFrames(from: uiView)
         }
 
         if uiView.text != text {
@@ -152,10 +119,6 @@ struct JournalLogTextView: UIViewRepresentable {
             if uiView.isFirstResponder {
                 uiView.selectedRange = NSRange(location: cursorLocation, length: 0)
             }
-        }
-
-        if let config = accessoryConfig, let hostingVC = context.coordinator.accessoryHostingVC {
-            hostingVC.rootView = KeyboardAccessoryBarWrapper(config: config)
         }
 
         if let focusRequest, focusRequest.target == editorTarget {
@@ -227,7 +190,6 @@ struct JournalLogTextView: UIViewRepresentable {
     final class Coordinator: NSObject, UITextViewDelegate {
         var parent: JournalLogTextView
         var lastAppliedFocusToken: UUID?
-        var accessoryHostingVC: UIHostingController<KeyboardAccessoryBarWrapper>?
         private var lastPublishedLineFrames: [JournalTextLineFrame] = []
 
         init(parent: JournalLogTextView) {
@@ -270,9 +232,7 @@ struct JournalLogTextView: UIViewRepresentable {
 
             lastAppliedFocusToken = nil
             publishCursorLineIndex(from: textView)
-            // Do NOT call publishLineFrames here. Firing a frame update during keyboard
-            // dismissal dispatches an async onLineFramesChange that re-renders the
-            // accessory overlay mid-animation, causing entries near the keyboard to flash.
+            publishLineFrames(from: textView)
         }
 
         func textViewDidChange(_ textView: UITextView) {
@@ -289,11 +249,7 @@ struct JournalLogTextView: UIViewRepresentable {
 
         func textViewDidChangeSelection(_ textView: UITextView) {
             publishCursorLineIndex(from: textView)
-            // Do NOT call publishLineFrames here. Selection changes don't affect line
-            // frames, but measureLineFrames accesses layoutManager (TextKit 1), which
-            // forces a compatibility bridge on TextKit 2 text views. Triggering that
-            // inside UIKit's selection callback invalidates TextKit 2's content state
-            // mid-render, silently killing the selection fill and edit menu.
+            publishLineFrames(from: textView)
         }
 
         func textView(
@@ -396,32 +352,76 @@ struct JournalLogTextView: UIViewRepresentable {
         private func measureLineFrames(in textView: UITextView) -> [JournalTextLineFrame] {
             let text = textView.text ?? ""
             let lines = text.components(separatedBy: "\n")
+            let layoutManager = textView.layoutManager
+            let textContainer = textView.textContainer
             let lineHeight = max(
                 textView.font?.lineHeight ?? JournalLogTextView.estimatedLineHeight,
                 JournalLogTextView.estimatedLineHeight
             )
+            let textStorage = textView.textStorage.string as NSString
             var frames: [JournalTextLineFrame] = []
             var characterLocation = 0
 
+            layoutManager.ensureLayout(for: textContainer)
+
             for lineIndex in lines.indices {
                 let lineLength = (lines[lineIndex] as NSString).length
-                let safeLocation = min(characterLocation, text.utf16.count)
+                let safeLocation = min(characterLocation, textStorage.length)
+                let lineStartPosition = textView.position(
+                    from: textView.beginningOfDocument,
+                    offset: safeLocation
+                )
+                let caretRect = lineStartPosition.map {
+                    textView.caretRect(for: $0)
+                } ?? .zero
+                let lineRange = NSRange(location: safeLocation, length: lineLength)
+                let frame: JournalTextLineFrame
 
-                let minY: CGFloat
-                if let position = textView.position(from: textView.beginningOfDocument, offset: safeLocation) {
-                    let r = textView.caretRect(for: position)
-                    // caretRect returns valid geometry when height is in a plausible range
-                    minY = (r.height > 0 && r.height < 1000) ? r.minY : (frames.last.map { $0.minY + $0.height + JournalLogTextView.paragraphSpacing } ?? 0)
+                if lineLength > 0 {
+                    let glyphRange = layoutManager.glyphRange(
+                        forCharacterRange: lineRange,
+                        actualCharacterRange: nil
+                    )
+                    let lineFragmentRect = layoutManager.lineFragmentRect(
+                        forGlyphAt: glyphRange.location,
+                        effectiveRange: nil,
+                        withoutAdditionalLayout: true
+                    )
+                    let boundingRect = layoutManager.boundingRect(
+                        forGlyphRange: glyphRange,
+                        in: textContainer
+                    )
+                    let lineTopY = min(caretRect.minY, lineFragmentRect.minY)
+
+                    frame = JournalTextLineFrame(
+                        lineIndex: lineIndex,
+                        minY: lineTopY,
+                        height: max(
+                            boundingRect.maxY - lineTopY,
+                            lineFragmentRect.height,
+                            lineHeight
+                        )
+                    )
                 } else {
-                    minY = frames.last.map { $0.minY + $0.height + JournalLogTextView.paragraphSpacing } ?? 0
+                    frame = JournalTextLineFrame(
+                        lineIndex: lineIndex,
+                        minY: caretRect.minY,
+                        height: lineHeight
+                    )
                 }
 
-                frames.append(JournalTextLineFrame(lineIndex: lineIndex, minY: minY, height: lineHeight))
+                frames.append(frame)
                 characterLocation += lineLength + 1
             }
 
             if frames.isEmpty {
-                frames.append(JournalTextLineFrame(lineIndex: 0, minY: 0, height: lineHeight))
+                frames.append(
+                    JournalTextLineFrame(
+                        lineIndex: 0,
+                        minY: 0,
+                        height: lineHeight
+                    )
+                )
             }
 
             return frames

@@ -88,6 +88,30 @@ private extension HomeView {
                 HomeTopFadeOverlay()
                     .allowsHitTesting(false)
             }
+            .safeAreaInset(edge: .bottom) {
+                if focusedEditor != nil {
+                    KeyboardAccessoryBar(
+                        isDictating: speechDictation.isRecording,
+                        onToggleDictation: {
+                            EditableJournalTextView.beginActiveDictationSession()
+                            await speechDictation.toggleRecording()
+                            if !speechDictation.isRecording {
+                                EditableJournalTextView.endActiveDictationSession()
+                            }
+                        },
+                        onTakePhotoTap: { presentCamera(sourceType: .camera) },
+                        onChoosePhotoTap: { presentCamera(sourceType: .photoLibrary) },
+                        onQuickAddTap: { presentQuickAdd() },
+                        onDismissKeyboard: { clearEditorFocus() }
+                    )
+                    .padding(.horizontal, 8)
+                    .padding(.top, 10)
+                    .padding(.bottom, 14)
+                    .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
             .overlay(alignment: .bottom) {
                 if focusedEditor == nil {
                     HomeBottomFadeOverlay()
@@ -221,23 +245,6 @@ private extension HomeView {
             }
     }
 
-    private var accessoryConfig: KeyboardAccessoryConfiguration {
-        KeyboardAccessoryConfiguration(
-            isDictating: speechDictation.isRecording,
-            onToggleDictation: {
-                EditableJournalTextView.beginActiveDictationSession()
-                await speechDictation.toggleRecording()
-                if !speechDictation.isRecording {
-                    EditableJournalTextView.endActiveDictationSession()
-                }
-            },
-            onTakePhotoTap: { presentCamera(sourceType: .camera) },
-            onChoosePhotoTap: { presentCamera(sourceType: .photoLibrary) },
-            onQuickAddTap: { presentQuickAdd() },
-            onDismissKeyboard: { clearEditorFocus() }
-        )
-    }
-
     func baseHomeContent(includeInlineTopBar: Bool) -> some View {
         ZStack {
             NotyfiTheme.background.ignoresSafeArea()
@@ -265,7 +272,6 @@ private extension HomeView {
                     isBlankSpaceFocusBlocked: $isBlankSpaceFocusBlocked,
                     journalCursorLineIndex: $journalCursorLineIndex,
                     lineFramesByDate: $journalLineFramesByDate,
-                    accessoryConfig: accessoryConfig,
                     feedback: viewModel.draftFeedback,
                     contentTopInset: usesScrollEdgeTopBar ? 18 : 0,
                     onJournalTextChange: { rawText in
@@ -465,16 +471,16 @@ private extension HomeView {
 
         let activeEditor = focusedEditor
 
-        // Capture before resign; deferred ops run after focusedEditor = nil so lineFrames is settled.
-        var entryToReparseID: UUID?
-        let shouldAddEntry: Bool
         if case .composer = activeEditor {
-            if journalCursorLineIndex >= 0, journalCursorLineIndex < viewModel.displayedEntries.count {
-                entryToReparseID = viewModel.displayedEntries[journalCursorLineIndex].id
+            if journalCursorLineIndex < viewModel.displayedEntries.count,
+               journalCursorLineIndex >= 0 {
+                let editedEntry = viewModel.displayedEntries[journalCursorLineIndex]
+                store.reparseEntryImmediately(id: editedEntry.id)
             }
-            shouldAddEntry = viewModel.hasPendingComposerDraft
-        } else {
-            shouldAddEntry = false
+
+            if viewModel.hasPendingComposerDraft {
+                viewModel.addEntry()
+            }
         }
 
         if cancelsPendingPresentation {
@@ -492,13 +498,6 @@ private extension HomeView {
             }
 
             focusedEditor = nil
-
-            if let id = entryToReparseID {
-                store.reparseEntryImmediately(id: id)
-            }
-            if shouldAddEntry {
-                viewModel.addEntry()
-            }
         }
     }
 
@@ -757,7 +756,6 @@ private struct DayJournalPager: View {
     @Binding var isBlankSpaceFocusBlocked: Bool
     @Binding var journalCursorLineIndex: Int
     @Binding var lineFramesByDate: [Date: [JournalTextLineFrame]]
-    let accessoryConfig: KeyboardAccessoryConfiguration
     let feedback: DraftComposerFeedback?
     let contentTopInset: CGFloat
     let onJournalTextChange: (String) -> Void
@@ -828,7 +826,6 @@ private struct DayJournalPager: View {
             editorFocusRequest: $editorFocusRequest,
             journalCursorLineIndex: $journalCursorLineIndex,
             lineFramesByDate: $lineFramesByDate,
-            accessoryConfig: accessoryConfig,
             recurringTransactionsByID: recurringTransactionsByID,
             feedback: feedback,
             contentTopInset: contentTopInset,
@@ -1008,7 +1005,6 @@ private struct DayJournalPage: View {
     @Binding var editorFocusRequest: JournalEditorFocusRequest?
     @Binding var journalCursorLineIndex: Int
     @Binding var lineFramesByDate: [Date: [JournalTextLineFrame]]
-    let accessoryConfig: KeyboardAccessoryConfiguration?
     let recurringTransactionsByID: [UUID: RecurringTransaction]
     let feedback: DraftComposerFeedback?
     let contentTopInset: CGFloat
@@ -1042,7 +1038,6 @@ private struct DayJournalPage: View {
         editorFocusRequest: Binding<JournalEditorFocusRequest?>,
         journalCursorLineIndex: Binding<Int>,
         lineFramesByDate: Binding<[Date: [JournalTextLineFrame]]>,
-        accessoryConfig: KeyboardAccessoryConfiguration? = nil,
         recurringTransactionsByID: [UUID: RecurringTransaction],
         feedback: DraftComposerFeedback?,
         contentTopInset: CGFloat,
@@ -1062,7 +1057,6 @@ private struct DayJournalPage: View {
         _editorFocusRequest = editorFocusRequest
         _journalCursorLineIndex = journalCursorLineIndex
         _lineFramesByDate = lineFramesByDate
-        self.accessoryConfig = accessoryConfig
         self.recurringTransactionsByID = recurringTransactionsByID
         self.feedback = feedback
         self.contentTopInset = contentTopInset
@@ -1102,7 +1096,6 @@ private struct DayJournalPage: View {
                         minHeight: minimumEditorHeight,
                         isEditable: isEditable,
                         trailingInset: trailingColumnWidth + trailingGap,
-                        accessoryConfig: accessoryConfig,
                         onTextChange: onJournalTextChange,
                         onReturnKey: onReturnKey,
                         onBackspaceAtLineStart: onBackspaceAtLineStart,
@@ -1171,6 +1164,10 @@ private struct DayJournalPage: View {
                 }
             }
             .onChange(of: journalText) { _, newValue in
+                guard focusedEditor == nil else {
+                    return
+                }
+
                 let resolvedFrames = Self.resolvedLineFrames(
                     for: newValue,
                     cachedFrames: lineFramesByDate[dayKey]
@@ -1488,35 +1485,7 @@ private enum PagerDragAxisLock {
     case vertical
 }
 
-struct KeyboardAccessoryConfiguration {
-    let isDictating: Bool
-    let onToggleDictation: () async -> Void
-    let onTakePhotoTap: () -> Void
-    let onChoosePhotoTap: () -> Void
-    let onQuickAddTap: () -> Void
-    let onDismissKeyboard: () -> Void
-}
-
-struct KeyboardAccessoryBarWrapper: View {
-    let config: KeyboardAccessoryConfiguration
-
-    var body: some View {
-        KeyboardAccessoryBar(
-            isDictating: config.isDictating,
-            onToggleDictation: config.onToggleDictation,
-            onTakePhotoTap: config.onTakePhotoTap,
-            onChoosePhotoTap: config.onChoosePhotoTap,
-            onQuickAddTap: config.onQuickAddTap,
-            onDismissKeyboard: config.onDismissKeyboard
-        )
-        .padding(.horizontal, 8)
-        .padding(.top, 10)
-        .padding(.bottom, 14)
-        .frame(maxWidth: .infinity, alignment: .center)
-    }
-}
-
-struct KeyboardAccessoryBar: View {
+private struct KeyboardAccessoryBar: View {
     let isDictating: Bool
     let onToggleDictation: () async -> Void
     let onTakePhotoTap: () -> Void
