@@ -308,7 +308,6 @@ private extension HomeView {
                         viewModel.moveSelection(by: dayOffset)
                     }
                 )
-                .animation(nil, value: focusedEditor == nil)
             }
             .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
             .frame(maxWidth: .infinity, alignment: .center)
