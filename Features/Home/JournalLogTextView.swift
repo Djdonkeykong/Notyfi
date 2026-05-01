@@ -78,11 +78,14 @@ struct JournalLogTextView: UIViewRepresentable {
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.setContentHuggingPriority(.defaultLow, for: .horizontal)
         textView.onLayoutUpdate = { [weak coordinator = context.coordinator, weak textView] in
-            // Defer to after layoutSubviews returns so TextKit 2 has fully settled its
-            // layout before we call caretRect(for:). Measuring inside the layout pass
-            // returns intermediate geometry, causing the right-column overlay to flash.
+            // Skip layout-driven updates when the text view is not the first responder.
+            // resignFirstResponder() sets isFirstResponder = false immediately; subsequent
+            // layoutSubviews calls during the keyboard-dismiss animation arrive after that,
+            // so this guard prevents the async chain from firing mid-animation and causing
+            // entries to flash to stale positions.
+            guard textView?.isFirstResponder == true else { return }
             DispatchQueue.main.async { [weak coordinator, weak textView] in
-                guard let textView else { return }
+                guard let textView, textView.isFirstResponder else { return }
                 coordinator?.publishLineFrames(from: textView)
             }
         }
@@ -132,8 +135,9 @@ struct JournalLogTextView: UIViewRepresentable {
         uiView.typingAttributes = Self.textAttributes
         uiView.textContainerInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: trailingInset)
         uiView.onLayoutUpdate = { [weak coordinator = context.coordinator, weak uiView] in
+            guard uiView?.isFirstResponder == true else { return }
             DispatchQueue.main.async { [weak coordinator, weak uiView] in
-                guard let uiView else { return }
+                guard let uiView, uiView.isFirstResponder else { return }
                 coordinator?.publishLineFrames(from: uiView)
             }
         }
