@@ -24,7 +24,7 @@ struct ReportsSheetView: View {
                     let hasData = !categoryBreakdown(for: reportMonth).isEmpty
                     let isLastCompletedMonth = calendar.isDate(
                         reportMonth,
-                        equalTo: viewModel.lastCompletedMonthDate,
+                        equalTo: viewModel.reportMonthDate,
                         toGranularity: .month
                     )
 
@@ -81,7 +81,7 @@ struct ReportsSheetView: View {
             }
         }
         .task(id: insightCacheKey(for: reportMonth)) {
-            guard !calendar.isDate(reportMonth, equalTo: viewModel.lastCompletedMonthDate, toGranularity: .month) else { return }
+            guard !calendar.isDate(reportMonth, equalTo: viewModel.reportMonthDate, toGranularity: .month) else { return }
             await loadInsights(for: reportMonth)
         }
     }

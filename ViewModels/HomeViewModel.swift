@@ -123,15 +123,26 @@ final class HomeViewModel: ObservableObject {
         hasNewInsightsBadge = false
     }
 
-    var lastCompletedMonthDate: Date {
-        calendar.date(byAdding: .month, value: -1, to: Date()) ?? Date()
+    private var isLastDayOfCurrentMonth: Bool {
+        let today = calendar.startOfDay(for: Date())
+        guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: today) else { return false }
+        return !calendar.isDate(today, equalTo: tomorrow, toGranularity: .month)
+    }
+
+    var reportMonthDate: Date {
+        // Generate on the last day of the current month so the report appears
+        // the same day the month closes, not on the 1st of the following month.
+        if isLastDayOfCurrentMonth {
+            return Date()
+        }
+        return calendar.date(byAdding: .month, value: -1, to: Date()) ?? Date()
     }
 
     var lastCompletedMonthLabel: String {
         let formatter = DateFormatter()
         formatter.locale = NotyfiLocale.current()
         formatter.setLocalizedDateFormatFromTemplate("MMMM yyyy")
-        return formatter.string(from: lastCompletedMonthDate)
+        return formatter.string(from: reportMonthDate)
     }
 
     func generateMonthlyInsightsIfNeeded() {
@@ -140,7 +151,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func generateMonthlyInsights() async {
-        let month = lastCompletedMonthDate
+        let month = reportMonthDate
         let key = monthlyInsightsCacheKey(for: month)
 
         if let cached = loadCachedMonthlyInsights(key: key) {
