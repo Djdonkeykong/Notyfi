@@ -285,6 +285,10 @@ final class AuthManager: ObservableObject {
         }
     }
 
+    var supabaseUserID: String? {
+        SupabaseService.client.auth.currentSession?.user.id.uuidString
+    }
+
     private func applyAuthState(session: Session?) {
         isAuthenticated = session != nil
         isReady = true

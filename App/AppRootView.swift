@@ -16,6 +16,7 @@ struct AppRootView: View {
     @AppStorage("notyfi.review.promptedAtCount") private var reviewPromptedAtCount = 0
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var minimumSplashElapsed = false
+    @State private var splashDismissed = false
     @State private var showPaywall = false
 
     init(store: ExpenseJournalStore) {
@@ -79,6 +80,9 @@ struct AppRootView: View {
             try? await Task.sleep(nanoseconds: 500_000_000)
             minimumSplashElapsed = true
         }
+        .onChange(of: minimumSplashElapsed && authManager.isReady && cloudSyncManager.isReady) { _, ready in
+            if ready { splashDismissed = true }
+        }
         .onChange(of: store.entries.count) { _, newCount in
             considerRequestingReview(entryCount: newCount)
         }
@@ -104,9 +108,7 @@ struct AppRootView: View {
     }
 
     private var shouldShowSplash: Bool {
-        !minimumSplashElapsed
-            || !authManager.isReady
-            || !cloudSyncManager.isReady
+        !splashDismissed && (!minimumSplashElapsed || !authManager.isReady || !cloudSyncManager.isReady)
     }
 
     private var appearanceMode: NotyfiAppearanceMode {
@@ -145,7 +147,12 @@ struct AppRootView: View {
 
     private func checkSubscriptionStatus() async {
         do {
-            let info = try await Purchases.shared.customerInfo()
+            let info: CustomerInfo
+            if let userID = authManager.supabaseUserID {
+                (info, _) = try await Purchases.shared.logIn(userID)
+            } else {
+                info = try await Purchases.shared.customerInfo()
+            }
             if info.entitlements["Notyfi Pro"]?.isActive != true {
                 showPaywall = true
             }
