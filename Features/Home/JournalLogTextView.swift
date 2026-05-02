@@ -342,7 +342,7 @@ struct JournalLogTextView: UIViewRepresentable {
             let lineFrames = measureLineFrames(in: textView)
             let isActive = textView.isFirstResponder
 
-            if lineFrames != lastPublishedLineFrames {
+            if lineFrames != lastPublishedLineFrames, !isKeyboardDismissing {
                 lastPublishedLineFrames = lineFrames
                 DispatchQueue.main.async { [weak self] in
                     self?.parent.onLineFramesChange(lineFrames)
