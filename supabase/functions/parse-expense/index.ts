@@ -410,6 +410,19 @@ async function callOpenAI(
   return content;
 }
 
+async function checkSubscription(userId: string): Promise<boolean> {
+  const admin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+  const { data } = await admin
+    .from("users")
+    .select("subscription_status")
+    .eq("id", userId)
+    .maybeSingle();
+  return data?.subscription_status === "active";
+}
+
 async function enforceQuota(userId: string, requestKind: "text" | "image", ip: string | null) {
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -480,6 +493,11 @@ Deno.serve(async (req) => {
   if (userError || !user) {
     console.error("Auth lookup failed", userError);
     return errorResponse("unauthorized", "Unauthorized.", 401);
+  }
+
+  const hasSubscription = await checkSubscription(user.id);
+  if (!hasSubscription) {
+    return errorResponse("subscription_required", "An active Notyfi Pro subscription is required.", 403);
   }
 
   let payload: ParseRequest;
