@@ -6,7 +6,7 @@ import Supabase
 
 @MainActor
 final class CloudSyncManager: ObservableObject {
-    @Published private(set) var isReady = true
+    @Published private(set) var isReady = false
 
     private let store: ExpenseJournalStore
     private let languageManager: LanguageManager

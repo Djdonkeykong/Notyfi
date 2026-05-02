@@ -106,6 +106,7 @@ struct AppRootView: View {
     private var shouldShowSplash: Bool {
         !minimumSplashElapsed
             || !authManager.isReady
+            || !cloudSyncManager.isReady
     }
 
     private var appearanceMode: NotyfiAppearanceMode {

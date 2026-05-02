@@ -1,4 +1,5 @@
 import Foundation
+import RevenueCat
 import Supabase
 import Auth
 import AuthenticationServices
@@ -197,6 +198,7 @@ final class AuthManager: ObservableObject {
 
     func signOut() async {
         try? await SupabaseService.client.auth.signOut()
+        try? await Purchases.shared.logOut()
         isAuthenticated = false
     }
 
@@ -218,6 +220,7 @@ final class AuthManager: ObservableObject {
             throw AuthError.deleteFailed
         }
         try? await SupabaseService.client.auth.signOut()
+        try? await Purchases.shared.logOut()
         isAuthenticated = false
     }
 
@@ -291,6 +294,9 @@ final class AuthManager: ObservableObject {
         setDebugMessage(
             "applyAuthState: authenticated=\(session != nil ? "yes" : "no") user=\(session?.user.email ?? "nil")"
         )
+        if let userID = session?.user.id.uuidString {
+            Task { try? await Purchases.shared.logIn(userID) }
+        }
     }
 
     private func setDebugMessage(_ message: String) {
