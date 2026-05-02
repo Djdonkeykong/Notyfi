@@ -548,31 +548,31 @@
 "%d%% OFF" = "%d%% TANIEJ";
 
 // Entry Detail
-"Delete Entry" = "Usun wpis";
-"Delete entry?" = "Usunac wpis?";
-"This entry will be removed from your log." = "Ten wpis zostanie usuniety z twojego dziennika.";
+"Delete Entry" = "Usuń wpis";
+"Delete entry?" = "Usunąć wpis?";
+"This entry will be removed from your log." = "Ten wpis zostanie usunięty z twojego dziennika.";
 "Danger Zone" = "Strefa niebezpieczna";
 
 // Currency Change
-"Change to %@?" = "Zmienic na %@?";
-"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Istniejace wpisy i budzet moga zostac przeliczone na nowa walute po dzisiejszym kursie wymiany.";
+"Change to %@?" = "Zmienić na %@?";
+"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Istniejące wpisy i budżet mogą zostać przeliczone na nową walutę po dzisiejszym kursie wymiany.";
 "Convert Amounts" = "Przelicz kwoty";
 "Keep Same Numbers" = "Zachowaj te same liczby";
 "Converting amounts" = "Przeliczanie kwot";
-"Currency Conversion Failed" = "Przeliczenie waluty nie powiodlo sie";
-"Could not fetch the exchange rate. Please check your connection and try again." = "Nie udalo sie pobrac kursu wymiany. Sprawdz polaczenie i sprobuj ponownie.";
+"Currency Conversion Failed" = "Przeliczenie waluty nie powiodło się";
+"Could not fetch the exchange rate. Please check your connection and try again." = "Nie udało się pobrać kursu wymiany. Sprawdź połączenie i spróbuj ponownie.";
 
 // Custom Categories
 "New Category" = "Nowa kategoria";
-"Edit Category" = "Edytuj kategorie";
-"Preview" = "Podglad";
+"Edit Category" = "Edytuj kategorię";
+"Preview" = "Podgląd";
 "Color" = "Kolor";
 "Icon" = "Ikona";
 "Category name" = "Nazwa kategorii";
 "Save Changes" = "Zapisz zmiany";
-"Create Category" = "Utworz kategorie";
+"Create Category" = "Utwórz kategorię";
 "Custom" = "Niestandardowe";
 "My Categories" = "Moje kategorie";
-"Add Custom Category" = "Dodaj niestandardowa kategorie";
+"Add Custom Category" = "Dodaj niestandardową kategorię";
 "Edit" = "Edytuj";
-"Delete" = "Usun";
+"Delete" = "Usuń";

@@ -548,31 +548,31 @@
 "%d%% OFF" = "%d%% ALE";
 
 // Entry Detail
-"Delete Entry" = "Poista merkinta";
-"Delete entry?" = "Poistetaanko merkinta?";
-"This entry will be removed from your log." = "Tama merkinta poistetaan lokistasi.";
-"Danger Zone" = "Vaaravyohyke";
+"Delete Entry" = "Poista merkintä";
+"Delete entry?" = "Poistetaanko merkintä?";
+"This entry will be removed from your log." = "Tämä merkintä poistetaan lokistasi.";
+"Danger Zone" = "Vaaravyöhyke";
 
 // Currency Change
 "Change to %@?" = "Vaihda valuuttaan %@?";
-"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Olemassa olevat merkintasi ja budjettisi voidaan muuntaa uuteen valuuttaan taman paivan kurssilla.";
+"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Olemassa olevat merkintäsi ja budjettisi voidaan muuntaa uuteen valuuttaan tämän päivän kurssilla.";
 "Convert Amounts" = "Muunna summat";
 "Keep Same Numbers" = "Sailyta samat numerot";
 "Converting amounts" = "Muunnetaan summia";
-"Currency Conversion Failed" = "Valuutan muuntaminen epaonnistui";
-"Could not fetch the exchange rate. Please check your connection and try again." = "Valuuttakurssia ei voitu hakea. Tarkista yhteytesi ja yrita uudelleen.";
+"Currency Conversion Failed" = "Valuutan muuntaminen epäonnistui";
+"Could not fetch the exchange rate. Please check your connection and try again." = "Valuuttakurssia ei voitu hakea. Tarkista yhteytesi ja yritä uudelleen.";
 
 // Custom Categories
 "New Category" = "Uusi kategoria";
 "Edit Category" = "Muokkaa kategoriaa";
 "Preview" = "Esikatselu";
-"Color" = "Vari";
+"Color" = "Väri";
 "Icon" = "Kuvake";
 "Category name" = "Kategorian nimi";
 "Save Changes" = "Tallenna muutokset";
 "Create Category" = "Luo kategoria";
 "Custom" = "Mukautettu";
 "My Categories" = "Omat kategoriat";
-"Add Custom Category" = "Lisaa mukautettu kategoria";
+"Add Custom Category" = "Lisää mukautettu kategoria";
 "Edit" = "Muokkaa";
 "Delete" = "Poista";

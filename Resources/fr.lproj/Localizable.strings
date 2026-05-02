@@ -548,31 +548,31 @@
 "%d%% OFF" = "-%d%%";
 
 // Entry Detail
-"Delete Entry" = "Supprimer l'entree";
-"Delete entry?" = "Supprimer l'entree ?";
-"This entry will be removed from your log." = "Cette entree sera supprimee de votre journal.";
+"Delete Entry" = "Supprimer l'entrée";
+"Delete entry?" = "Supprimer l'entrée ?";
+"This entry will be removed from your log." = "Cette entrée sera supprimée de votre journal.";
 "Danger Zone" = "Zone dangereuse";
 
 // Currency Change
-"Change to %@?" = "Passer a %@ ?";
-"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Vos entrees et votre budget existants peuvent etre convertis dans la nouvelle devise au taux de change du jour.";
+"Change to %@?" = "Passer à %@ ?";
+"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Vos entrées et votre budget existants peuvent être convertis dans la nouvelle devise au taux de change du jour.";
 "Convert Amounts" = "Convertir les montants";
-"Keep Same Numbers" = "Conserver les memes chiffres";
+"Keep Same Numbers" = "Conserver les mêmes chiffres";
 "Converting amounts" = "Conversion des montants";
-"Currency Conversion Failed" = "Echec de la conversion";
-"Could not fetch the exchange rate. Please check your connection and try again." = "Impossible de recuperer le taux de change. Verifiez votre connexion et reessayez.";
+"Currency Conversion Failed" = "Échec de la conversion";
+"Could not fetch the exchange rate. Please check your connection and try again." = "Impossible de récupérer le taux de change. Vérifiez votre connexion et réessayez.";
 
 // Custom Categories
-"New Category" = "Nouvelle categorie";
-"Edit Category" = "Modifier la categorie";
+"New Category" = "Nouvelle catégorie";
+"Edit Category" = "Modifier la catégorie";
 "Preview" = "Apercu";
 "Color" = "Couleur";
-"Icon" = "Icone";
-"Category name" = "Nom de la categorie";
+"Icon" = "Icône";
+"Category name" = "Nom de la catégorie";
 "Save Changes" = "Enregistrer les modifications";
-"Create Category" = "Creer une categorie";
-"Custom" = "Personnalise";
-"My Categories" = "Mes categories";
-"Add Custom Category" = "Ajouter une categorie personnalisee";
+"Create Category" = "Créer une catégorie";
+"Custom" = "Personnalisé";
+"My Categories" = "Mes catégories";
+"Add Custom Category" = "Ajouter une catégorie personnalisée";
 "Edit" = "Modifier";
 "Delete" = "Supprimer";

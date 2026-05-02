@@ -550,26 +550,26 @@
 // Entry Detail
 "Delete Entry" = "Eliminar entrada";
 "Delete entry?" = "Eliminar entrada?";
-"This entry will be removed from your log." = "Esta entrada sera removida do seu registo.";
+"This entry will be removed from your log." = "Esta entrada será removida do seu registo.";
 "Danger Zone" = "Zona de perigo";
 
 // Currency Change
 "Change to %@?" = "Mudar para %@?";
-"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "As suas entradas e orcamento existentes podem ser convertidos para a nova moeda a taxa de cambio de hoje.";
+"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "As suas entradas e orçamento existentes podem ser convertidos para a nova moeda à taxa de câmbio de hoje.";
 "Convert Amounts" = "Converter valores";
-"Keep Same Numbers" = "Manter os mesmos numeros";
+"Keep Same Numbers" = "Manter os mesmos números";
 "Converting amounts" = "A converter valores";
-"Currency Conversion Failed" = "Falha na conversao de moeda";
-"Could not fetch the exchange rate. Please check your connection and try again." = "Nao foi possivel obter a taxa de cambio. Verifique a sua ligacao e tente novamente.";
+"Currency Conversion Failed" = "Falha na conversão de moeda";
+"Could not fetch the exchange rate. Please check your connection and try again." = "Não foi possível obter a taxa de câmbio. Verifique a sua ligação e tente novamente.";
 
 // Custom Categories
 "New Category" = "Nova categoria";
 "Edit Category" = "Editar categoria";
-"Preview" = "Pre-visualizacao";
+"Preview" = "Pré-visualização";
 "Color" = "Cor";
-"Icon" = "Icone";
+"Icon" = "Ícone";
 "Category name" = "Nome da categoria";
-"Save Changes" = "Guardar alteracoes";
+"Save Changes" = "Guardar alterações";
 "Create Category" = "Criar categoria";
 "Custom" = "Personalizado";
 "My Categories" = "As minhas categorias";

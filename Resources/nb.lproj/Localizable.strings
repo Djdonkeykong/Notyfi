@@ -548,24 +548,24 @@
 "%d%% OFF" = "%d%% RABATT";
 
 // Entry Detail
-"Delete Entry" = "Slett oppforing";
-"Delete entry?" = "Slett oppforing?";
-"This entry will be removed from your log." = "Denne oppforingen blir fjernet fra loggen din.";
-"Danger Zone" = "Farlig omrade";
+"Delete Entry" = "Slett oppføring";
+"Delete entry?" = "Slett oppføring?";
+"This entry will be removed from your log." = "Denne oppføringen blir fjernet fra loggen din.";
+"Danger Zone" = "Farlig område";
 
 // Currency Change
 "Change to %@?" = "Bytt til %@?";
 "Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Eksisterende poster og budsjettet ditt kan konverteres til den nye valutaen til dagens kurs.";
-"Convert Amounts" = "Konverter belop";
+"Convert Amounts" = "Konverter beløp";
 "Keep Same Numbers" = "Behold samme tall";
-"Converting amounts" = "Konverterer belop";
+"Converting amounts" = "Konverterer beløp";
 "Currency Conversion Failed" = "Valutakonvertering mislyktes";
 "Could not fetch the exchange rate. Please check your connection and try again." = "Kunne ikke hente valutakursen. Sjekk tilkoblingen din og prøv igjen.";
 
 // Custom Categories
 "New Category" = "Ny kategori";
 "Edit Category" = "Rediger kategori";
-"Preview" = "Forhandsvisning";
+"Preview" = "Forhåndsvisning";
 "Color" = "Farge";
 "Icon" = "Ikon";
 "Category name" = "Kategorinavn";

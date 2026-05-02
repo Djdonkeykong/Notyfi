@@ -556,23 +556,23 @@
 // Currency Change
 "Change to %@?" = "Skift til %@?";
 "Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Dine eksisterende poster og dit budget kan konverteres til den nye valuta til dagens kurs.";
-"Convert Amounts" = "Konverter belob";
+"Convert Amounts" = "Konverter beløb";
 "Keep Same Numbers" = "Behold samme tal";
-"Converting amounts" = "Konverterer belob";
+"Converting amounts" = "Konverterer beløb";
 "Currency Conversion Failed" = "Valutakonvertering mislykkedes";
 "Could not fetch the exchange rate. Please check your connection and try again." = "Kunne ikke hente valutakursen. Kontroller din forbindelse og prøv igen.";
 
 // Custom Categories
 "New Category" = "Ny kategori";
 "Edit Category" = "Rediger kategori";
-"Preview" = "Forhandsvisning";
+"Preview" = "Forhåndsvisning";
 "Color" = "Farve";
 "Icon" = "Ikon";
 "Category name" = "Kategorinavn";
-"Save Changes" = "Gem aendringer";
+"Save Changes" = "Gem ændringer";
 "Create Category" = "Opret kategori";
 "Custom" = "Tilpasset";
 "My Categories" = "Mine kategorier";
-"Add Custom Category" = "Tilfoj tilpasset kategori";
+"Add Custom Category" = "Tilføj tilpasset kategori";
 "Edit" = "Rediger";
 "Delete" = "Slet";
