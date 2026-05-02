@@ -191,12 +191,18 @@ struct JournalLogTextView: UIViewRepresentable {
         var parent: JournalLogTextView
         var lastAppliedFocusToken: UUID?
         private var lastPublishedLineFrames: [JournalTextLineFrame] = []
+        private var isKeyboardDismissing = false
+        private weak var storedTextView: UITextView?
 
         init(parent: JournalLogTextView) {
             self.parent = parent
         }
 
         func textViewDidBeginEditing(_ textView: UITextView) {
+            storedTextView = textView
+            // Cancel any pending dismiss suppression if the keyboard reappears.
+            isKeyboardDismissing = false
+
             if let editableTextView = textView as? EditableJournalTextView {
                 EditableJournalTextView.activate(editableTextView)
             }
@@ -237,6 +243,23 @@ struct JournalLogTextView: UIViewRepresentable {
             // intermediate geometry that places right-column accessories at wrong
             // positions for one frame — visible as a flash near the keyboard bar.
             // Line positions don't change when editing ends, so skipping is safe.
+            //
+            // Additionally suppress layout-driven frame dispatches for the duration
+            // of the keyboard dismiss animation. If journalText changed just before
+            // dismiss (e.g. a new entry committed), the UITextView relayouts during
+            // the animation while caretRect still returns intermediate geometry,
+            // causing all accessory rows to jump briefly. After the animation the
+            // view relayouts again with correct geometry; we force a clean dispatch
+            // at that point via the deferred block below.
+            isKeyboardDismissing = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                guard let self, self.isKeyboardDismissing else { return }
+                self.isKeyboardDismissing = false
+                self.lastPublishedLineFrames = []
+                if let tv = self.storedTextView {
+                    self.publishLineFrames(from: tv)
+                }
+            }
         }
 
         func textViewDidChange(_ textView: UITextView) {
