@@ -33,12 +33,11 @@ struct HomeSummaryBar: View {
                         Spacer(minLength: 12)
 
                         VStack(spacing: 1) {
-                            Image("StreakFlame")
+                            Image(systemName: "flame.fill")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: currentStreak > 0 ? 22 : 24, height: currentStreak > 0 ? 22 : 24)
-                                .saturation(currentStreak > 0 ? 1 : 0)
-                                .opacity(currentStreak > 0 ? 1 : 0.35)
+                                .frame(width: currentStreak > 0 ? 20 : 22, height: currentStreak > 0 ? 20 : 22)
+                                .foregroundStyle(currentStreak > 0 ? streakFlameColor : Color.primary.opacity(0.3))
                             if currentStreak > 0 {
                                 Text("\(currentStreak)")
                                     .font(.system(size: 11, weight: .bold, design: .rounded))
