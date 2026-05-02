@@ -232,7 +232,11 @@ struct JournalLogTextView: UIViewRepresentable {
 
             lastAppliedFocusToken = nil
             publishCursorLineIndex(from: textView)
-            publishLineFrames(from: textView)
+            // Do NOT call publishLineFrames here. caretRect(for:) reads TextKit 2
+            // layout state that is mid-transition during keyboard dismissal, returning
+            // intermediate geometry that places right-column accessories at wrong
+            // positions for one frame — visible as a flash near the keyboard bar.
+            // Line positions don't change when editing ends, so skipping is safe.
         }
 
         func textViewDidChange(_ textView: UITextView) {
@@ -249,7 +253,11 @@ struct JournalLogTextView: UIViewRepresentable {
 
         func textViewDidChangeSelection(_ textView: UITextView) {
             publishCursorLineIndex(from: textView)
-            publishLineFrames(from: textView)
+            // Do NOT call publishLineFrames here. Selection changes don't affect line
+            // frames, but measureLineFrames accesses layoutManager (TextKit 1 bridge),
+            // which — when triggered inside UIKit's selection callback — invalidates
+            // TextKit 2 content state mid-render and silently kills the selection
+            // highlight and edit menu.
         }
 
         func textView(
@@ -350,78 +358,37 @@ struct JournalLogTextView: UIViewRepresentable {
         }
 
         private func measureLineFrames(in textView: UITextView) -> [JournalTextLineFrame] {
+            // Uses caretRect(for:) exclusively — no layoutManager access. Accessing
+            // layoutManager (TextKit 1) from a UIKit delegate callback forces a
+            // compatibility bridge that invalidates TextKit 2 content state mid-render,
+            // silently killing selection highlights and the edit menu on iOS 17+.
             let text = textView.text ?? ""
             let lines = text.components(separatedBy: "\n")
-            let layoutManager = textView.layoutManager
-            let textContainer = textView.textContainer
             let lineHeight = max(
                 textView.font?.lineHeight ?? JournalLogTextView.estimatedLineHeight,
                 JournalLogTextView.estimatedLineHeight
             )
-            let textStorage = textView.textStorage.string as NSString
             var frames: [JournalTextLineFrame] = []
             var characterLocation = 0
 
-            layoutManager.ensureLayout(for: textContainer)
-
             for lineIndex in lines.indices {
                 let lineLength = (lines[lineIndex] as NSString).length
-                let safeLocation = min(characterLocation, textStorage.length)
-                let lineStartPosition = textView.position(
-                    from: textView.beginningOfDocument,
-                    offset: safeLocation
-                )
-                let caretRect = lineStartPosition.map {
-                    textView.caretRect(for: $0)
-                } ?? .zero
-                let lineRange = NSRange(location: safeLocation, length: lineLength)
-                let frame: JournalTextLineFrame
+                let safeLocation = min(characterLocation, text.utf16.count)
 
-                if lineLength > 0 {
-                    let glyphRange = layoutManager.glyphRange(
-                        forCharacterRange: lineRange,
-                        actualCharacterRange: nil
-                    )
-                    let lineFragmentRect = layoutManager.lineFragmentRect(
-                        forGlyphAt: glyphRange.location,
-                        effectiveRange: nil,
-                        withoutAdditionalLayout: true
-                    )
-                    let boundingRect = layoutManager.boundingRect(
-                        forGlyphRange: glyphRange,
-                        in: textContainer
-                    )
-                    let lineTopY = min(caretRect.minY, lineFragmentRect.minY)
-
-                    frame = JournalTextLineFrame(
-                        lineIndex: lineIndex,
-                        minY: lineTopY,
-                        height: max(
-                            boundingRect.maxY - lineTopY,
-                            lineFragmentRect.height,
-                            lineHeight
-                        )
-                    )
+                let minY: CGFloat
+                if let position = textView.position(from: textView.beginningOfDocument, offset: safeLocation) {
+                    let r = textView.caretRect(for: position)
+                    minY = (r.height > 0 && r.height < 1000) ? r.minY : (frames.last.map { $0.minY + $0.height + JournalLogTextView.paragraphSpacing } ?? 0)
                 } else {
-                    frame = JournalTextLineFrame(
-                        lineIndex: lineIndex,
-                        minY: caretRect.minY,
-                        height: lineHeight
-                    )
+                    minY = frames.last.map { $0.minY + $0.height + JournalLogTextView.paragraphSpacing } ?? 0
                 }
 
-                frames.append(frame)
+                frames.append(JournalTextLineFrame(lineIndex: lineIndex, minY: minY, height: lineHeight))
                 characterLocation += lineLength + 1
             }
 
             if frames.isEmpty {
-                frames.append(
-                    JournalTextLineFrame(
-                        lineIndex: 0,
-                        minY: 0,
-                        height: lineHeight
-                    )
-                )
+                frames.append(JournalTextLineFrame(lineIndex: 0, minY: 0, height: lineHeight))
             }
 
             return frames

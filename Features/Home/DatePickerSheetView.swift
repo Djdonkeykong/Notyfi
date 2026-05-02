@@ -4,12 +4,14 @@ struct DatePickerSheetView: View {
     @Binding var selection: Date
     @Binding var visibleMonth: Date
     let entryDates: [Date]
+    var recurringDates: [Date] = []
     @Environment(\.dismiss) private var dismiss
     @State private var isMonthChooserPresented = false
     @State private var chooserYear = Calendar.autoupdatingCurrent.component(.year, from: Date())
 
     private var selectedRingColor: Color { NotyfiTheme.brandBlue }
     private let entryFillColor = Color(red: 0.58, green: 0.88, blue: 0.62)
+    private let recurringDotColor = Color(red: 0.36, green: 0.62, blue: 0.96)
     private let dayCellSize: CGFloat = 46
     private let actionButtonWidth: CGFloat = 94
     private let actionButtonHeight: CGFloat = 44
@@ -153,21 +155,33 @@ struct DatePickerSheetView: View {
                                         Haptics.mediumImpact()
                                         selection = date
                                     }) {
-                                        Text("\(day)")
-                                            .font(.system(size: 18, weight: calendar.isDate(date, inSameDayAs: selection) ? .semibold : .regular, design: .default))
-                                            .foregroundStyle(dayColor(for: date))
-                                            .frame(width: dayCellSize, height: dayCellSize)
-                                            .background {
-                                                if hasEntry(on: date) {
-                                                    Circle()
-                                                        .fill(entryFillColor.opacity(calendar.compare(date, to: Date(), toGranularity: .day) == .orderedDescending ? 0.48 : 1))
-                                                }
+                                        ZStack {
+                                            Text("\(day)")
+                                                .font(.system(size: 18, weight: calendar.isDate(date, inSameDayAs: selection) ? .semibold : .regular, design: .default))
+                                                .foregroundStyle(dayColor(for: date))
 
-                                                if calendar.isDate(date, inSameDayAs: selection) {
+                                            if hasRecurring(on: date) {
+                                                VStack {
+                                                    Spacer()
                                                     Circle()
-                                                        .stroke(selectedRingColor, lineWidth: 3)
+                                                        .fill(recurringDotColor.opacity(hasEntry(on: date) ? 0.9 : 0.7))
+                                                        .frame(width: 5, height: 5)
+                                                        .padding(.bottom, 4)
                                                 }
                                             }
+                                        }
+                                        .frame(width: dayCellSize, height: dayCellSize)
+                                        .background {
+                                            if hasEntry(on: date) {
+                                                Circle()
+                                                    .fill(entryFillColor.opacity(calendar.compare(date, to: Date(), toGranularity: .day) == .orderedDescending ? 0.48 : 1))
+                                            }
+
+                                            if calendar.isDate(date, inSameDayAs: selection) {
+                                                Circle()
+                                                    .stroke(selectedRingColor, lineWidth: 3)
+                                            }
+                                        }
                                     }
                                     .buttonStyle(.plain)
                                     .frame(maxWidth: .infinity)
@@ -240,6 +254,10 @@ struct DatePickerSheetView: View {
 
     private func hasEntry(on date: Date) -> Bool {
         entryDates.contains { calendar.isDate($0, inSameDayAs: date) }
+    }
+
+    private func hasRecurring(on date: Date) -> Bool {
+        recurringDates.contains { calendar.isDate($0, inSameDayAs: date) }
     }
 
     private func toggleMonthChooser() {

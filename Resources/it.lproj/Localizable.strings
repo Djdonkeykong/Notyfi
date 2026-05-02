@@ -546,3 +546,33 @@
 "Yearly" = "Annuale";
 
 "%d%% OFF" = "%d%% OFF";
+
+// Entry Detail
+"Delete Entry" = "Elimina voce";
+"Delete entry?" = "Eliminare la voce?";
+"This entry will be removed from your log." = "Questa voce verra rimossa dal tuo registro.";
+"Danger Zone" = "Zona pericolosa";
+
+// Currency Change
+"Change to %@?" = "Cambia in %@?";
+"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Le voci e il budget esistenti possono essere convertiti nella nuova valuta al tasso di cambio odierno.";
+"Convert Amounts" = "Converti gli importi";
+"Keep Same Numbers" = "Mantieni gli stessi numeri";
+"Converting amounts" = "Conversione degli importi";
+"Currency Conversion Failed" = "Conversione valuta fallita";
+"Could not fetch the exchange rate. Please check your connection and try again." = "Impossibile recuperare il tasso di cambio. Controlla la connessione e riprova.";
+
+// Custom Categories
+"New Category" = "Nuova categoria";
+"Edit Category" = "Modifica categoria";
+"Preview" = "Anteprima";
+"Color" = "Colore";
+"Icon" = "Icona";
+"Category name" = "Nome della categoria";
+"Save Changes" = "Salva modifiche";
+"Create Category" = "Crea categoria";
+"Custom" = "Personalizzata";
+"My Categories" = "Le mie categorie";
+"Add Custom Category" = "Aggiungi categoria personalizzata";
+"Edit" = "Modifica";
+"Delete" = "Elimina";

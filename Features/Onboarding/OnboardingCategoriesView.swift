@@ -2,6 +2,11 @@ import SwiftUI
 
 struct OnboardingCategoriesView: View {
     @Binding var selectedCategories: Set<ExpenseCategory>
+    @ObservedObject var store: ExpenseJournalStore
+
+    @State private var isNewCategoryPresented = false
+    @State private var editingCategory: CustomCategoryDefinition? = nil
+    @State private var categoryToDelete: CustomCategoryDefinition? = nil
 
     private struct CategoryGroup {
         let title: String
@@ -49,6 +54,12 @@ struct OnboardingCategoriesView: View {
                     ForEach(groups, id: \.title) { group in
                         groupSection(group)
                     }
+
+                    if !store.customCategories.isEmpty {
+                        customSection
+                    }
+
+                    addCategoryButton
                 }
             }
             .padding(.horizontal, 24)
@@ -59,6 +70,38 @@ struct OnboardingCategoriesView: View {
         .scrollIndicators(.hidden)
         .background(NotyfiTheme.brandLight)
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $isNewCategoryPresented) {
+            CustomCategoryEditorView { newDef in
+                store.addCustomCategory(newDef)
+                selectedCategories.insert(newDef.asExpenseCategory)
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $editingCategory) { def in
+            CustomCategoryEditorView(existing: def) { updated in
+                store.updateCustomCategory(updated)
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+        .confirmationDialog(
+            "Delete \"\(categoryToDelete?.title ?? "")\"?",
+            isPresented: Binding(
+                get: { categoryToDelete != nil },
+                set: { if !$0 { categoryToDelete = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Delete".notyfiLocalized, role: .destructive) {
+                if let def = categoryToDelete {
+                    selectedCategories.remove(def.asExpenseCategory)
+                    store.deleteCustomCategory(rawValue: def.rawValue)
+                }
+                categoryToDelete = nil
+            }
+            Button("Cancel".notyfiLocalized, role: .cancel) { categoryToDelete = nil }
+        }
     }
 
     private func groupSection(_ group: CategoryGroup) -> some View {
@@ -83,6 +126,69 @@ struct OnboardingCategoriesView: View {
                 }
             }
         }
+    }
+
+    private var customSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("My Categories".notyfiLocalized)
+                .font(.notyfi(.subheadline, weight: .bold))
+                .foregroundStyle(NotyfiTheme.secondaryText)
+
+            FlowLayout(spacing: 10) {
+                ForEach(store.customCategories) { def in
+                    let cat = def.asExpenseCategory
+                    CategoryPill(
+                        category: cat,
+                        isSelected: selectedCategories.contains(cat)
+                    ) {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        if selectedCategories.contains(cat) {
+                            selectedCategories.remove(cat)
+                        } else {
+                            selectedCategories.insert(cat)
+                        }
+                    }
+                    .contextMenu {
+                        Button {
+                            editingCategory = def
+                        } label: {
+                            Label("Edit".notyfiLocalized, systemImage: "pencil")
+                        }
+                        Button(role: .destructive) {
+                            categoryToDelete = def
+                        } label: {
+                            Label("Delete".notyfiLocalized, systemImage: "trash")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var addCategoryButton: some View {
+        Button {
+            isNewCategoryPresented = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "plus")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+                Text("Add Custom Category".notyfiLocalized)
+                    .font(.notyfi(.subheadline, weight: .medium))
+                    .foregroundStyle(NotyfiTheme.secondaryText)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 11)
+            .background {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.primary.opacity(0.15), lineWidth: 1)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(NotyfiTheme.elevatedSurface)
+                    )
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -171,6 +277,7 @@ private struct FlowLayout: Layout {
 
 #Preview {
     OnboardingCategoriesView(
-        selectedCategories: .constant(Set(ExpenseCategory.allCases))
+        selectedCategories: .constant(Set(ExpenseCategory.allCases)),
+        store: ExpenseJournalStore(previewMode: true)
     )
 }

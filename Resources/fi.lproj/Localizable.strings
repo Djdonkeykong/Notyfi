@@ -546,3 +546,33 @@
 "Yearly" = "Vuosittain";
 
 "%d%% OFF" = "%d%% ALE";
+
+// Entry Detail
+"Delete Entry" = "Poista merkinta";
+"Delete entry?" = "Poistetaanko merkinta?";
+"This entry will be removed from your log." = "Tama merkinta poistetaan lokistasi.";
+"Danger Zone" = "Vaaravyohyke";
+
+// Currency Change
+"Change to %@?" = "Vaihda valuuttaan %@?";
+"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Olemassa olevat merkintasi ja budjettisi voidaan muuntaa uuteen valuuttaan taman paivan kurssilla.";
+"Convert Amounts" = "Muunna summat";
+"Keep Same Numbers" = "Sailyta samat numerot";
+"Converting amounts" = "Muunnetaan summia";
+"Currency Conversion Failed" = "Valuutan muuntaminen epaonnistui";
+"Could not fetch the exchange rate. Please check your connection and try again." = "Valuuttakurssia ei voitu hakea. Tarkista yhteytesi ja yrita uudelleen.";
+
+// Custom Categories
+"New Category" = "Uusi kategoria";
+"Edit Category" = "Muokkaa kategoriaa";
+"Preview" = "Esikatselu";
+"Color" = "Vari";
+"Icon" = "Kuvake";
+"Category name" = "Kategorian nimi";
+"Save Changes" = "Tallenna muutokset";
+"Create Category" = "Luo kategoria";
+"Custom" = "Mukautettu";
+"My Categories" = "Omat kategoriat";
+"Add Custom Category" = "Lisaa mukautettu kategoria";
+"Edit" = "Muokkaa";
+"Delete" = "Poista";

@@ -125,6 +125,7 @@ private extension HomeView {
                         insight: viewModel.insight,
                         budgetInsight: viewModel.budgetInsight,
                         currencyCode: viewModel.currencyCode,
+                        currentStreak: viewModel.currentStreak,
                         onTap: { presentStats() }
                     )
                     .frame(maxWidth: horizontalSizeClass == .regular ? 720 : .infinity)
@@ -137,7 +138,8 @@ private extension HomeView {
                 DatePickerSheetView(
                     selection: selectedDateBinding,
                     visibleMonth: $datePickerVisibleMonth,
-                    entryDates: store.entries.map(\.date)
+                    entryDates: store.entries.map(\.date),
+                    recurringDates: upcomingRecurringDates
                 )
                     .presentationDetents([.height(datePickerSheetHeight(for: datePickerVisibleMonth))])
                     .presentationDragIndicator(.hidden)
@@ -347,6 +349,22 @@ private extension HomeView {
         )
         .padding(.horizontal, 20)
         .padding(.top, 4)
+    }
+
+    var upcomingRecurringDates: [Date] {
+        let cal = Calendar.autoupdatingCurrent
+        guard let horizon = cal.date(byAdding: .year, value: 2, to: Date()) else { return [] }
+        var dates: [Date] = []
+        for tx in store.recurringTransactions where tx.isActive {
+            var next = tx.nextOccurrenceAt
+            while next <= horizon {
+                if let end = tx.endsAt, next > end { break }
+                dates.append(next)
+                guard let advanced = tx.frequency.nextDate(after: next, interval: tx.interval, calendar: cal) else { break }
+                next = advanced
+            }
+        }
+        return dates
     }
 
     var selectedDateBinding: Binding<Date> {

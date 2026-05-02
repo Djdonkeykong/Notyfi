@@ -4,6 +4,7 @@ struct HomeSummaryBar: View {
     let insight: JournalInsight
     let budgetInsight: BudgetInsight
     let currencyCode: String
+    let currentStreak: Int
     let onTap: () -> Void
 
     var body: some View {
@@ -31,16 +32,24 @@ struct HomeSummaryBar: View {
 
                         Spacer(minLength: 12)
 
-                        ZStack {
-                            Text(statusEmoji)
-                                .font(.system(size: 28))
-                                .frame(width: 36, height: 36)
-                                .accessibilityLabel(statusText)
-                                .id(statusEmoji)
-                                .transition(.scale(scale: 0.5).combined(with: .opacity))
+                        VStack(spacing: 1) {
+                            Image("StreakFlame")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: currentStreak > 0 ? 22 : 24, height: currentStreak > 0 ? 22 : 24)
+                                .saturation(currentStreak > 0 ? 1 : 0)
+                                .opacity(currentStreak > 0 ? 1 : 0.35)
+                            if currentStreak > 0 {
+                                Text("\(currentStreak)")
+                                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                                    .foregroundStyle(streakFlameColor)
+                                    .monospacedDigit()
+                                    .contentTransition(.numericText())
+                            }
                         }
                         .frame(width: 36, height: 36)
-                        .animation(.spring(response: 0.35, dampingFraction: 0.5), value: statusEmoji)
+                        .accessibilityLabel("\(currentStreak) day streak")
+                        .animation(.spring(response: 0.35, dampingFraction: 0.6), value: currentStreak)
                     }
 
                     if budgetInsight.plan.hasSpendingLimit {
@@ -148,17 +157,10 @@ struct HomeSummaryBar: View {
         }
     }
 
-    private var statusEmoji: String {
-        switch budgetInsight.status {
-        case .needsBudget:
-            return "🙂"
-        case .balanced:
-            return "😌"
-        case .caution:
-            return "😬"
-        case .overBudget:
-            return "😵"
-        }
+    private var streakFlameColor: Color {
+        currentStreak >= 7
+            ? Color(red: 0.97, green: 0.35, blue: 0.10)
+            : Color(red: 0.95, green: 0.55, blue: 0.15)
     }
 
     private func signedCurrency(_ amount: Double) -> String {
@@ -267,6 +269,7 @@ private struct FooterMetricPill: View {
                     categoryStatuses: []
                 ),
                 currencyCode: "NOK",
+                currentStreak: 12,
                 onTap: {}
             )
         }

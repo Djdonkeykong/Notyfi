@@ -7,6 +7,8 @@ struct EntryDetailView: View {
     @StateObject private var viewModel: EntryDetailViewModel
     @State private var shouldPersistOnDisappear = true
     @State private var recurringDraft: RecurringTransactionDraft?
+    @State private var isNewCategoryPresented = false
+    @State private var isDeleteConfirmationPresented = false
     private let isNewEntryDraft: Bool
     private let store: ExpenseJournalStore
     private let entryID: UUID
@@ -80,14 +82,37 @@ struct EntryDetailView: View {
                             Divider()
 
                             DetailPickerRow(title: "Category") {
-                                Picker("Category".notyfiLocalized, selection: $viewModel.category) {
-                                    ForEach(ExpenseCategory.allCases) { category in
-                                        Text(category.title).tag(category)
+                                Menu {
+                                    Picker("Category".notyfiLocalized, selection: $viewModel.category) {
+                                        ForEach(ExpenseCategory.allCases) { category in
+                                            Label(category.title, systemImage: category.symbol).tag(category)
+                                        }
                                     }
+                                    if !store.customCategories.isEmpty {
+                                        Picker("Custom".notyfiLocalized, selection: $viewModel.category) {
+                                            ForEach(store.customCategories.map(\.asExpenseCategory)) { category in
+                                                Label(category.title, systemImage: category.symbol).tag(category)
+                                            }
+                                        }
+                                    }
+                                    Button {
+                                        isNewCategoryPresented = true
+                                    } label: {
+                                        Label("New Category".notyfiLocalized, systemImage: "plus.circle.fill")
+                                    }
+                                } label: {
+                                    Text(viewModel.category.title)
+                                        .font(.notyfi(.body))
+                                        .foregroundStyle(.primary.opacity(0.84))
                                 }
-                                .pickerStyle(.menu)
-                                .labelsHidden()
-                                .tint(.primary.opacity(0.84))
+                            }
+                            .sheet(isPresented: $isNewCategoryPresented) {
+                                CustomCategoryEditorView { newDef in
+                                    store.addCustomCategory(newDef)
+                                    viewModel.category = newDef.asExpenseCategory
+                                }
+                                .presentationDetents([.large])
+                                .presentationDragIndicator(.visible)
                             }
 
                             Divider()
@@ -157,6 +182,31 @@ struct EntryDetailView: View {
                         }
                     }
 
+                    if !isNewEntryDraft {
+                        SectionHeader(title: "Danger Zone")
+                        detailCard {
+                            Button {
+                                isDeleteConfirmationPresented = true
+                            } label: {
+                                HStack(spacing: 14) {
+                                    Image(systemName: "trash")
+                                        .font(.system(size: 17, weight: .semibold))
+                                        .foregroundStyle(.red.opacity(0.75))
+                                        .frame(width: 18)
+                                    Text("Delete Entry".notyfiLocalized)
+                                        .font(.notyfi(.body))
+                                        .foregroundStyle(.red.opacity(0.78))
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 16)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
                     SectionHeader(title: "Automation")
                     detailCard {
                         Button(action: presentRecurringEditor) {
@@ -208,6 +258,20 @@ struct EntryDetailView: View {
             .presentationBackground(NotyfiTheme.background.opacity(0.98))
             .presentationCornerRadius(34)
         }
+        .confirmationDialog(
+            "Delete entry?".notyfiLocalized,
+            isPresented: $isDeleteConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Entry".notyfiLocalized, role: .destructive) {
+                shouldPersistOnDisappear = false
+                store.removeEntry(id: entryID)
+                dismiss()
+            }
+            Button("Cancel".notyfiLocalized, role: .cancel) {}
+        } message: {
+            Text("This entry will be removed from your log.".notyfiLocalized)
+        }
         .onDisappear {
             if shouldPersistOnDisappear {
                 viewModel.save()
@@ -258,9 +322,7 @@ struct EntryDetailView: View {
                 }
 
                 CircleActionButton(systemImage: "xmark") {
-                    if isNewEntryDraft {
-                        shouldPersistOnDisappear = false
-                    }
+                    shouldPersistOnDisappear = false
                     dismiss()
                 }
             }

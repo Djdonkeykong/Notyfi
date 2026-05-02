@@ -546,3 +546,33 @@
 "Yearly" = "Årlig";
 
 "%d%% OFF" = "%d%% RABAT";
+
+// Entry Detail
+"Delete Entry" = "Slet post";
+"Delete entry?" = "Slet post?";
+"This entry will be removed from your log." = "Denne post vil blive fjernet fra din log.";
+"Danger Zone" = "Farezone";
+
+// Currency Change
+"Change to %@?" = "Skift til %@?";
+"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Dine eksisterende poster og dit budget kan konverteres til den nye valuta til dagens kurs.";
+"Convert Amounts" = "Konverter belob";
+"Keep Same Numbers" = "Behold samme tal";
+"Converting amounts" = "Konverterer belob";
+"Currency Conversion Failed" = "Valutakonvertering mislykkedes";
+"Could not fetch the exchange rate. Please check your connection and try again." = "Kunne ikke hente valutakursen. Kontroller din forbindelse og prøv igen.";
+
+// Custom Categories
+"New Category" = "Ny kategori";
+"Edit Category" = "Rediger kategori";
+"Preview" = "Forhandsvisning";
+"Color" = "Farve";
+"Icon" = "Ikon";
+"Category name" = "Kategorinavn";
+"Save Changes" = "Gem aendringer";
+"Create Category" = "Opret kategori";
+"Custom" = "Tilpasset";
+"My Categories" = "Mine kategorier";
+"Add Custom Category" = "Tilfoj tilpasset kategori";
+"Edit" = "Rediger";
+"Delete" = "Slet";

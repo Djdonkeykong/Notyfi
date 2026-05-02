@@ -5,6 +5,7 @@ struct RecurringTransactionEditorView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @State private var draft: RecurringTransactionDraft
+    @State private var isNewCategoryPresented = false
     @ObservedObject private var store: ExpenseJournalStore
     private let sourceEntryID: UUID?
 
@@ -157,12 +158,37 @@ struct RecurringTransactionEditorView: View {
                     Divider()
 
                     RecurringMenuRow(title: "Category") {
-                        Picker("Category".notyfiLocalized, selection: $draft.category) {
-                            ForEach(ExpenseCategory.allCases) { category in
-                                Text(category.title).tag(category)
+                        Menu {
+                            Picker("Category".notyfiLocalized, selection: $draft.category) {
+                                ForEach(ExpenseCategory.allCases) { category in
+                                    Label(category.title, systemImage: category.symbol).tag(category)
+                                }
                             }
+                            if !store.customCategories.isEmpty {
+                                Picker("Custom".notyfiLocalized, selection: $draft.category) {
+                                    ForEach(store.customCategories.map(\.asExpenseCategory)) { category in
+                                        Label(category.title, systemImage: category.symbol).tag(category)
+                                    }
+                                }
+                            }
+                            Button {
+                                isNewCategoryPresented = true
+                            } label: {
+                                Label("New Category".notyfiLocalized, systemImage: "plus.circle.fill")
+                            }
+                        } label: {
+                            Text(draft.category.title)
+                                .font(.notyfi(.body))
+                                .foregroundStyle(.primary)
                         }
-                        .pickerStyle(.menu)
+                    }
+                    .sheet(isPresented: $isNewCategoryPresented) {
+                        CustomCategoryEditorView { newDef in
+                            store.addCustomCategory(newDef)
+                            draft.category = newDef.asExpenseCategory
+                        }
+                        .presentationDetents([.large])
+                        .presentationDragIndicator(.visible)
                     }
 
                     Divider()

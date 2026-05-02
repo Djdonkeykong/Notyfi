@@ -109,6 +109,10 @@ final class CloudSyncManager: ObservableObject {
             }
             .store(in: &cancellables)
 
+        store.$customCategories
+            .sink { [weak self] _ in self?.scheduleUpload() }
+            .store(in: &cancellables)
+
         // Capture category changes that happen while bootstrap is fetching remote data.
         // bootstrap()'s apply() overwrites local state; this lets us restore the user's
         // intent after bootstrap completes.
@@ -257,7 +261,8 @@ final class CloudSyncManager: ObservableObject {
             entries: entries,
             budgetPlan: budgetPlan,
             trackedCategories: trackedCategories,
-            recurringTransactions: recurringTransactions
+            recurringTransactions: recurringTransactions,
+            customCategories: remoteState.customCategories
         )
 
         if let currencyCode = remoteState.user.currencyCode,
@@ -282,6 +287,7 @@ final class CloudSyncManager: ObservableObject {
             budgetPlan: store.budgetPlan,
             trackedCategories: store.trackedCategories,
             recurringTransactions: store.recurringTransactions,
+            customCategories: store.customCategories,
             currencyCode: NotyfiCurrency.currentCode(defaults: defaults),
             languageCode: NotyfiLocale.storedLanguageCode(defaults: defaults),
             onboardingCompleted: markingOnboardingComplete
@@ -321,6 +327,7 @@ private struct LocalFinanceSnapshot {
     let budgetPlan: BudgetPlan
     let trackedCategories: Set<ExpenseCategory>
     let recurringTransactions: [RecurringTransaction]
+    let customCategories: [CustomCategoryDefinition]
     let currencyCode: String
     let languageCode: String
     let onboardingCompleted: Bool
@@ -332,6 +339,7 @@ private struct RemoteFinanceState {
     let categoryTargets: [BudgetCategoryTargetRow]
     let recurringTransactions: [RecurringTransaction]
     let entries: [ExpenseEntry]
+    let customCategories: [CustomCategoryDefinition]
 
     var hasPersistedFinanceData: Bool {
         user.onboardingCompletedAt != nil
@@ -350,12 +358,9 @@ private struct RemoteFinanceState {
 
     var budgetPlan: BudgetPlan {
         var categoryTargetValues = categoryTargets.compactMap { row -> BudgetCategoryTarget? in
-            guard let category = ExpenseCategory(rawValue: row.category) else {
-                return nil
-            }
-
+            guard !row.category.isEmpty else { return nil }
             return BudgetCategoryTarget(
-                category: category,
+                category: ExpenseCategory(rawValue: row.category),
                 amount: row.targetAmount
             )
         }
@@ -372,7 +377,10 @@ private struct RemoteFinanceState {
     }
 
     var trackedCategories: Set<ExpenseCategory> {
-        Set(categoryTargets.compactMap { ExpenseCategory(rawValue: $0.category) })
+        Set(categoryTargets.compactMap { row -> ExpenseCategory? in
+            guard !row.category.isEmpty else { return nil }
+            return ExpenseCategory(rawValue: row.category)
+        })
     }
 
     static func empty(userID: UUID) -> RemoteFinanceState {
@@ -381,7 +389,8 @@ private struct RemoteFinanceState {
             activePlan: nil,
             categoryTargets: [],
             recurringTransactions: [],
-            entries: []
+            entries: [],
+            customCategories: []
         )
     }
 
@@ -394,7 +403,8 @@ private struct RemoteFinanceState {
             activePlan: activePlan,
             categoryTargets: categoryTargets,
             recurringTransactions: recurringTransactions,
-            entries: entries + unpushed
+            entries: entries + unpushed,
+            customCategories: customCategories
         )
     }
 }
@@ -416,6 +426,13 @@ private enum SupabaseFinanceService {
             .execute()
             .value
 
+        async let customCategoryRows: [CustomCategoryRow] = SupabaseService.client
+            .from("custom_categories")
+            .select()
+            .eq("user_id", value: userID.uuidString.lowercased())
+            .execute()
+            .value
+
         async let entryRows: [ExpenseEntryRow] = SupabaseService.client
             .from("expense_entries")
             .select()
@@ -434,6 +451,7 @@ private enum SupabaseFinanceService {
         let fetchedActivePlanRows = try await activePlanRows
         let fetchedEntryRows = try await entryRows
         let fetchedRecurringRows = try await recurringRows
+        let fetchedCustomCategoryRows = try await customCategoryRows
 
         let user = fetchedUserRows.first
             ?? UserProfileRow(
@@ -448,6 +466,7 @@ private enum SupabaseFinanceService {
         let activePlan = fetchedActivePlanRows.first
         let entries = fetchedEntryRows.map(\.asExpenseEntry)
         let recurringTransactions = fetchedRecurringRows.map(\.asRecurringTransaction)
+        let customCategories = fetchedCustomCategoryRows.map(\.asDefinition)
 
         let categoryTargets: [BudgetCategoryTargetRow]
         if let activePlan {
@@ -479,7 +498,8 @@ private enum SupabaseFinanceService {
                 }
 
                 return lhs.date > rhs.date
-            }
+            },
+            customCategories: customCategories
         )
     }
 
@@ -516,6 +536,43 @@ private enum SupabaseFinanceService {
             snapshot.entries,
             userID: userID
         )
+
+        try await replaceCustomCategories(
+            snapshot.customCategories,
+            userID: userID
+        )
+    }
+
+    private static func replaceCustomCategories(
+        _ categories: [CustomCategoryDefinition],
+        userID: UUID
+    ) async throws {
+        if !categories.isEmpty {
+            let payload = categories.map { CustomCategoryPayload(definition: $0, userID: userID) }
+            try await SupabaseService.client
+                .from("custom_categories")
+                .upsert(payload, onConflict: "user_id,raw_value")
+                .execute()
+        }
+
+        let existingRows: [CustomCategoryRawValueRow] = try await SupabaseService.client
+            .from("custom_categories")
+            .select("raw_value")
+            .eq("user_id", value: userID.uuidString.lowercased())
+            .execute()
+            .value
+
+        let localRawValues = Set(categories.map(\.rawValue))
+        let staleRawValues = existingRows.map(\.rawValue).filter { !localRawValues.contains($0) }
+
+        for stale in staleRawValues {
+            try await SupabaseService.client
+                .from("custom_categories")
+                .delete()
+                .eq("user_id", value: userID.uuidString.lowercased())
+                .eq("raw_value", value: stale)
+                .execute()
+        }
     }
 
     private static func replaceRecurringTransactions(
@@ -820,7 +877,7 @@ private struct ExpenseEntryRow: Decodable {
             amount: amount,
             currencyCode: currencyCode,
             transactionKind: TransactionKind(rawValue: entryType) ?? .expense,
-            category: ExpenseCategory(rawValue: category ?? "") ?? .uncategorized,
+            category: ExpenseCategory(rawValue: category ?? "uncategorized"),
             merchant: merchant,
             date: occurredAt,
             note: note ?? "",
@@ -890,7 +947,7 @@ private struct RecurringTransactionRow: Decodable {
             amount: amount,
             currencyCode: currencyCode,
             transactionKind: TransactionKind(rawValue: transactionKind) ?? .expense,
-            category: ExpenseCategory(rawValue: category) ?? .uncategorized,
+            category: ExpenseCategory(rawValue: category),
             merchant: merchant,
             note: note,
             frequency: RecurringFrequency(rawValue: frequency) ?? .monthly,
@@ -1046,6 +1103,68 @@ private struct ExpenseEntryPayload: Encodable {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
+}
+
+private struct CustomCategoryRow: Decodable {
+    let userID: UUID
+    let rawValue: String
+    let title: String
+    let symbol: String
+    let tintR: Double
+    let tintG: Double
+    let tintB: Double
+
+    enum CodingKeys: String, CodingKey {
+        case userID = "user_id"
+        case rawValue = "raw_value"
+        case title
+        case symbol
+        case tintR = "tint_r"
+        case tintG = "tint_g"
+        case tintB = "tint_b"
+    }
+
+    var asDefinition: CustomCategoryDefinition {
+        CustomCategoryDefinition(
+            rawValue: rawValue, title: title, symbol: symbol,
+            tintR: tintR, tintG: tintG, tintB: tintB
+        )
+    }
+}
+
+private struct CustomCategoryRawValueRow: Decodable {
+    let rawValue: String
+    enum CodingKeys: String, CodingKey { case rawValue = "raw_value" }
+}
+
+private struct CustomCategoryPayload: Encodable {
+    let userID: UUID
+    let rawValue: String
+    let title: String
+    let symbol: String
+    let tintR: Double
+    let tintG: Double
+    let tintB: Double
+
+    enum CodingKeys: String, CodingKey {
+        case userID = "user_id"
+        case rawValue = "raw_value"
+        case title
+        case symbol
+        case tintR = "tint_r"
+        case tintG = "tint_g"
+        case tintB = "tint_b"
+    }
+
+    init(definition: CustomCategoryDefinition, userID: UUID) {
+        self.userID = userID
+        self.rawValue = definition.rawValue
+        self.title = definition.title
+        self.symbol = definition.symbol
+        self.tintR = definition.tintR
+        self.tintG = definition.tintG
+        self.tintB = definition.tintB
+    }
 }
 
 private struct RecurringTransactionPayload: Encodable {

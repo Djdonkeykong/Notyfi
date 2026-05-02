@@ -547,3 +547,33 @@
 "Yearly" = "Årligen";
 
 "%d%% OFF" = "%d%% RABATT";
+
+// Entry Detail
+"Delete Entry" = "Ta bort post";
+"Delete entry?" = "Ta bort posten?";
+"This entry will be removed from your log." = "Den har posten tas bort fran din logg.";
+"Danger Zone" = "Farlig zon";
+
+// Currency Change
+"Change to %@?" = "Byta till %@?";
+"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Dina befintliga poster och budget kan konverteras till den nya valutan till dagens vaxelkurs.";
+"Convert Amounts" = "Konvertera belopp";
+"Keep Same Numbers" = "Behall samma siffror";
+"Converting amounts" = "Konverterar belopp";
+"Currency Conversion Failed" = "Valutakonvertering misslyckades";
+"Could not fetch the exchange rate. Please check your connection and try again." = "Kunde inte hamta vaxelkursen. Kontrollera din anslutning och forsok igen.";
+
+// Custom Categories
+"New Category" = "Ny kategori";
+"Edit Category" = "Redigera kategori";
+"Preview" = "Forhandsgranskning";
+"Color" = "Farg";
+"Icon" = "Ikon";
+"Category name" = "Kategorinamn";
+"Save Changes" = "Spara andringar";
+"Create Category" = "Skapa kategori";
+"Custom" = "Anpassad";
+"My Categories" = "Mina kategorier";
+"Add Custom Category" = "Lagg till anpassad kategori";
+"Edit" = "Redigera";
+"Delete" = "Ta bort";

@@ -256,8 +256,28 @@ final class HomeViewModel: ObservableObject {
         trackedCategoriesSnapshot
     }
 
+    var currentStreak: Int {
+        let cal = Calendar.current
+        let entryDays = Set(store.entries.map { cal.startOfDay(for: $0.date) })
+        let today = cal.startOfDay(for: Date())
+        let yesterday = cal.date(byAdding: .day, value: -1, to: today)!
+        var cursor = entryDays.contains(today) ? today : yesterday
+        guard entryDays.contains(cursor) else { return 0 }
+        var streak = 0
+        while entryDays.contains(cursor) {
+            streak += 1
+            cursor = cal.date(byAdding: .day, value: -1, to: cursor)!
+        }
+        return streak
+    }
+
     var orderedTrackedCategories: [ExpenseCategory] {
-        ExpenseCategory.trackableCases.filter { trackedCategories.contains($0) }
+        let builtIns = ExpenseCategory.trackableCases.filter { trackedCategories.contains($0) }
+        let customs = store.customCategories
+            .map(\.asExpenseCategory)
+            .filter { trackedCategories.contains($0) }
+            .sorted { $0.title < $1.title }
+        return builtIns + customs
     }
 
     func activeRecurringExpenseTransactions(for category: ExpenseCategory) -> [RecurringTransaction] {
@@ -938,7 +958,12 @@ final class HomeViewModel: ObservableObject {
         )
 
         let groupedEntries = Dictionary(grouping: monthExpenseEntries, by: \.category)
+        let customTracked = store.customCategories
+            .map(\.asExpenseCategory)
+            .filter { trackedCategories.contains($0) }
+            .sorted { $0.title < $1.title }
         var categories = ExpenseCategory.trackableCases.filter { trackedCategories.contains($0) }
+            + customTracked
 
         if groupedEntries[.uncategorized] != nil || budgetPlan.target(for: .uncategorized) > 0 {
             categories.append(.uncategorized)

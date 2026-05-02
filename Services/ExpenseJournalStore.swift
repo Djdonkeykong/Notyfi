@@ -11,6 +11,7 @@ final class ExpenseJournalStore: ObservableObject {
     @Published private(set) var trackedCategories: Set<ExpenseCategory> = []
     @Published private(set) var effectiveTrackedCategories: Set<ExpenseCategory> = Set(ExpenseCategory.trackableCases)
     @Published private(set) var recurringTransactions: [RecurringTransaction] = []
+    @Published private(set) var customCategories: [CustomCategoryDefinition] = []
 
     private let parser: ExpenseParsingServicing
     private let defaults: UserDefaults
@@ -20,6 +21,7 @@ final class ExpenseJournalStore: ObservableObject {
     private let budgetPlanStorageKey = "notely.expense.budget-plan"
     private let trackedCategoriesStorageKey = "notely.expense.tracked-categories"
     private let recurringTransactionsStorageKey = "notely.expense.recurring-transactions"
+    private let customCategoriesStorageKey = "notely.expense.custom-categories"
     private let parseCacheStorageKey = "notely.expense.parse-cache"
     private let maxParseCacheEntryCount = 300
     private var hasStoredTrackedCategories = false
@@ -47,6 +49,7 @@ final class ExpenseJournalStore: ObservableObject {
             _ = materializeDueRecurringEntries(upTo: Date())
             updateSharedSurfaces()
         } else {
+            loadCustomCategories()
             load()
             loadBudgetPlan()
             loadTrackedCategories()
@@ -210,10 +213,13 @@ final class ExpenseJournalStore: ObservableObject {
         trackedCategories = []
         effectiveTrackedCategories = Set(ExpenseCategory.trackableCases)
         hasStoredTrackedCategories = false
+        customCategories = []
+        CustomCategoryRegistry.shared.register([])
         persist()
         persistBudgetPlan()
         persistTrackedCategories()
         persistRecurringTransactions()
+        persistCustomCategories()
         persistParseCache()
         updateSharedSurfaces()
     }
@@ -235,10 +241,44 @@ final class ExpenseJournalStore: ObservableObject {
 
     func setTrackedCategories(_ categories: Set<ExpenseCategory>) {
         hasStoredTrackedCategories = true
-        let filtered = Set(categories.filter { $0 != .uncategorized })
+        let filtered = Set(categories.filter { $0.rawValue != "uncategorized" })
         trackedCategories = filtered
         effectiveTrackedCategories = filtered
         persistTrackedCategories()
+    }
+
+    func addCustomCategory(_ definition: CustomCategoryDefinition) {
+        customCategories.append(definition)
+        customCategories.sort { $0.title < $1.title }
+        CustomCategoryRegistry.shared.register(customCategories)
+        persistCustomCategories()
+    }
+
+    func updateCustomCategory(_ definition: CustomCategoryDefinition) {
+        guard let idx = customCategories.firstIndex(where: { $0.rawValue == definition.rawValue }) else {
+            return
+        }
+        customCategories[idx] = definition
+        CustomCategoryRegistry.shared.register(customCategories)
+        persistCustomCategories()
+    }
+
+    func deleteCustomCategory(rawValue: String) {
+        customCategories.removeAll { $0.rawValue == rawValue }
+        CustomCategoryRegistry.shared.register(customCategories)
+        persistCustomCategories()
+        let removedCategory = ExpenseCategory(rawValue: rawValue)
+        if trackedCategories.contains(removedCategory) {
+            var updated = trackedCategories
+            updated.remove(removedCategory)
+            setTrackedCategories(updated)
+        }
+    }
+
+    func replaceCustomCategories(_ categories: [CustomCategoryDefinition]) {
+        customCategories = categories.sorted { $0.title < $1.title }
+        CustomCategoryRegistry.shared.register(customCategories)
+        persistCustomCategories()
     }
 
     func saveRecurringTransaction(
@@ -450,14 +490,18 @@ final class ExpenseJournalStore: ObservableObject {
         entries: [ExpenseEntry],
         budgetPlan: BudgetPlan,
         trackedCategories: Set<ExpenseCategory>,
-        recurringTransactions: [RecurringTransaction]
+        recurringTransactions: [RecurringTransaction],
+        customCategories: [CustomCategoryDefinition] = []
     ) {
         parseTasksByEntryID.values.forEach { $0.cancel() }
         parseTasksByEntryID.removeAll()
 
+        self.customCategories = customCategories.sorted { $0.title < $1.title }
+        CustomCategoryRegistry.shared.register(self.customCategories)
+
         self.entries = entries
         self.budgetPlan = budgetPlan
-        let filteredCategories = Set(trackedCategories.filter { $0 != .uncategorized })
+        let filteredCategories = Set(trackedCategories.filter { $0.rawValue != "uncategorized" })
         self.trackedCategories = filteredCategories
         self.recurringTransactions = sortedRecurringTransactions(recurringTransactions)
         hasStoredTrackedCategories = true
@@ -466,6 +510,61 @@ final class ExpenseJournalStore: ObservableObject {
         sortAndPersist()
         persistBudgetPlan()
         persistTrackedCategories()
+        persistRecurringTransactions()
+        persistCustomCategories()
+        updateSharedSurfaces()
+    }
+
+    // Multiplies all amounts in entries, budget, and recurring transactions by `rate`,
+    // and re-labels their currencyCode to `newCode`.
+    func convertCurrency(from oldCode: String, to newCode: String, rate: Double) {
+        entries = entries.map { entry in
+            guard entry.currencyCode.caseInsensitiveCompare(oldCode) == .orderedSame else { return entry }
+            var e = entry
+            e.amount = (entry.amount * rate).rounded()
+            e.currencyCode = newCode
+            return e
+        }
+        sortAndPersist()
+
+        var plan = budgetPlan
+        plan.monthlySpendingLimit = (plan.monthlySpendingLimit * rate).rounded()
+        plan.monthlySavingsTarget = (plan.monthlySavingsTarget * rate).rounded()
+        plan.categoryTargets = plan.categoryTargets.map { t in
+            var target = t
+            target.amount = (t.amount * rate).rounded()
+            return target
+        }
+        budgetPlan = plan
+        persistBudgetPlan()
+
+        recurringTransactions = recurringTransactions.map { tx in
+            guard tx.currencyCode.caseInsensitiveCompare(oldCode) == .orderedSame else { return tx }
+            var t = tx
+            t.amount = (tx.amount * rate).rounded()
+            t.currencyCode = newCode
+            return t
+        }
+        persistRecurringTransactions()
+        updateSharedSurfaces()
+    }
+
+    // Re-labels currencyCode on entries and recurring transactions without changing amounts.
+    func rebaseCurrency(from oldCode: String, to newCode: String) {
+        entries = entries.map { entry in
+            guard entry.currencyCode.caseInsensitiveCompare(oldCode) == .orderedSame else { return entry }
+            var e = entry
+            e.currencyCode = newCode
+            return e
+        }
+        sortAndPersist()
+
+        recurringTransactions = recurringTransactions.map { tx in
+            guard tx.currencyCode.caseInsensitiveCompare(oldCode) == .orderedSame else { return tx }
+            var t = tx
+            t.currencyCode = newCode
+            return t
+        }
         persistRecurringTransactions()
         updateSharedSurfaces()
     }
@@ -555,12 +654,27 @@ final class ExpenseJournalStore: ObservableObject {
     }
 
     private func persistTrackedCategories() {
-        let orderedCategories = ExpenseCategory.trackableCases.filter { trackedCategories.contains($0) }
-        guard let data = try? JSONEncoder().encode(orderedCategories) else {
+        let ordered = trackedCategories.sorted { $0.rawValue < $1.rawValue }
+        guard let data = try? JSONEncoder().encode(ordered) else {
             return
         }
-
         defaults.set(data, forKey: trackedCategoriesStorageKey)
+    }
+
+    private func loadCustomCategories() {
+        guard let data = defaults.data(forKey: customCategoriesStorageKey),
+              let decoded = try? JSONDecoder().decode([CustomCategoryDefinition].self, from: data)
+        else {
+            customCategories = []
+            return
+        }
+        customCategories = decoded
+        CustomCategoryRegistry.shared.register(customCategories)
+    }
+
+    private func persistCustomCategories() {
+        guard let data = try? JSONEncoder().encode(customCategories) else { return }
+        defaults.set(data, forKey: customCategoriesStorageKey)
     }
 
     private func persistRecurringTransactions() {

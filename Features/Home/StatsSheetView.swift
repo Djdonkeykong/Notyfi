@@ -299,6 +299,7 @@ struct StatsSheetView: View {
         .sheet(isPresented: $isCategoryEditorPresented) {
             MoneyPlanCategoryTrackingSheet(
                 initialSelectedCategories: viewModel.trackedCategories,
+                store: store,
                 onSave: { categories in
                     viewModel.setTrackedCategories(categories)
                 }
@@ -613,7 +614,11 @@ private struct MoneyPlanCategorySummary: View {
 
 private struct MoneyPlanCategoryTrackingSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject var store: ExpenseJournalStore
     @State private var selectedCategories: Set<ExpenseCategory>
+    @State private var isNewCategoryPresented = false
+    @State private var editingCategory: CustomCategoryDefinition? = nil
+    @State private var categoryToDelete: CustomCategoryDefinition? = nil
 
     let initialSelectedCategories: Set<ExpenseCategory>
     let onSave: (Set<ExpenseCategory>) -> Void
@@ -649,9 +654,11 @@ private struct MoneyPlanCategoryTrackingSheet: View {
 
     init(
         initialSelectedCategories: Set<ExpenseCategory>,
+        store: ExpenseJournalStore,
         onSave: @escaping (Set<ExpenseCategory>) -> Void
     ) {
         self.initialSelectedCategories = initialSelectedCategories
+        self.store = store
         _selectedCategories = State(initialValue: initialSelectedCategories)
         self.onSave = onSave
     }
@@ -716,6 +723,67 @@ private struct MoneyPlanCategoryTrackingSheet: View {
                                 }
                             }
                         }
+
+                        if !store.customCategories.isEmpty {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("My Categories".notyfiLocalized)
+                                    .font(.notyfi(.subheadline, weight: .bold))
+                                    .foregroundStyle(NotyfiTheme.secondaryText)
+
+                                MoneyPlanCategoryFlowLayout(spacing: 10) {
+                                    ForEach(store.customCategories) { def in
+                                        let cat = def.asExpenseCategory
+                                        MoneyPlanCategorySelectionChip(
+                                            category: cat,
+                                            isSelected: selectedCategories.contains(cat)
+                                        ) {
+                                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                            if selectedCategories.contains(cat) {
+                                                selectedCategories.remove(cat)
+                                            } else {
+                                                selectedCategories.insert(cat)
+                                            }
+                                        }
+                                        .contextMenu {
+                                            Button {
+                                                editingCategory = def
+                                            } label: {
+                                                Label("Edit".notyfiLocalized, systemImage: "pencil")
+                                            }
+                                            Button(role: .destructive) {
+                                                categoryToDelete = def
+                                            } label: {
+                                                Label("Delete".notyfiLocalized, systemImage: "trash")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Button {
+                            isNewCategoryPresented = true
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(NotyfiTheme.secondaryText)
+                                Text("Add Custom Category".notyfiLocalized)
+                                    .font(.notyfi(.subheadline, weight: .medium))
+                                    .foregroundStyle(NotyfiTheme.secondaryText)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 11)
+                            .background {
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(Color.primary.opacity(0.15), lineWidth: 1)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .fill(NotyfiTheme.elevatedSurface)
+                                    )
+                            }
+                        }
+                        .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 20)
                     .padding(.bottom, 120)
@@ -738,6 +806,38 @@ private struct MoneyPlanCategoryTrackingSheet: View {
                 )
                 .ignoresSafeArea(edges: .bottom)
             }
+        }
+        .sheet(isPresented: $isNewCategoryPresented) {
+            CustomCategoryEditorView { newDef in
+                store.addCustomCategory(newDef)
+                selectedCategories.insert(newDef.asExpenseCategory)
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $editingCategory) { def in
+            CustomCategoryEditorView(existing: def) { updated in
+                store.updateCustomCategory(updated)
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+        .confirmationDialog(
+            "Delete \"\(categoryToDelete?.title ?? "")\"?",
+            isPresented: Binding(
+                get: { categoryToDelete != nil },
+                set: { if !$0 { categoryToDelete = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Delete".notyfiLocalized, role: .destructive) {
+                if let def = categoryToDelete {
+                    selectedCategories.remove(def.asExpenseCategory)
+                    store.deleteCustomCategory(rawValue: def.rawValue)
+                }
+                categoryToDelete = nil
+            }
+            Button("Cancel".notyfiLocalized, role: .cancel) { categoryToDelete = nil }
         }
     }
 }

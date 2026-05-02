@@ -551,3 +551,33 @@
 "Automation" = "Automation";
 
 "%d%% OFF" = "%d%% OFF";
+
+// Entry Detail
+"Delete Entry" = "Delete Entry";
+"Delete entry?" = "Delete entry?";
+"This entry will be removed from your log." = "This entry will be removed from your log.";
+"Danger Zone" = "Danger Zone";
+
+// Currency Change
+"Change to %@?" = "Change to %@?";
+"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Your existing entries and budget can be converted to the new currency at today's exchange rate.";
+"Convert Amounts" = "Convert Amounts";
+"Keep Same Numbers" = "Keep Same Numbers";
+"Converting amounts" = "Converting amounts";
+"Currency Conversion Failed" = "Currency Conversion Failed";
+"Could not fetch the exchange rate. Please check your connection and try again." = "Could not fetch the exchange rate. Please check your connection and try again.";
+
+// Custom Categories
+"New Category" = "New Category";
+"Edit Category" = "Edit Category";
+"Preview" = "Preview";
+"Color" = "Color";
+"Icon" = "Icon";
+"Category name" = "Category name";
+"Save Changes" = "Save Changes";
+"Create Category" = "Create Category";
+"Custom" = "Custom";
+"My Categories" = "My Categories";
+"Add Custom Category" = "Add Custom Category";
+"Edit" = "Edit";
+"Delete" = "Delete";

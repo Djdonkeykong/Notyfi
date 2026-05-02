@@ -546,3 +546,33 @@
 "Yearly" = "Jaarlijks";
 
 "%d%% OFF" = "%d%% KORTING";
+
+// Entry Detail
+"Delete Entry" = "Invoer verwijderen";
+"Delete entry?" = "Invoer verwijderen?";
+"This entry will be removed from your log." = "Deze invoer wordt verwijderd uit je logboek.";
+"Danger Zone" = "Gevarenzone";
+
+// Currency Change
+"Change to %@?" = "Overschakelen naar %@?";
+"Your existing entries and budget can be converted to the new currency at today's exchange rate." = "Je bestaande invoer en budget kunnen worden omgerekend naar de nieuwe valuta tegen de huidige wisselkoers.";
+"Convert Amounts" = "Bedragen omrekenen";
+"Keep Same Numbers" = "Zelfde bedragen houden";
+"Converting amounts" = "Bedragen omrekenen";
+"Currency Conversion Failed" = "Valutaconversie mislukt";
+"Could not fetch the exchange rate. Please check your connection and try again." = "Kon de wisselkoers niet ophalen. Controleer je verbinding en probeer het opnieuw.";
+
+// Custom Categories
+"New Category" = "Nieuwe categorie";
+"Edit Category" = "Categorie bewerken";
+"Preview" = "Voorbeeld";
+"Color" = "Kleur";
+"Icon" = "Pictogram";
+"Category name" = "Categorienaam";
+"Save Changes" = "Wijzigingen opslaan";
+"Create Category" = "Categorie aanmaken";
+"Custom" = "Aangepast";
+"My Categories" = "Mijn categorieen";
+"Add Custom Category" = "Aangepaste categorie toevoegen";
+"Edit" = "Bewerken";
+"Delete" = "Verwijderen";

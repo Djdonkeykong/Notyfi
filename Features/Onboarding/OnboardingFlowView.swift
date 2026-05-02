@@ -194,7 +194,7 @@ struct OnboardingFlowView: View {
                 amountText: $budgetAmountText
             )
         case .categories:
-            OnboardingCategoriesView(selectedCategories: $selectedCategories)
+            OnboardingCategoriesView(selectedCategories: $selectedCategories, store: store)
         case .allocate:
             OnboardingAllocateView(
                 currencyCode: selectedCurrencyCode,

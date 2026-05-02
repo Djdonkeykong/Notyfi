@@ -23,6 +23,10 @@ struct SettingsSheetView: View {
     @State private var deleteAccountError: String? = nil
     @State private var isSubscribed: Bool? = nil
     @State private var showPaywall = false
+    @State private var pendingCurrencyChange: NotyfiCurrencyPreference? = nil
+    @State private var pendingCurrencyOldCode: String = ""
+    @State private var isConvertingCurrency = false
+    @State private var currencyConversionFailed = false
 
     private enum PendingAccountAction {
         case signOut
@@ -43,7 +47,7 @@ struct SettingsSheetView: View {
     }
 
     private var isPerformingAccountAction: Bool {
-        pendingAccountAction != nil || isChangingLanguage
+        pendingAccountAction != nil || isChangingLanguage || isConvertingCurrency
     }
 
     var body: some View {
@@ -154,7 +158,17 @@ struct SettingsSheetView: View {
                                 icon: "banknote",
                                 title: "Currency",
                                 selection: $viewModel.currencyPreference,
-                                onSelect: viewModel.setCurrencyPreference
+                                onSelect: { newPreference in
+                                    let oldCode = viewModel.currencyPreference.currencyCode
+                                    let newCode = newPreference.currencyCode
+                                    guard newPreference != viewModel.currencyPreference,
+                                          oldCode.caseInsensitiveCompare(newCode) != .orderedSame else {
+                                        viewModel.setCurrencyPreference(newPreference)
+                                        return
+                                    }
+                                    pendingCurrencyOldCode = oldCode
+                                    pendingCurrencyChange = newPreference
+                                }
                             )
 
                             Divider()
@@ -333,6 +347,50 @@ struct SettingsSheetView: View {
         } message: {
             Text("This permanently deletes your account and all data. This cannot be undone.".notyfiLocalized)
         }
+        .confirmationDialog(
+            String(format: "Change to %@?".notyfiLocalized, pendingCurrencyChange?.title ?? ""),
+            isPresented: Binding(
+                get: { pendingCurrencyChange != nil },
+                set: { if !$0 { pendingCurrencyChange = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Convert Amounts".notyfiLocalized) {
+                guard let newPreference = pendingCurrencyChange else { return }
+                let oldCode = pendingCurrencyOldCode
+                let newCode = newPreference.currencyCode
+                pendingCurrencyChange = nil
+                viewModel.setCurrencyPreference(newPreference)
+                isConvertingCurrency = true
+                Task {
+                    do {
+                        let rate = try await CurrencyConversionService.fetchRate(from: oldCode, to: newCode)
+                        viewModel.journalStore.convertCurrency(from: oldCode, to: newCode, rate: rate)
+                    } catch {
+                        currencyConversionFailed = true
+                    }
+                    isConvertingCurrency = false
+                }
+            }
+            Button("Keep Same Numbers".notyfiLocalized) {
+                guard let newPreference = pendingCurrencyChange else { return }
+                let oldCode = pendingCurrencyOldCode
+                let newCode = newPreference.currencyCode
+                pendingCurrencyChange = nil
+                viewModel.setCurrencyPreference(newPreference)
+                viewModel.journalStore.rebaseCurrency(from: oldCode, to: newCode)
+            }
+            Button("Cancel".notyfiLocalized, role: .cancel) {
+                pendingCurrencyChange = nil
+            }
+        } message: {
+            Text("Your existing entries and budget can be converted to the new currency at today's exchange rate.".notyfiLocalized)
+        }
+        .alert("Currency Conversion Failed".notyfiLocalized, isPresented: $currencyConversionFailed) {
+            Button("OK".notyfiLocalized, role: .cancel) { currencyConversionFailed = false }
+        } message: {
+            Text("Could not fetch the exchange rate. Please check your connection and try again.".notyfiLocalized)
+        }
         .alert("Delete Account Failed".notyfiLocalized, isPresented: Binding(
             get: { deleteAccountError != nil },
             set: { if !$0 { deleteAccountError = nil } }
@@ -443,6 +501,7 @@ struct SettingsSheetView: View {
 
     private var accountActionTitle: String {
         if isChangingLanguage { return capturedLanguageChangeTitle }
+        if isConvertingCurrency { return "Converting amounts".notyfiLocalized }
         switch pendingAccountAction {
         case .signOut:
             return "Signing out".notyfiLocalized
