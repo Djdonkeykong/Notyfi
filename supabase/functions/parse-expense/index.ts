@@ -36,6 +36,8 @@ const CATEGORIES = [
   "uncategorized",
 ] as const;
 
+type CustomCategoryHint = { rawValue: string; title: string };
+
 const TRANSACTION_KINDS = ["expense", "income"] as const;
 const CONFIDENCE_VALUES = ["certain", "review", "uncertain"] as const;
 const RECURRING_FREQUENCIES = ["weekly", "monthly", "yearly"] as const;
@@ -47,6 +49,7 @@ type ParseRequest =
       date: string;
       currencyCode: string;
       targetLanguageCode?: string | null;
+      customCategories?: CustomCategoryHint[];
     }
   | {
       kind: "image";
@@ -55,6 +58,7 @@ type ParseRequest =
       date: string;
       currencyCode: string;
       targetLanguageCode?: string | null;
+      customCategories?: CustomCategoryHint[];
     };
 
 type ParsedExpenseDraft = {
@@ -63,7 +67,7 @@ type ParsedExpenseDraft = {
   amount: number;
   currencyCode: string;
   transactionKind: (typeof TRANSACTION_KINDS)[number];
-  category: (typeof CATEGORIES)[number];
+  category: string;
   merchant: string | null;
   note: string;
   confidence: (typeof CONFIDENCE_VALUES)[number];
@@ -146,6 +150,8 @@ function parseRequestPayload(payload: unknown): ParseRequest {
       ? null
       : String(candidate.targetLanguageCode);
 
+  const customCategories = parseCustomCategories(candidate.customCategories);
+
   if (kind === "text") {
     const rawText = String(candidate.rawText ?? "").trim();
     if (!rawText || rawText.length > MAX_TEXT_LENGTH) {
@@ -158,6 +164,7 @@ function parseRequestPayload(payload: unknown): ParseRequest {
       date,
       currencyCode,
       targetLanguageCode,
+      customCategories,
     };
   }
 
@@ -179,10 +186,31 @@ function parseRequestPayload(payload: unknown): ParseRequest {
     date,
     currencyCode,
     targetLanguageCode,
+    customCategories,
   };
 }
 
-function parsedExpenseDraftSchema() {
+function parseCustomCategories(raw: unknown): CustomCategoryHint[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter(
+      (item): item is { rawValue: string; title: string } =>
+        item !== null &&
+        typeof item === "object" &&
+        typeof item.rawValue === "string" &&
+        item.rawValue.startsWith("custom_") &&
+        typeof item.title === "string" &&
+        item.title.trim().length > 0
+    )
+    .slice(0, 50)
+    .map((item) => ({ rawValue: item.rawValue, title: item.title.trim() }));
+}
+
+function parsedExpenseDraftSchema(customCategories: CustomCategoryHint[] = []) {
+  const allCategories = [
+    ...CATEGORIES,
+    ...customCategories.map((c) => c.rawValue),
+  ];
   return {
     type: "object",
     additionalProperties: false,
@@ -197,7 +225,7 @@ function parsedExpenseDraftSchema() {
       },
       category: {
         type: "string",
-        enum: [...CATEGORIES],
+        enum: allCategories,
       },
       merchant: {
         anyOf: [{ type: "string" }, { type: "null" }],
@@ -265,13 +293,22 @@ function sanitizeDraft(
   };
 }
 
+function customCategoryPromptLines(customCategories: CustomCategoryHint[]): string {
+  if (customCategories.length === 0) return "";
+  const lines = customCategories
+    .map((c) => `  - ${c.rawValue}: ${c.title}`)
+    .join("\n");
+  return `\nUser-defined custom categories (prefer over built-in when they clearly match the transaction):\n${lines}\nUse the rawValue (e.g. "${customCategories[0].rawValue}") as the category field value for custom categories.\n`;
+}
+
 function makeTextRequestBody(payload: Extract<ParseRequest, { kind: "text" }>) {
   const language = resolveLanguageContext(payload.targetLanguageCode);
+  const customCategoryLines = customCategoryPromptLines(payload.customCategories ?? []);
   const userContent = `Note: ${payload.rawText}
 Date: ${payload.date}
 Currency: ${payload.currencyCode}
 Target language: ${language.name} (${language.code})
-
+${customCategoryLines}
 Return one transaction JSON object. Infer a short title, amount as a positive number, transactionKind as expense/income, one allowed category, merchant if explicit, note as "" unless useful, confidence as certain/review/uncertain, isAmountEstimated as true/false, and recurrence intent.
 All natural-language fields must be written in ${language.name}. Do not write English unless the target language is English.
 Write title and note in the target language above. Keep merchant in its original spelling when it is a brand or proper name.
@@ -302,7 +339,7 @@ If no amount is written but the note mentions a concrete item/place, estimate a 
       json_schema: {
         name: "notyfi_transaction_parse",
         strict: true,
-        schema: parsedExpenseDraftSchema(),
+        schema: parsedExpenseDraftSchema(payload.customCategories),
       },
     },
   };
@@ -333,7 +370,8 @@ Rules:
 - Keep merchant in its original spelling when it is a brand or proper name.
 - Only set isRecurring true when the image clearly indicates a repeating charge or income, such as a subscription, recurring invoice, monthly plan, annual fee, or repeating paycheck.
 - When isRecurring is true, recurringFrequency must be weekly, monthly, or yearly. If the document looks recurring but does not say how often, default recurringFrequency to monthly.
-- If recurrence is unclear, set isRecurring false and recurringFrequency null.`;
+- If recurrence is unclear, set isRecurring false and recurringFrequency null.
+${customCategoryPromptLines(payload.customCategories ?? [])}`;
 
   return {
     model: IMAGE_MODEL,
@@ -372,7 +410,7 @@ Rules:
           properties: {
             entries: {
               type: "array",
-              items: parsedExpenseDraftSchema(),
+              items: parsedExpenseDraftSchema(payload.customCategories),
             },
           },
           required: ["entries"],

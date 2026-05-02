@@ -142,11 +142,15 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         date: Date,
         currencyCode: String
     ) async throws -> ParsedExpenseDraft {
+        let customCategories = CustomCategoryRegistry.shared.all.map {
+            CustomCategoryHint(rawValue: $0.rawValue, title: $0.title)
+        }
         let request = TextParseFunctionRequest(
             rawText: rawText,
             date: ISO8601DateFormatter().string(from: date),
             currencyCode: currencyCode,
-            targetLanguageCode: currentAppLanguageContext().code
+            targetLanguageCode: currentAppLanguageContext().code,
+            customCategories: customCategories
         )
 
         do {
@@ -178,12 +182,16 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
         date: Date,
         currencyCode: String
     ) async throws -> [ParsedExpenseDraft] {
+        let customCategories = CustomCategoryRegistry.shared.all.map {
+            CustomCategoryHint(rawValue: $0.rawValue, title: $0.title)
+        }
         let request = ImageParseFunctionRequest(
             imageBase64: imageData.base64EncodedString(),
             mimeType: mimeType,
             date: ISO8601DateFormatter().string(from: date),
             currencyCode: currencyCode,
-            targetLanguageCode: currentAppLanguageContext().code
+            targetLanguageCode: currentAppLanguageContext().code,
+            customCategories: customCategories
         )
 
         do {
@@ -296,12 +304,18 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
     }
 }
 
+private struct CustomCategoryHint: Encodable {
+    let rawValue: String
+    let title: String
+}
+
 private struct TextParseFunctionRequest: Encodable {
     let kind = "text"
     let rawText: String
     let date: String
     let currencyCode: String
     let targetLanguageCode: String
+    let customCategories: [CustomCategoryHint]
 }
 
 private struct ImageParseFunctionRequest: Encodable {
@@ -311,6 +325,7 @@ private struct ImageParseFunctionRequest: Encodable {
     let date: String
     let currencyCode: String
     let targetLanguageCode: String
+    let customCategories: [CustomCategoryHint]
 }
 
 private struct TextParseFunctionResponse: Decodable {
