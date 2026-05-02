@@ -156,7 +156,8 @@ final class HomeViewModel: ObservableObject {
 
         if let cached = loadCachedMonthlyInsights(key: key) {
             monthlyInsightsResult = cached
-            markInsightsGenerated(forMonthKey: key)
+            // Badge state was already set correctly in init() from UserDefaults.
+            // Re-evaluating here would race with clearInsightsBadge() and corrupt viewed.
             return
         }
 
