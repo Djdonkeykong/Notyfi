@@ -110,7 +110,7 @@ final class CloudSyncManager: ObservableObject {
             .store(in: &cancellables)
 
         store.$customCategories
-            .sink { [weak self] _ in self?.scheduleUpload() }
+            .sink { [weak self] _ in self?.scheduleUpload(immediate: true) }
             .store(in: &cancellables)
 
         // Capture category changes that happen while bootstrap is fetching remote data.
@@ -195,14 +195,16 @@ final class CloudSyncManager: ObservableObject {
         )
     }
 
-    private func scheduleUpload() {
+    private func scheduleUpload(immediate: Bool = false) {
         guard activeUserID != nil, hasCompletedInitialSync, !isApplyingRemoteState else {
             return
         }
 
         pendingUploadTask?.cancel()
         pendingUploadTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 800_000_000)
+            if !immediate {
+                try? await Task.sleep(nanoseconds: 800_000_000)
+            }
             guard let self else { return }
             await self.pushLatestLocalStateIfPossible()
         }
