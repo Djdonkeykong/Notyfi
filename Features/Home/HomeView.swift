@@ -280,8 +280,12 @@ private extension HomeView {
                         var transaction = Transaction()
                         transaction.animation = nil
 
-                        withTransaction(transaction) {
+                        let focusRequest = withTransaction(transaction) {
                             viewModel.updateJournalText(rawText)
+                        }
+
+                        if let focusRequest {
+                            applyFocusRequest { focusRequest }
                         }
                     },
                     onReturnKey: { lineEdit in

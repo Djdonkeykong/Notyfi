@@ -469,7 +469,8 @@ final class HomeViewModel: ObservableObject {
         )
     }
 
-    func updateJournalText(_ rawText: String) {
+    @discardableResult
+    func updateJournalText(_ rawText: String) -> JournalEditorFocusRequest? {
         let normalized = rawText.replacingOccurrences(of: "\r\n", with: "\n")
 
         if journalText != normalized {
@@ -488,6 +489,11 @@ final class HomeViewModel: ObservableObject {
             on: selectedDate
         )
 
+        // When an entry is auto-deleted (text erased to empty), move the cursor
+        // to end of the entry above rather than leaving it at the start of the
+        // entry that moved into its place.
+        let focusRequest = cursorFocusAfterDeletion(previousEntries: currentEntries)
+
         let nextComposerText = hasComposerLine ? lines.last ?? "" : ""
         if composerText != nextComposerText {
             composerText = nextComposerText
@@ -496,6 +502,38 @@ final class HomeViewModel: ObservableObject {
         composerDraftsByDay[dayKey(for: selectedDate)] = composerText
 
         scheduleComposerPreviewParse()
+
+        return focusRequest
+    }
+
+    private func cursorFocusAfterDeletion(
+        previousEntries: [ExpenseEntry]
+    ) -> JournalEditorFocusRequest? {
+        guard displayedEntries.count < previousEntries.count else {
+            return nil
+        }
+
+        let survivingIDs = Set(displayedEntries.map(\.id))
+        guard let firstDeletedIndex = previousEntries.firstIndex(where: { !survivingIDs.contains($0.id) }),
+              firstDeletedIndex > 0
+        else {
+            return nil
+        }
+
+        let previousEntryID = previousEntries[firstDeletedIndex - 1].id
+        guard let newLineIndex = displayedEntries.firstIndex(where: { $0.id == previousEntryID }),
+              let currentPreviousEntry = displayedEntries.first(where: { $0.id == previousEntryID })
+        else {
+            return nil
+        }
+
+        let offset = absoluteOffset(
+            lineIndex: newLineIndex,
+            column: currentPreviousEntry.rawText.utf16.count,
+            entryLines: displayedEntries.map(\.rawText)
+        )
+
+        return journalFocusRequest(absoluteOffset: offset)
     }
 
     func handleReturn(
