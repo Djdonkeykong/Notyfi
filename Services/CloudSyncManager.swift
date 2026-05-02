@@ -98,13 +98,12 @@ final class CloudSyncManager: ObservableObject {
     }
 
     private func observeLocalChanges() {
-        Publishers.CombineLatest4(
+        Publishers.CombineLatest3(
             store.$entries,
             store.$budgetPlan,
-            store.$trackedCategories,
             store.$recurringTransactions
         )
-            .sink { [weak self] _, _, _, _ in
+            .sink { [weak self] _, _, _ in
                 self?.scheduleUpload()
             }
             .store(in: &cancellables)
@@ -113,15 +112,17 @@ final class CloudSyncManager: ObservableObject {
             .sink { [weak self] _ in self?.scheduleUpload(immediate: true) }
             .store(in: &cancellables)
 
-        // Capture category changes that happen while bootstrap is fetching remote data.
-        // bootstrap()'s apply() overwrites local state; this lets us restore the user's
-        // intent after bootstrap completes.
+        // Upload immediately when tracked categories change so a force-close before
+        // the debounce fires cannot lose checkmark state. Also capture changes that
+        // happen while bootstrap is fetching remote data so apply() does not clobber
+        // the user's in-flight selection.
         store.$trackedCategories
             .sink { [weak self] categories in
                 guard let self else { return }
                 if self.isBootstrapping, !self.isApplyingRemoteState {
                     self.pendingLocalTrackedCategories = categories
                 }
+                self.scheduleUpload(immediate: true)
             }
             .store(in: &cancellables)
 
