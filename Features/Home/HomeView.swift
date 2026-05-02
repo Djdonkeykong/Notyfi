@@ -1207,6 +1207,27 @@ private struct DayJournalPage: View {
                     )
                 }
             }
+            .onChange(of: focusedEditor) { oldValue, newValue in
+                guard oldValue != nil, newValue == nil else { return }
+                // When the editor loses focus, entries and journalText may have changed
+                // while onChange was guarded (focusedEditor != nil). Refresh lineFrames
+                // immediately so the accessory overlay doesn't render at stale positions
+                // before the UITextView reports its real layout via onLineFramesChange.
+                let resolvedFrames = Self.resolvedLineFrames(
+                    for: journalText,
+                    cachedFrames: lineFramesByDate[dayKey]
+                )
+                var t = Transaction()
+                t.disablesAnimations = true
+                withTransaction(t) {
+                    lineFrames = resolvedFrames
+                    lineFramesByDate[dayKey] = resolvedFrames
+                    contentHeight = max(
+                        resolvedFrames.last.map { $0.minY + $0.height } ?? 0,
+                        minimumEditorHeight
+                    )
+                }
+            }
             .scrollDismissesKeyboard(.interactively)
             .scrollDisabled(scrollInteractionDisabled(in: geometry.size.height))
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
