@@ -495,10 +495,6 @@ final class HomeViewModel: ObservableObject {
 
         composerDraftsByDay[dayKey(for: selectedDate)] = composerText
 
-        if journalText != normalized {
-            journalText = normalized
-        }
-
         scheduleComposerPreviewParse()
     }
 
