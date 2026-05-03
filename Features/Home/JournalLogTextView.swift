@@ -213,9 +213,18 @@ struct JournalLogTextView: UIViewRepresentable {
             guard isKeyboardDismissing, let tv = storedTextView else { return }
             isKeyboardDismissing = false
             lastPublishedLineFrames = []
-            tv.setNeedsLayout()
-            tv.layoutIfNeeded()
-            publishLineFrames(from: tv)
+            // Defer one runloop so UIKit post-notification adjustments settle, then
+            // force TextKit 2 into settled display mode before measuring caretRects.
+            // caretRect differs by ~1pt per line between cursor-active and settled mode,
+            // causing a cumulative growing error across all accessory rows.
+            DispatchQueue.main.async { [weak self, weak tv] in
+                guard let self, let tv else { return }
+                if let tlm = tv.textLayoutManager,
+                   let docRange = tlm.textContentManager?.documentRange {
+                    tlm.ensureLayout(for: docRange)
+                }
+                self.publishLineFrames(from: tv)
+            }
         }
 
         func textViewDidBeginEditing(_ textView: UITextView) {
