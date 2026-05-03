@@ -196,6 +196,23 @@ struct JournalLogTextView: UIViewRepresentable {
 
         init(parent: JournalLogTextView) {
             self.parent = parent
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(keyboardDidHide),
+                name: UIResponder.keyboardDidHideNotification,
+                object: nil
+            )
+        }
+
+        deinit {
+            NotificationCenter.default.removeObserver(self)
+        }
+
+        @objc private func keyboardDidHide() {
+            guard isKeyboardDismissing, let tv = storedTextView else { return }
+            isKeyboardDismissing = false
+            lastPublishedLineFrames = []
+            publishLineFrames(from: tv)
         }
 
         func textViewDidBeginEditing(_ textView: UITextView) {
@@ -241,25 +258,12 @@ struct JournalLogTextView: UIViewRepresentable {
             // Do NOT call publishLineFrames here. caretRect(for:) reads TextKit 2
             // layout state that is mid-transition during keyboard dismissal, returning
             // intermediate geometry that places right-column accessories at wrong
-            // positions for one frame — visible as a flash near the keyboard bar.
-            // Line positions don't change when editing ends, so skipping is safe.
+            // positions — visible as a flash near the keyboard bar.
             //
-            // Additionally suppress layout-driven frame dispatches for the duration
-            // of the keyboard dismiss animation. If journalText changed just before
-            // dismiss (e.g. a new entry committed), the UITextView relayouts during
-            // the animation while caretRect still returns intermediate geometry,
-            // causing all accessory rows to jump briefly. After the animation the
-            // view relayouts again with correct geometry; we force a clean dispatch
-            // at that point via the deferred block below.
+            // Suppress layout-driven frame dispatches for the entire keyboard dismiss
+            // animation. keyboardDidHide() fires exactly when the keyboard is fully
+            // gone and triggers a clean re-publish with correct final geometry.
             isKeyboardDismissing = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                guard let self, self.isKeyboardDismissing else { return }
-                self.isKeyboardDismissing = false
-                self.lastPublishedLineFrames = []
-                if let tv = self.storedTextView {
-                    self.publishLineFrames(from: tv)
-                }
-            }
         }
 
         func textViewDidChange(_ textView: UITextView) {
