@@ -196,6 +196,7 @@ struct JournalLogTextView: UIViewRepresentable {
 
         init(parent: JournalLogTextView) {
             self.parent = parent
+            super.init()
             NotificationCenter.default.addObserver(
                 self,
                 selector: #selector(keyboardDidHide),
