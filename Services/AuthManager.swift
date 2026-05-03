@@ -56,6 +56,9 @@ final class AuthManager: ObservableObject {
             throw AuthError.missingIdentityToken
         }
 
+        let authorizationCode = credential.authorizationCode
+            .flatMap { String(data: $0, encoding: .utf8) }
+
         setDebugMessage("Exchanging Apple token with Supabase")
         let session = try await SupabaseService.client.auth.signInWithIdToken(
             credentials: .init(
@@ -68,6 +71,13 @@ final class AuthManager: ObservableObject {
             preferredSession: session,
             context: "Apple sign-in"
         )
+
+        if let code = authorizationCode {
+            try? await SupabaseService.client.functions.invoke(
+                "store-apple-token",
+                options: FunctionInvokeOptions(body: ["authorizationCode": code])
+            )
+        }
     }
 
     // MARK: - Google Sign In
@@ -205,18 +215,10 @@ final class AuthManager: ObservableObject {
     // MARK: - Delete Account
 
     func deleteAccount() async throws {
-        guard let session = SupabaseService.client.auth.currentSession else {
-            throw AuthError.sessionNotEstablished
-        }
-        var request = URLRequest(
-            url: URL(string: "https://uupftsuexunuwsdejxrh.supabase.co/functions/v1/delete-account")!
-        )
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let (_, response) = try await URLSession.shared.data(for: request)
-        if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
-            logger.error("delete-account edge function returned \(http.statusCode, privacy: .public)")
+        do {
+            try await SupabaseService.client.functions.invoke("delete-account")
+        } catch {
+            logger.error("delete-account edge function failed: \(error.localizedDescription, privacy: .public)")
             throw AuthError.deleteFailed
         }
         try? await SupabaseService.client.auth.signOut()
@@ -287,6 +289,10 @@ final class AuthManager: ObservableObject {
 
     var supabaseUserID: String? {
         SupabaseService.client.auth.currentSession?.user.id.uuidString
+    }
+
+    var supabaseUserEmail: String? {
+        SupabaseService.client.auth.currentSession?.user.email
     }
 
     private func applyAuthState(session: Session?) {

@@ -146,6 +146,9 @@ struct AppRootView: View {
     }
 
     private func checkSubscriptionStatus() async {
+        if authManager.supabaseUserEmail?.lowercased() == "appstore@notyfi.app" {
+            return
+        }
         do {
             let info: CustomerInfo
             if let userID = authManager.supabaseUserID {

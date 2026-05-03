@@ -21,10 +21,25 @@ struct OnboardingAllocateView: View {
     ]
 
     private var activeGroups: [CategoryGroup] {
-        allGroups.compactMap { group in
+        var groups = allGroups.compactMap { group in
             let filtered = group.categories.filter { selectedCategories.contains($0) }
             return filtered.isEmpty ? nil : CategoryGroup(title: group.title, color: group.color, categories: filtered)
         }
+
+        let builtIn = Set(allGroups.flatMap { $0.categories })
+        let custom = selectedCategories
+            .filter { !builtIn.contains($0) }
+            .sorted { $0.title < $1.title }
+
+        if !custom.isEmpty {
+            groups.append(CategoryGroup(
+                title: "My Categories".notyfiLocalized,
+                color: NotyfiTheme.brandPrimary,
+                categories: custom
+            ))
+        }
+
+        return groups
     }
 
     var body: some View {

@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { revokeAppleRefreshToken } from "../_shared/apple.ts";
+import { exchangeAuthCodeForRefreshToken } from "../_shared/apple.ts";
 
 Deno.serve(async (req) => {
   try {
@@ -20,23 +20,29 @@ Deno.serve(async (req) => {
       return new Response("Unauthorized", { status: 401 });
     }
 
+    const { authorizationCode } = await req.json();
+    if (!authorizationCode) {
+      return new Response("Missing authorizationCode", { status: 400 });
+    }
+
+    const refreshToken = await exchangeAuthCodeForRefreshToken(authorizationCode);
+
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const { error: updateError } = await adminClient.auth.admin.updateUserById(
+      user.id,
+      {
+        app_metadata: {
+          ...user.app_metadata,
+          apple_refresh_token: refreshToken,
+        },
+      },
+    );
 
-    const appleRefreshToken = user.app_metadata?.apple_refresh_token as string | undefined;
-    if (appleRefreshToken) {
-      try {
-        await revokeAppleRefreshToken(appleRefreshToken);
-      } catch (revokeErr) {
-        console.error("Apple token revocation failed (continuing):", revokeErr);
-      }
+    if (updateError) {
+      throw new Error(`Failed to store token: ${updateError.message}`);
     }
 
-    const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id);
-    if (deleteError) {
-      return new Response(`Delete failed: ${deleteError.message}`, { status: 500 });
-    }
-
-    return new Response(JSON.stringify({ deleted: true }), {
+    return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
