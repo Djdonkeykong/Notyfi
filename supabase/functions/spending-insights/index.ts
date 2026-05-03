@@ -158,6 +158,8 @@ Write all natural-language text in ${lang.name}.`;
   };
 }
 
+const INSIGHTS_MONTHLY_LIMIT = 3;
+
 async function checkSubscription(userId: string): Promise<boolean> {
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -169,6 +171,33 @@ async function checkSubscription(userId: string): Promise<boolean> {
     .eq("id", userId)
     .maybeSingle();
   return data?.subscription_status === "active";
+}
+
+async function enforceInsightsQuota(userId: string): Promise<void> {
+  const admin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  const currentMonth = new Date().toISOString().slice(0, 7); // "2026-05"
+
+  const { data } = await admin
+    .from("users")
+    .select("insights_month, insights_month_count")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const sameMonth = data?.insights_month === currentMonth;
+  const count = sameMonth ? (data?.insights_month_count ?? 0) : 0;
+
+  if (count >= INSIGHTS_MONTHLY_LIMIT) {
+    throw new Error("insights_rate_limit_exceeded");
+  }
+
+  await admin
+    .from("users")
+    .update({ insights_month: currentMonth, insights_month_count: count + 1 })
+    .eq("id", userId);
 }
 
 async function callOpenAI(
@@ -239,6 +268,12 @@ Deno.serve(async (req) => {
   const hasSubscription = await checkSubscription(user.id);
   if (!hasSubscription) {
     return errorResponse("subscription_required", "An active Notyfi Pro subscription is required.", 403);
+  }
+
+  try {
+    await enforceInsightsQuota(user.id);
+  } catch {
+    return errorResponse("rate_limit_exceeded", "Monthly insights limit reached. Try again next month.", 429);
   }
 
   let body: InsightsRequest;
