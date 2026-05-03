@@ -213,12 +213,9 @@ struct JournalLogTextView: UIViewRepresentable {
             guard isKeyboardDismissing, let tv = storedTextView else { return }
             isKeyboardDismissing = false
             lastPublishedLineFrames = []
-            // Force a synchronous layout pass so caretRect values are fully committed
-            // before frames are measured. Without this, caretRect returns intermediate
-            // geometry that is off by a growing amount per line, causing all accessory
-            // rows to jump to wrong positions until the next layoutSubviews corrects them.
             tv.setNeedsLayout()
             tv.layoutIfNeeded()
+            publishLineFrames(from: tv)
         }
 
         func textViewDidBeginEditing(_ textView: UITextView) {
