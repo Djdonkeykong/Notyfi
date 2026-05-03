@@ -133,7 +133,7 @@ private extension HomeView {
                     .transition(.opacity)
                 }
             }
-            // .animation(.easeInOut(duration: 0.2), value: focusedEditor == nil)
+            .animation(.easeInOut(duration: 0.2), value: focusedEditor == nil)
             .sheet(isPresented: $viewModel.isDatePickerPresented) {
                 DatePickerSheetView(
                     selection: selectedDateBinding,
