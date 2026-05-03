@@ -495,8 +495,9 @@ private extension HomeView {
 
         let activeEditor = focusedEditor
 
+        let hasDraft = (activeEditor != nil) && viewModel.hasPendingComposerDraft
         if case .composer = activeEditor {
-            if viewModel.hasPendingComposerDraft {
+            if hasDraft {
                 viewModel.addEntry()
             }
         }
@@ -508,14 +509,23 @@ private extension HomeView {
         focusRequestGeneration += 1
         let requestGeneration = focusRequestGeneration
         editorFocusRequest = nil
-        forceResignKeyboard()
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-            guard requestGeneration == focusRequestGeneration else {
-                return
+        // If an entry was just committed, defer resign by one runloop so SwiftUI
+        // updates the UITextView text before isKeyboardDismissing is set. Without
+        // this, the UITextView relayouts mid-animation causing all accessory rows
+        // to jump to wrong positions.
+        let resignBlock = {
+            forceResignKeyboard()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                guard requestGeneration == focusRequestGeneration else { return }
+                focusedEditor = nil
             }
+        }
 
-            focusedEditor = nil
+        if hasDraft {
+            DispatchQueue.main.async { resignBlock() }
+        } else {
+            resignBlock()
         }
     }
 
