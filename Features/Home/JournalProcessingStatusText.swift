@@ -156,7 +156,7 @@ private struct JournalProcessingLoadingDots: View {
                     .offset(y: dotOffset(index: index, timestamp: timestamp))
             }
         }
-        .frame(height: 16, alignment: .center)
+        .frame(height: 20, alignment: .center)
     }
 
     private func dotPhase(index: Int, timestamp: Date) -> Double {
