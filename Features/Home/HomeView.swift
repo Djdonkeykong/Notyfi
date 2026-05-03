@@ -496,12 +496,6 @@ private extension HomeView {
         let activeEditor = focusedEditor
 
         if case .composer = activeEditor {
-            if journalCursorLineIndex < viewModel.displayedEntries.count,
-               journalCursorLineIndex >= 0 {
-                let editedEntry = viewModel.displayedEntries[journalCursorLineIndex]
-                store.reparseEntryImmediately(id: editedEntry.id)
-            }
-
             if viewModel.hasPendingComposerDraft {
                 viewModel.addEntry()
             }
@@ -527,24 +521,6 @@ private extension HomeView {
 
     func forceResignKeyboard() {
         EditableJournalTextView.resignActiveEditor()
-
-        UIApplication.shared.sendAction(
-            #selector(UIResponder.resignFirstResponder),
-            to: nil,
-            from: nil,
-            for: nil
-        )
-
-        DispatchQueue.main.async {
-            EditableJournalTextView.resignActiveEditor()
-
-            UIApplication.shared.sendAction(
-                #selector(UIResponder.resignFirstResponder),
-                to: nil,
-                from: nil,
-                for: nil
-            )
-        }
     }
 
     func handleCapturedImage(_ image: UIImage) {
