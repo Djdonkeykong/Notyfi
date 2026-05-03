@@ -62,15 +62,6 @@ struct ProPaywallView: View {
                     CircleChevronButton(direction: .left) { goBack() }
                 }
                 Spacer()
-                // TESTING ONLY — remove before release
-                Button(action: onDismiss) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(.primary)
-                        .frame(width: 40, height: 40)
-                        .background(NotyfiTheme.circleButtonBackground, in: Circle())
-                }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
