@@ -24,7 +24,7 @@ final class FCMTokenManager: NSObject, MessagingDelegate {
             try await SupabaseService.client
                 .from("device_tokens")
                 .upsert(
-                    DeviceTokenPayload(userID: userID, token: token),
+                    DeviceTokenPayload(userID: userID, token: token, timezone: TimeZone.current.identifier),
                     onConflict: "user_id,token"
                 )
                 .execute()
@@ -38,10 +38,12 @@ private struct DeviceTokenPayload: Encodable {
     let userID: UUID
     let token: String
     let platform = "ios"
+    let timezone: String
 
     enum CodingKeys: String, CodingKey {
         case userID = "user_id"
         case token
         case platform
+        case timezone
     }
 }

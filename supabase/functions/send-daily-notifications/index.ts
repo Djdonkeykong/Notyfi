@@ -7,6 +7,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 interface DeviceTokenRow {
   user_id: string;
   token: string;
+  timezone: string;
 }
 
 interface UserRow {
@@ -390,13 +391,35 @@ Deno.serve(async (req) => {
       serviceRoleKey,
     );
 
-    const { data: tokens, error: tokensErr } = await supabase
+    const { data: allTokens, error: tokensErr } = await supabase
       .from("device_tokens")
-      .select("user_id, token");
+      .select("user_id, token, timezone");
 
     if (tokensErr) throw tokensErr;
-    if (!tokens || tokens.length === 0) {
+    if (!allTokens || allTokens.length === 0) {
       return new Response(JSON.stringify({ sent: 0 }), { status: 200 });
+    }
+
+    // Only send to users whose local time is currently 20:00 — this matches the
+    // hour that FCM covers so local notifications can safely skip it.
+    const tokens = (allTokens as DeviceTokenRow[]).filter((t) => {
+      try {
+        const localHour = parseInt(
+          new Intl.DateTimeFormat("en-US", {
+            timeZone: t.timezone,
+            hour: "2-digit",
+            hour12: false,
+          }).format(new Date()),
+          10,
+        );
+        return localHour === 20;
+      } catch {
+        return false;
+      }
+    });
+
+    if (tokens.length === 0) {
+      return new Response(JSON.stringify({ sent: 0, skipped: allTokens.length }), { status: 200 });
     }
 
     const accessToken = await getFirebaseAccessToken(sa);

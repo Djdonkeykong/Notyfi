@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import UserNotifications
 
 // Schedules smart, behavior-aware local notifications for the next 7 days.
@@ -17,7 +18,12 @@ final class NotificationContentEngine {
         guard NotyfiReminderManager.shared.loadSettings().isEnabled else { return }
 
         let frequency = NotyfiReminderManager.shared.loadFrequency()
-        let hours = frequency.notificationHours
+        // FCM covers the 20:00 slot for users with push registered — skip it locally
+        // to avoid duplicate notifications from both channels at the same time.
+        let pushActive = UIApplication.shared.isRegisteredForRemoteNotifications
+        let hours = pushActive
+            ? frequency.notificationHours.filter { $0 != 20 }
+            : frequency.notificationHours
 
         // Clear previous smart and legacy frequency notifications
         let oldIDs = (0..<64).map { "\(idPrefix).\($0)" }
