@@ -207,6 +207,7 @@ final class AuthManager: ObservableObject {
     // MARK: - Sign Out
 
     func signOut() async {
+        Analytics.reset()
         try? await SupabaseService.client.auth.signOut()
         try? await Purchases.shared.logOut()
         isAuthenticated = false
@@ -221,6 +222,7 @@ final class AuthManager: ObservableObject {
             logger.error("delete-account edge function failed: \(error.localizedDescription, privacy: .public)")
             throw AuthError.deleteFailed
         }
+        Analytics.reset()
         try? await SupabaseService.client.auth.signOut()
         try? await Purchases.shared.logOut()
         isAuthenticated = false
@@ -306,6 +308,12 @@ final class AuthManager: ObservableObject {
         )
         if let userID = session?.user.id.uuidString {
             Task { try? await Purchases.shared.logIn(userID) }
+            Analytics.identify(
+                userID: userID,
+                email: session?.user.email,
+                name: session?.user.userMetadata["full_name"]?.stringValue
+                    ?? session?.user.userMetadata["name"]?.stringValue
+            )
         }
     }
 

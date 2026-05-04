@@ -134,11 +134,15 @@ struct OnboardingFlowView: View {
                     .offset(x: chromeOffset * viewWidth)
             }
         }
+        .onAppear {
+            Analytics.capture("onboarding_screen_viewed", properties: ["screen": "welcome"])
+        }
         .onChange(of: authManager.isAuthenticated) { _, authenticated in
             guard authenticated else { return }
             if PendingOnboardingBootstrap.shouldBootstrap() {
                 // Normal path: user authenticated from the .auth step at the end
                 // of onboarding. Local data is pending bootstrap — mark complete.
+                Analytics.capture("onboarding_completed")
                 isComplete = true
             } else {
                 // Came from the .signIn screen (Welcome Back path).
@@ -272,6 +276,7 @@ struct OnboardingFlowView: View {
 
         if pushCurrent { stepHistory.append(currentStep) }
         currentStep = step
+        Analytics.capture("onboarding_screen_viewed", properties: ["screen": step.analyticsName])
 
         // Prepare chrome for boundary transitions
         if !wasChrome && willBeChrome {
@@ -342,6 +347,7 @@ struct OnboardingFlowView: View {
         let wasChrome = hasChrome(currentStep)
         let willBeChrome = hasChrome(prev)
         currentStep = prev
+        Analytics.capture("onboarding_screen_viewed", properties: ["screen": prev.analyticsName, "direction": "back"])
 
         // Prepare chrome for boundary transitions
         if !wasChrome && willBeChrome {
@@ -456,6 +462,22 @@ enum OnboardingStep: Hashable {
     case widget
     case auth     // "Save your progress" — end of onboarding
     case signIn   // "Welcome back" — from welcome page sign-in link
+
+    var analyticsName: String {
+        switch self {
+        case .welcome: return "welcome"
+        case .howItWorks: return "how_it_works"
+        case .currency: return "currency"
+        case .budget: return "budget"
+        case .categories: return "categories"
+        case .allocate: return "allocate"
+        case .notifications: return "notifications"
+        case .inputMethods: return "input_methods"
+        case .widget: return "widget"
+        case .auth: return "auth"
+        case .signIn: return "sign_in"
+        }
+    }
 }
 
 #Preview {

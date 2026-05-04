@@ -25,6 +25,9 @@ packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk.git
     from: 11.0.0
+  PostHog:
+    url: https://github.com/PostHog/posthog-ios
+    from: 3.0.0
 
 targets:
   Notyfi:
@@ -77,6 +80,8 @@ targets:
         product: GoogleSignIn
       - package: Firebase
         product: FirebaseMessaging
+      - package: PostHog
+        product: PostHog
     settings:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: NotyfiAppIcon

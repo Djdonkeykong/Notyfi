@@ -8,6 +8,7 @@ struct NotyfiApp: App {
     @StateObject private var store = ExpenseJournalStore()
 
     init() {
+        Analytics.setup()
         Purchases.configure(withAPIKey: "appl_GngBYbfKxrVpjUFIKMMaGPhkpRr")
         GIDSignIn.sharedInstance.configuration = GIDConfiguration(
             clientID: "216447990819-4avsmvn10s1uejikf59dlu0taiqpalka.apps.googleusercontent.com"
