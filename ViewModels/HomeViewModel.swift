@@ -147,6 +147,15 @@ final class HomeViewModel: ObservableObject {
 
     func generateMonthlyInsightsIfNeeded() {
         guard !monthlyInsightsIsLoading, monthlyInsightsResult == nil else { return }
+        let month = reportMonthDate
+        let key = monthlyInsightsCacheKey(for: month)
+        if let cached = loadCachedMonthlyInsights(key: key) {
+            monthlyInsightsResult = cached
+            return
+        }
+        // Only call the API on the last day of the month — insights are a
+        // month-end summary, not something that should generate mid-month.
+        guard isLastDayOfCurrentMonth else { return }
         Task { await generateMonthlyInsights() }
     }
 
