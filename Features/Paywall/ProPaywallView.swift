@@ -385,18 +385,12 @@ private struct PaywallPricingPage: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                SketchAnimatedImage(
-                    frames: ["mascot-welcome-f1","mascot-welcome-f2","mascot-welcome-f3","mascot-welcome-f4"],
-                    fps: 6
-                )
-                .frame(width: 275, height: 275)
-                .frame(maxWidth: .infinity)
-                .padding(.top, 16)
-
-                Text("Access all of Notyfi".notyfiLocalized)
+                Text("Get full access to Notyfi".notyfiLocalized)
                     .font(.notyfi(.largeTitle, weight: .bold))
-                    .padding(.horizontal, 64)
+                    .frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+                    .padding(.top, 48)
                     .padding(.bottom, 32)
 
                 VStack(alignment: .leading, spacing: 16) {
@@ -639,7 +633,10 @@ private struct PlanCard: View {
     let onTap: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
+        Button(action: {
+            UISelectionFeedbackGenerator().selectionChanged()
+            onTap()
+        }) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text(package.storeProduct.localizedTitle)
