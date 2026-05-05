@@ -390,7 +390,7 @@ private struct PaywallPricingPage: View {
                     .frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
-                    .padding(.top, 48)
+                    .padding(.top, 64)
                     .padding(.bottom, 32)
 
                 VStack(alignment: .leading, spacing: 16) {
