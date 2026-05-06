@@ -1,4 +1,4 @@
-"Today" = "Dzisiaj";
+﻿"Today" = "Dzisiaj";
 "Yesterday" = "Wczoraj";
 "Start typing your money notes..." = "Zacznij wpisywać swoje notatki finansowe...";
 "Start with a note" = "Zacznij od notatki";
@@ -577,3 +577,5 @@
 "Add Custom Category" = "Dodaj niestandardową kategorię";
 "Edit" = "Edytuj";
 "Delete" = "Usuń";
+"Prices couldn't be loaded" = "Nie udało się załadować cen";
+"Try again" = "Spróbuj ponownie";

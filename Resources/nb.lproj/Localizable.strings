@@ -1,4 +1,4 @@
-"Today" = "I dag";
+﻿"Today" = "I dag";
 "Yesterday" = "I går";
 "Start typing your money notes..." = "Skriv utgifter og inntekter her...";
 "Start with a note" = "Start med et notat";
@@ -577,3 +577,5 @@
 "Add Custom Category" = "Legg til tilpasset kategori";
 "Edit" = "Rediger";
 "Delete" = "Slett";
+"Prices couldn't be loaded" = "Prisene kunne ikke lastes";
+"Try again" = "Prøv igjen";

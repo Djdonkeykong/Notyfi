@@ -1,4 +1,4 @@
-"Today" = "I dag";
+﻿"Today" = "I dag";
 "Yesterday" = "I går";
 "Start typing your money notes..." = "Börja skriva dina pengaranteckningar...";
 "Start with a note" = "Börja med en anteckning";
@@ -578,3 +578,5 @@
 "Add Custom Category" = "Lägg till anpassad kategori";
 "Edit" = "Redigera";
 "Delete" = "Ta bort";
+"Prices couldn't be loaded" = "Priser kunde inte laddas";
+"Try again" = "Försök igen";

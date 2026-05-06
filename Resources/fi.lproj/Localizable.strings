@@ -1,4 +1,4 @@
-"Today" = "Tänään";
+﻿"Today" = "Tänään";
 "Yesterday" = "Eilen";
 "Start typing your money notes..." = "Ala kirjoittaa rahamuistiinpanojasi...";
 "Start with a note" = "Aloita muistiinpanolla";
@@ -577,3 +577,5 @@
 "Add Custom Category" = "Lisää mukautettu kategoria";
 "Edit" = "Muokkaa";
 "Delete" = "Poista";
+"Prices couldn't be loaded" = "Hintoja ei voitu ladata";
+"Try again" = "Yritä uudelleen";
