@@ -545,6 +545,8 @@
 "No commitment, cancel anytime" = "No commitment, cancel anytime";
 "Cancel anytime" = "Cancel anytime";
 "Learn More" = "Learn More";
+"Prices couldn't be loaded" = "Prices couldn't be loaded";
+"Try again" = "Try again";
 
 // Misc UI
 "All entries are clear" = "All entries are clear";
