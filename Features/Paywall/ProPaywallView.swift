@@ -24,6 +24,7 @@ struct ProPaywallView: View {
     @State private var isRestoring = false
     @State private var errorMessage: String?
     @State private var isTrialEligible = true
+    @State private var isLoadingOffering = true
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -84,8 +85,10 @@ struct ProPaywallView: View {
                 isRestoring: isRestoring,
                 errorMessage: errorMessage,
                 isTrialEligible: isTrialEligible,
+                isLoadingOffering: isLoadingOffering,
                 onSubscribe: { Task { await purchase() } },
-                onRestore: { Task { await restore() } }
+                onRestore: { Task { await restore() } },
+                onRetry: { Task { await loadOffering() } }
             )
         }
     }
@@ -167,6 +170,7 @@ struct ProPaywallView: View {
     }
 
     private func loadOffering() async {
+        isLoadingOffering = true
         do {
             let offerings = try await Purchases.shared.offerings()
             offering = offerings.current
@@ -185,9 +189,8 @@ struct ProPaywallView: View {
                     }
                 }
             }
-        } catch {
-            // Offerings unavailable — placeholder cards shown until products are configured
-        }
+        } catch {}
+        isLoadingOffering = false
     }
 
     private func purchase() async {
@@ -366,8 +369,10 @@ private struct PaywallPricingPage: View {
     let isRestoring: Bool
     let errorMessage: String?
     let isTrialEligible: Bool
+    let isLoadingOffering: Bool
     let onSubscribe: () -> Void
     let onRestore: () -> Void
+    let onRetry: () -> Void
 
     private let features: [(icon: String, text: String)] = [
         ("✨", "AI-powered expense parsing"),
@@ -454,8 +459,10 @@ private struct PaywallPricingPage: View {
                     isRestoring: isRestoring,
                     errorMessage: errorMessage,
                     isTrialEligible: isTrialEligible,
+                    isLoadingOffering: isLoadingOffering,
                     onSubscribe: onSubscribe,
-                    onRestore: onRestore
+                    onRestore: onRestore,
+                    onRetry: onRetry
                 )
             }
         }
@@ -471,8 +478,10 @@ private struct PricingBottomCard: View {
     let isRestoring: Bool
     let errorMessage: String?
     let isTrialEligible: Bool
+    let isLoadingOffering: Bool
     let onSubscribe: () -> Void
     let onRestore: () -> Void
+    let onRetry: () -> Void
 
     private var annualBadge: String {
         if isTrialEligible {
@@ -502,25 +511,38 @@ private struct PricingBottomCard: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
-                if let monthly = monthlyPackage {
-                    PlanCard(
-                        package: monthly,
-                        isSelected: selectedPackage?.identifier == monthly.identifier,
-                        badge: nil,
-                        onTap: { selectedPackage = monthly }
-                    )
-                }
-                if let annual = annualPackage {
-                    PlanCard(
-                        package: annual,
-                        isSelected: selectedPackage?.identifier == annual.identifier,
-                        badge: annualBadge,
-                        onTap: { selectedPackage = annual }
-                    )
-                }
-                if annualPackage == nil && monthlyPackage == nil {
-                    PlaceholderPlanCard(label: "Monthly".notyfiLocalized, badge: nil, isSelected: false)
-                    PlaceholderPlanCard(label: "Yearly".notyfiLocalized, badge: isTrialEligible ? "3 days free".notyfiLocalized : "Best value".notyfiLocalized, isSelected: true)
+                if isLoadingOffering {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                } else if annualPackage == nil && monthlyPackage == nil {
+                    VStack(spacing: 10) {
+                        Text("Prices couldn't be loaded".notyfiLocalized)
+                            .font(.notyfi(.subheadline))
+                            .foregroundStyle(NotyfiTheme.secondaryText)
+                        Button("Try again".notyfiLocalized, action: onRetry)
+                            .font(.notyfi(.subheadline, weight: .semibold))
+                            .foregroundStyle(NotyfiTheme.brandPrimary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 30)
+                } else {
+                    if let monthly = monthlyPackage {
+                        PlanCard(
+                            package: monthly,
+                            isSelected: selectedPackage?.identifier == monthly.identifier,
+                            badge: nil,
+                            onTap: { selectedPackage = monthly }
+                        )
+                    }
+                    if let annual = annualPackage {
+                        PlanCard(
+                            package: annual,
+                            isSelected: selectedPackage?.identifier == annual.identifier,
+                            badge: annualBadge,
+                            onTap: { selectedPackage = annual }
+                        )
+                    }
                 }
             }
             .padding(.horizontal, 20)
@@ -547,7 +569,7 @@ private struct PricingBottomCard: View {
 
             OnboardingPrimaryButton(
                 title: isTrialEligible ? "Start free trial".notyfiLocalized : "Subscribe now".notyfiLocalized,
-                isLoading: isPurchasing,
+                isLoading: isPurchasing || isLoadingOffering,
                 showShadow: false,
                 action: onSubscribe
             )
