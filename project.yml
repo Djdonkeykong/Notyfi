@@ -53,6 +53,7 @@ targets:
       path: App/Info.plist
       properties:
         CFBundleDisplayName: Notyfi
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
         UILaunchStoryboardName: LaunchScreen
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
