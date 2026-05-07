@@ -87,6 +87,7 @@ struct ReportsSheetView: View {
         }
         .task(id: insightCacheKey(for: reportMonth)) {
             guard !calendar.isDate(reportMonth, equalTo: viewModel.reportMonthDate, toGranularity: .month) else { return }
+            guard !calendar.isDate(reportMonth, equalTo: Date(), toGranularity: .month) else { return }
             await loadInsights(for: reportMonth)
         }
     }
