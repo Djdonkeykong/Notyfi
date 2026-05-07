@@ -66,41 +66,8 @@ struct ProPaywallView: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
-
-            if isTestFlight {
-                testFlightDebugBadge
-            }
         }
         .task { await loadOffering() }
-    }
-
-    private var isTestFlight: Bool {
-        Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
-    }
-
-    private var testFlightDebugBadge: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text("🧪 TF Debug")
-                .font(.system(size: 9, weight: .bold))
-            if isLoadingOffering {
-                Text("⏳ Loading offering...")
-            } else if let offering {
-                Text("✅ \(offering.availablePackages.count) package(s)")
-                ForEach(offering.availablePackages, id: \.identifier) { pkg in
-                    Text("• \(pkg.storeProduct.productIdentifier)")
-                }
-            } else {
-                Text("❌ offering = nil")
-            }
-        }
-        .font(.system(size: 9, weight: .medium, design: .monospaced))
-        .foregroundStyle(.white)
-        .padding(7)
-        .background(.black.opacity(0.72), in: RoundedRectangle(cornerRadius: 7))
-        .padding(.leading, 16)
-        .padding(.top, 56)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .allowsHitTesting(false)
     }
 
     @ViewBuilder
