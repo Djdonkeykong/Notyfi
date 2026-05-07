@@ -27,6 +27,11 @@ struct ReportsSheetView: View {
                         equalTo: viewModel.reportMonthDate,
                         toGranularity: .month
                     )
+                    let isCurrentMonth = calendar.isDate(reportMonth, equalTo: Date(), toGranularity: .month)
+                    let today = calendar.startOfDay(for: Date())
+                    let isLastDayOfMonth = calendar.date(byAdding: .day, value: 1, to: today)
+                        .map { !calendar.isDate(today, equalTo: $0, toGranularity: .month) } ?? false
+                    let showAICard = hasData && (!isCurrentMonth || isLastDayOfMonth)
 
                     CategoryDonutCard(
                         currencyCode: viewModel.currencyCode,
@@ -42,7 +47,7 @@ struct ReportsSheetView: View {
                         }
                     )
 
-                    if hasData {
+                    if showAICard {
                         AIReportCard(
                             result: isLastCompletedMonth ? viewModel.monthlyInsightsResult : insightsResults[key],
                             isLoading: isLastCompletedMonth ? viewModel.monthlyInsightsIsLoading : insightsLoadingKey == key,
