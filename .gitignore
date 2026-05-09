@@ -17,5 +17,6 @@ build/
 .playwright-mcp/
 skills-lock.json
 
-# Secrets (never commit .p8 keys)
+# Secrets (never commit .p8 keys or MCP config with API keys)
 *.p8
+.mcp.json
