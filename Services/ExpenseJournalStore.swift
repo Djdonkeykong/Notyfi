@@ -58,6 +58,7 @@ final class ExpenseJournalStore: ObservableObject {
             _ = materializeDueRecurringEntries(upTo: Date())
             resumePendingParsesIfNeeded()
             updateSharedSurfaces()
+            parser.warmUp()
         }
     }
 

@@ -77,6 +77,8 @@ struct ParsedExpenseDraft: Codable {
 }
 
 protocol ExpenseParsingServicing {
+    func warmUp()
+
     func parse(
         rawText: String,
         date: Date,
@@ -89,6 +91,10 @@ protocol ExpenseParsingServicing {
         date: Date,
         currencyCode: String
     ) async throws -> [ParsedExpenseDraft]
+}
+
+extension ExpenseParsingServicing {
+    func warmUp() {}
 }
 
 enum ExpenseParsingServiceError: LocalizedError {
@@ -135,6 +141,16 @@ struct OpenAIExpenseParsingService: ExpenseParsingServicing {
 
     init(functionName: String = "parse-expense") {
         self.functionName = functionName
+    }
+
+    func warmUp() {
+        Task {
+            struct Empty: Decodable {}
+            _ = try? await SupabaseService.client.functions.invoke(
+                functionName,
+                options: FunctionInvokeOptions(body: ["warm": true])
+            ) as Empty
+        }
     }
 
     func parse(
