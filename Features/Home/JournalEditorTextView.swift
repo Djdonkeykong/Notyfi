@@ -173,12 +173,10 @@ final class EditableJournalTextView: UITextView {
 
 extension UIFont {
     static var notyfiBody: UIFont {
-        let descriptor = UIFont.systemFont(ofSize: 17, weight: .regular).fontDescriptor
-
-        if let roundedDescriptor = descriptor.withDesign(.rounded) {
-            return UIFont(descriptor: roundedDescriptor, size: 17)
+        let base = UIFont.preferredFont(forTextStyle: .body)
+        if let roundedDescriptor = base.fontDescriptor.withDesign(.rounded) {
+            return UIFont(descriptor: roundedDescriptor, size: 0)
         }
-
-        return UIFont.systemFont(ofSize: 17, weight: .regular)
+        return base
     }
 }
